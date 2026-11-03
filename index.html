@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<link rel="icon" type="image/png" href="logo.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Precios en la Nube - TecnoServicios</title>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;background:#f4f6f9;color:#333}
+h1{color:#1a252f;font-size:22px}
+.container{max-width:900px;margin:0 auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;background:#eef2f7;padding:15px;border-radius:6px}
+input,select,button{padding:10px;border:1px solid #ccc;border-radius:4px;font-size:14px;font-family:inherit}
+button{background:#2ecc71;color:#fff;border:none;cursor:pointer;font-weight:bold}
+button:hover{background:#27ae60}
+button:disabled{background:#95a5a6;cursor:wait}
+button.mini{padding:5px 9px;font-size:12px}
+button.rojo{background:#e74c3c}
+button.rojo:hover{background:#c0392b}
+.search-box{width:100%;padding:10px;margin-bottom:12px;box-sizing:border-box;font-size:16px;border:2px solid #2ecc71;border-radius:4px}
+.barra{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px;color:#7f8c8d;flex-wrap:wrap}
+.punto{width:9px;height:9px;border-radius:50%;background:#95a5a6;display:inline-block}
+.punto.ok{background:#2ecc71}.punto.err{background:#e74c3c}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{padding:12px;text-align:left;border-bottom:1px solid #ddd}
+th{background:#34495e;color:#fff;font-size:13px}
+tr:hover{background:#f1f1f1}
+.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.vacio{text-align:center;color:#7f8c8d;padding:24px}
+@media(max-width:600px){body{margin:8px}.container{padding:12px}}
+.marca{display:flex;align-items:center;gap:14px;border-bottom:2px solid #2ecc71;padding-bottom:14px;margin-bottom:18px;flex-wrap:wrap}
+.logo img{height:64px;width:auto;display:block}
+.logo img{width:155px;height:104px;margin:-27px 0 0 -28px;max-width:none;display:block}
+h1{margin:0;font-size:22px}
+.lema{margin:3px 0 0;font-size:12px;color:#7f8c8d;text-transform:uppercase;letter-spacing:.06em}
+.fecha-header{margin-left:auto;font-size:13px;color:#2c3e50;font-weight:bold;background:#eef2f7;padding:6px 12px;border-radius:6px;border:1px solid #dcdde1}
+</style>
+</head>
+<body>
+
+<div class="container">
+ <div class="marca">
+  <div class="logo"><img src="logo.png" alt="LIFOX TECH"></div>
+  <div>
+    <h1>Control de Precios</h1>
+    <p class="lema">Garantía, calidad y confianza</p>
+  </div>
+  <div id="fechaActual" class="fecha-header">Cargando fecha...</div>
+</div>
+
+  <form id="priceForm">
+    <input type="text" id="itemName" placeholder="Artículo o Reparación" required maxlength="80">
+    <select id="itemType" required>
+      <option value="">Seleccione Tipo</option>
+      <option value="Venta">Venta (Equipo/Accesorio)</option>
+      <option value="Reparación">Reparación (Servicio)</option>
+    </select>
+    <input type="number" id="itemPrice" placeholder="Precio ($)" step="0.01" min="0" required>
+    <button type="submit" id="btnSubmit">Registrar en la Nube</button>
+  </form>
+
+  <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar en tiempo real...">
+
+  <div class="barra">
+    <span class="punto" id="punto"></span>
+    <span id="loadingStatus">Cargando precios actualizados...</span>
+    <button type="button" class="mini" id="btnReload">Actualizar ahora</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Artículo / Servicio</th><th>Tipo</th><th class="num">Precio</th><th></th></tr>
+    </thead>
+    <tbody id="inventoryTable"></tbody>
+  </table>
+</div>
+
+<script>
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxd5O4Wb_3Y4n_u1N3A-APqmhYxx9kMdTjTWGorr6wG-ODzBI92r-NuMuLw4ScNxgC_hg/exec";
+
+const priceForm = document.getElementById('priceForm');
+const inventoryTable = document.getElementById('inventoryTable');
+const searchBox = document.getElementById('searchBox');
+const loadingStatus = document.getElementById('loadingStatus');
+const punto = document.getElementById('punto');
+const btnSubmit = document.getElementById('btnSubmit');
+const fechaActual = document.getElementById('fechaActual');
+
+let inventory = [];
+
+// Mostrar fecha actual automatizada al cargar
+function mostrarFecha() {
+  if (!fechaActual) return;
+  const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const hoy = new Date().toLocaleDateString('es-MX', opciones);
+  // Capitaliza la primera letra (ej. "Lunes, 3 de...")
+  fechaActual.textContent = hoy.charAt(0).toUpperCase() + hoy.slice(1);
+}
+
+const money = n => '$' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function estado(cls, txt) { punto.className = 'punto ' + cls; loadingStatus.textContent = txt; }
+
+async function loadInventory() {
+  try {
+    const r = await fetch(WEB_APP_URL + '?t=' + Date.now(), { cache: 'no-store' });
+    const data = await r.json();
+    inventory = Array.isArray(data) ? data : [];
+    displayItems(searchBox.value);
+    estado('ok', '🟢 Sincronizado · ' + new Date().toLocaleTimeString('es-MX'));
+  } catch (e) {
+    estado('err', '❌ Sin conexión con la nube');
+  }
+}
+
+function displayItems(filter = '') {
+  const f = filter.trim().toLowerCase();
+  inventoryTable.innerHTML = '';
+  const lista = inventory.filter(it => !f || String(it.name).toLowerCase().includes(f) || String(it.type).toLowerCase().includes(f));
+  if (!lista.length) {
+    inventoryTable.innerHTML = '<tr><td colspan="4" class="vacio">' + (f ? 'Sin coincidencias.' : 'Aún no hay artículos registrados.') + '</td></tr>';
+    return;
+  }
+  lista.sort((a, b) => String(a.name).localeCompare(String(b.name), 'es'));
+  lista.forEach(it => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td><strong>' + esc(it.name) + '</strong></td>' +
+      '<td>' + esc(it.type) + '</td>' +
+      '<td class="num">' + money(it.price) + '</td>' +
+      '<td style="white-space:nowrap">' +
+        '<button class="mini" data-edit="' + esc(it.id) + '" data-price="' + Number(it.price) + '">Editar</button> ' +
+        '<button class="mini rojo" data-del="' + esc(it.id) + '">Borrar</button></td>';
+    inventoryTable.appendChild(tr);
+  });
+}
+
+priceForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = document.getElementById('itemName').value.trim();
+  const type = document.getElementById('itemType').value;
+  const price = Number(document.getElementById('itemPrice').value);
+  if (!name || !type || isNaN(price)) return;
+
+  btnSubmit.textContent = 'Guardando...';
+  btnSubmit.disabled = true;
+  try {
+    await fetch(WEB_APP_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ name, type, price })
+    });
+    priceForm.reset();
+    estado('ok', 'Guardado. Sincronizando...');
+    setTimeout(loadInventory, 1500);
+  } catch (err) {
+    estado('err', '❌ No se pudo guardar');
+  } finally {
+    btnSubmit.textContent = 'Registrar en la Nube';
+    btnSubmit.disabled = false;
+  }
+});
+
+inventoryTable.addEventListener('click', async e => {
+  const del = e.target.closest('button[data-del]');
+  const ed = e.target.closest('button[data-edit]');
+  
+  if (del) {
+    if (!confirm('¿Borrar este registro?')) return;
+    estado('ok', 'Eliminando...');
+    try {
+      await fetch(WEB_APP_URL + '?action=delete&id=' + encodeURIComponent(del.dataset.del) + '&t=' + Date.now());
+      estado('ok', 'Registro borrado');
+      setTimeout(loadInventory, 800);
+    } catch (err) { estado('err', '❌ No se pudo borrar'); }
+  }
+
+  if (ed) {
+    const actual = Number(ed.dataset.price);
+    const nuevo = prompt('Nuevo precio:', actual.toFixed(2));
+    if (nuevo === null) return;
+    const n = Number(nuevo);
+    if (isNaN(n) || n < 0) { alert('Precio inválido'); return; }
+    estado('ok', 'Actualizando precio...');
+    try {
+      await fetch(WEB_APP_URL + '?action=update&id=' + encodeURIComponent(ed.dataset.edit) + '&precio=' + n + '&t=' + Date.now());
+      estado('ok', 'Precio actualizado');
+      setTimeout(loadInventory, 800);
+    } catch (err) { estado('err', '❌ No se pudo actualizar'); }
+  }
+});
+
+searchBox.addEventListener('input', e => displayItems(e.target.value));
+document.getElementById('btnReload').addEventListener('click', loadInventory);
+
+// Inicializar
+mostrarFecha();
+loadInventory();
+
+setInterval(() => { if (!document.hidden) loadInventory(); }, 15000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) loadInventory(); });
+</script>
+</body>
+</html>
