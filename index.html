@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<link rel="icon" type="image/png" href="logo.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Precios en la Nube - TecnoServicios</title>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;background:#f4f6f9;color:#333}
+h1{color:#1a252f;font-size:22px}
+.container{max-width:1100px;margin:0 auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;background:#eef2f7;padding:15px;border-radius:6px}
+input,select,button{padding:10px;border:1px solid #ccc;border-radius:4px;font-size:14px;font-family:inherit}
+button{background:#2ecc71;color:#fff;border:none;cursor:pointer;font-weight:bold}
+button:hover{background:#27ae60}
+button:disabled{background:#95a5a6;cursor:wait}
+button.mini{padding:5px 9px;font-size:12px}
+button.rojo{background:#e74c3c}
+button.rojo:hover{background:#c0392b}
+.search-box{width:100%;padding:10px;margin-bottom:12px;box-sizing:border-box;font-size:16px;border:2px solid #2ecc71;border-radius:4px}
+.barra{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px;color:#7f8c8d;flex-wrap:wrap}
+.punto{width:9px;height:9px;border-radius:50%;background:#95a5a6;display:inline-block}
+.punto.ok{background:#2ecc71}.punto.err{background:#e74c3c}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{padding:12px;text-align:left;border-bottom:1px solid #ddd}
+th{background:#34495e;color:#fff;font-size:13px}
+tr:hover{background:#f1f1f1}
+.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.vacio{text-align:center;color:#7f8c8d;padding:24px}
+@media(max-width:600px){body{margin:8px}.container{padding:12px}}
+.marca{display:flex;align-items:center;gap:14px;border-bottom:2px solid #2ecc71;padding-bottom:14px;margin-bottom:18px;flex-wrap:wrap}
+.logo img{height:64px;width:auto;display:block}
+.logo img{width:155px;height:104px;margin:-27px 0 0 -28px;max-width:none;display:block}
+h1{margin:0;font-size:22px}
+.lema{margin:3px 0 0;font-size:12px;color:#7f8c8d;text-transform:uppercase;letter-spacing:.06em}
+.fecha-header{margin-left:auto;font-size:13px;color:#2c3e50;font-weight:bold;background:#eef2f7;padding:6px 12px;border-radius:6px;border:1px solid #dcdde1}
+.admin-panel{display:none}
+.admin-link{margin-top:20px;text-align:right;font-size:12px}
+.admin-link a{color:#7f8c8d;text-decoration:none;cursor:pointer}
+.admin-link a:hover{color:#333;text-decoration:underline}
+
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:1000}
+.modal-box{background:#fff;padding:20px;border-radius:8px;width:300px;box-shadow:0 4px 8px rgba(0,0,0,0.2);text-align:center}
+.modal-box h3{margin-top:0;color:#2c3e50;font-size:16px}
+.modal-box input{width:80%;margin-bottom:12px;padding:8px;font-size:16px;text-align:center}
+.modal-buttons{display:flex;justify-content:center;gap:10px}
+.modal-buttons button{padding:6px 12px;font-size:13px}
+.btn-gris{background:#95a5a6}
+.btn-gris:hover{background:#7f8c8d}
+</style>
+</head>
+<body>
+
+<div class="container">
+ <div class="marca">
+  <div class="logo"><img src="logo.png" alt="LIFOX TECH"></div>
+  <div>
+    <h1>Control de Precios</h1>
+    <p class="lema">Garantía, calidad y confianza</p>
+  </div>
+  <div id="fechaActual" class="fecha-header">Cargando fecha...</div>
+</div>
+
+  <!-- Formulario con campo de Cliente -->
+  <form id="priceForm" class="admin-panel">
+    <input type="text" id="clientName" placeholder="Nombre del Cliente" maxlength="80">
+    <input type="text" id="itemName" placeholder="Artículo o Reparación" maxlength="80">
+    <select id="itemType">
+      <option value="">Seleccione Tipo</option>
+      <option value="Venta">Venta (Equipo/Accesorio)</option>
+      <option value="Reparación">Reparación (Servicio)</option>
+    </select>
+    <input type="number" id="itemPrice" placeholder="Precio ($)" step="0.01" min="0">
+    <button type="submit" id="btnSubmit">Registrar en la Nube</button>
+  </form>
+
+  <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar por cliente, artículo o tipo...">
+
+  <div class="barra">
+    <span class="punto" id="punto"></span>
+    <span id="loadingStatus">Cargando precios actualizados...</span>
+    <button type="button" class="mini" id="btnReload">Actualizar ahora</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Cliente</th>
+        <th>Artículo / Servicio</th>
+        <th>Tipo</th>
+        <th class="num">Precio</th>
+        <th>Fecha</th>
+        <th>Hora</th>
+        <th class="col-admin admin-panel" style="width: 120px;"></th>
+      </tr>
+    </thead>
+    <tbody id="inventoryTable"></tbody>
+  </table>
+
+  <div class="admin-link">
+    <a id="btnAdminLogin" onclick="toggleAdmin()">🔐 Modo Administrador</a>
+  </div>
+</div>
+
+<div id="adminModal" class="modal-overlay">
+  <div class="modal-box">
+    <h3>Acceso de Administrador</h3>
+    <input type="password" id="adminPasswordInput" placeholder="Contraseña">
+    <div class="modal-buttons">
+      <button type="button" onclick="verificarPassword()">Ingresar</button>
+      <button type="button" class="btn-gris" onclick="cerrarModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxYWQwTSAx8eGsR0ds3AC86r6XoQSeJqjQHGixhYxqru7hsDvkKvFoLr6uIzq_0GAo9Og/exec";
+const ADMIN_PASSWORD = "199926"; 
+
+const priceForm = document.getElementById('priceForm');
+const inventoryTable = document.getElementById('inventoryTable');
+const searchBox = document.getElementById('searchBox');
+const loadingStatus = document.getElementById('loadingStatus');
+const punto = document.getElementById('punto');
+const btnSubmit = document.getElementById('btnSubmit');
+const fechaActual = document.getElementById('fechaActual');
+const adminModal = document.getElementById('adminModal');
+const adminPasswordInput = document.getElementById('adminPasswordInput');
+
+let inventory = [];
+let isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+
+function verificarAdminUI() {
+  const elementosAdmin = document.querySelectorAll('.admin-panel');
+  elementosAdmin.forEach(el => {
+    el.style.display = isAdmin ? (el.tagName === 'FORM' ? 'grid' : 'table-cell') : 'none';
+  });
+  if(isAdmin) {
+    document.getElementById('btnAdminLogin').textContent = '🔓 Cerrar Sesión Admin';
+  } else {
+    document.getElementById('btnAdminLogin').textContent = '🔐 Modo Administrador';
+  }
+}
+
+function toggleAdmin() {
+  if (isAdmin) {
+    sessionStorage.removeItem('isAdmin');
+    isAdmin = false;
+    verificarAdminUI();
+    displayItems(searchBox.value);
+    alert('Sesión de administrador cerrada.');
+  } else {
+    adminModal.style.display = 'flex';
+    adminPasswordInput.value = '';
+    adminPasswordInput.focus();
+  }
+}
+
+function cerrarModal() {
+  adminModal.style.display = 'none';
+}
+
+function verificarPassword() {
+  const pass = adminPasswordInput.value;
+  if (pass === ADMIN_PASSWORD) {
+    sessionStorage.setItem('isAdmin', 'true');
+    isAdmin = true;
+    verificarAdminUI();
+    displayItems(searchBox.value);
+    cerrarModal();
+    alert('¡Modo administrador activado con éxito!');
+  } else {
+    alert('Contraseña incorrecta.');
+    adminPasswordInput.value = '';
+    adminPasswordInput.focus();
+  }
+}
+
+adminPasswordInput.addEventListener('keypress', e => {
+  if (e.key === 'Enter') verificarPassword();
+});
+
+function mostrarFecha() {
+  if (!fechaActual) return;
+  const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const hoy = new Date().toLocaleDateString('es-DO', opciones);
+  fechaActual.textContent = hoy.charAt(0).toUpperCase() + hoy.slice(1);
+}
+
+function formatearFechaLimpia(val) {
+  if (!val) return '-';
+  const d = new Date(val);
+  if (!isNaN(d.getTime())) {
+    return d.toLocaleDateString('es-DO');
+  }
+  return val;
+}
+
+function formatearHoraLimpia(val) {
+  if (!val) return '-';
+  const d = new Date(val);
+  if (!isNaN(d.getTime())) {
+    return d.toLocaleTimeString('es-DO', { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+  }
+  return val;
+}
+
+const money = n => '$' + Number(n || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function estado(cls, txt) { punto.className = 'punto '+cls; loadingStatus.textContent = txt; }
+
+async function loadInventory() {
+  try {
+    const r = await fetch(WEB_APP_URL+'?t='+Date.now(),{cache:'no-store'});
+    const data = await r.json();
+    inventory = Array.isArray(data)?data:[];
+    displayItems(searchBox.value);
+    estado('ok','🟢 Sincronizado · '+new Date().toLocaleTimeString('es-DO'));
+  } catch(e) {
+    estado('err','❌ Sin conexión con la nube');
+  }
+}
+
+function displayItems(filter=''){
+  const f = filter.trim().toLowerCase();
+  inventoryTable.innerHTML='';
+  // Permite buscar por cliente, nombre de artículo o tipo
+  const lista = inventory.filter(it=>!f || String(it.client).toLowerCase().includes(f) || String(it.name).toLowerCase().includes(f) || String(it.type).toLowerCase().includes(f));
+  
+  const totalCols = isAdmin ? 7 : 6;
+
+  if(!lista.length){
+    inventoryTable.innerHTML='<tr><td colspan="'+totalCols+'" class="vacio">'+(f?'Sin coincidencias.':'Aún no hay registros guardados.')+'</td></tr>';
+    return;
+  }
+  
+  lista.sort((a,b)=>String(a.client).localeCompare(String(b.client),'es'));
+  lista.forEach(it=>{
+    const tr=document.createElement('tr');
+    let html='<td><strong>'+esc(it.client)+'</strong></td>'+
+      '<td>'+esc(it.name)+'</td>'+
+      '<td>'+esc(it.type)+'</td>'+
+      '<td class="num">'+money(it.price)+'</td>'+
+      '<td>'+esc(formatearFechaLimpia(it.date))+'</td>'+
+      '<td>'+esc(formatearHoraLimpia(it.time))+'</td>';
+    
+    if(isAdmin){
+      html+='<td style="white-space:nowrap">'+
+        '<button class="mini" data-edit="'+esc(it.id)+'" data-price="'+Number(it.price)+'">Editar</button> '+
+        '<button class="mini rojo" data-del="'+esc(it.id)+'">Borrar</button></td>';
+    }
+    
+    tr.innerHTML=html;
+    inventoryTable.appendChild(tr);
+  });
+}
+
+priceForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  if(!isAdmin) return;
+  const client = document.getElementById('clientName').value.trim() || 'General';
+  const name = document.getElementById('itemName').value.trim();
+  const type = document.getElementById('itemType').value;
+  const price = Number(document.getElementById('itemPrice').value);
+  if(!name || !type || isNaN(price)) return;
+
+  const ahora = new Date();
+  const fechaLocal = ahora.toLocaleDateString('es-DO');
+  const horaLocal = ahora.toLocaleTimeString('es-DO', { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+  const tempId = 'temp_' + Date.now();
+
+  const nuevoItem = {
+    id: tempId,
+    client: client,
+    name: name,
+    type: type,
+    price: price,
+    date: fechaLocal,
+    time: horaLocal
+  };
+
+  inventory.unshift(nuevoItem);
+  displayItems(searchBox.value);
+  priceForm.reset();
+  estado('ok', '⚡ Agregado (Sincronizando con la nube...)');
+
+  try {
+    await fetch(WEB_APP_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ client, name, type, price })
+    });
+    setTimeout(loadInventory, 1000);
+  } catch(err) {
+    estado('err', '❌ Error al sincronizar con la nube');
+  }
+});
+
+inventoryTable.addEventListener('click', async e => {
+  if(!isAdmin) return;
+  const del = e.target.closest('button[data-del]');
+  const ed = e.target.closest('button[data-edit]');
+  
+  if(del) {
+    if(!confirm('¿Borrar este registro?')) return;
+    estado('ok', 'Eliminando...');
+    try {
+      await fetch(WEB_APP_URL+'?action=delete&id='+encodeURIComponent(del.dataset.del)+'&t='+Date.now());
+      estado('ok', 'Registro borrado');
+      setTimeout(loadInventory, 400);
+    } catch(err) { estado('err', '❌ No se pudo borrar'); }
+  }
+
+  if(ed) {
+    const actual = Number(ed.dataset.price);
+    const nuevo = prompt('Nuevo precio:', actual.toFixed(2));
+    if(nuevo === null) return;
+    const n = Number(nuevo);
+    if(isNaN(n) || n < 0) { alert('Precio inválido'); return; }
+    estado('ok', 'Actualizando precio...');
+    try {
+      await fetch(WEB_APP_URL+'?action=update&id='+encodeURIComponent(ed.dataset.edit)+'&precio='+n+'&t='+Date.now());
+      estado('ok', 'Precio actualizado');
+      setTimeout(loadInventory, 400);
+    } catch(err) { estado('err', '❌ No se pudo actualizar'); }
+  }
+});
+
+searchBox.addEventListener('input', e => displayItems(e.target.value));
+document.getElementById('btnReload').addEventListener('click', loadInventory);
+
+verificarAdminUI();
+mostrarFecha();
+loadInventory();
+
+setInterval(() => { if(!document.hidden) loadInventory(); }, 15000);
+document.addEventListener('visibilitychange', () => { if(!document.hidden) loadInventory(); });
+</script>
+</body>
+</html>
