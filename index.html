@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Control de Precios y Reparaciones - TecnoServicios</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
 <!-- ============================================================
      ESTILOS
@@ -30,7 +31,7 @@ body {
   color: var(--text-main);
 }
 .container {
-  max-width: 1250px;
+  max-width: 1350px;
   margin: 0 auto;
   background: var(--card-bg);
   padding: 32px;
@@ -41,44 +42,69 @@ body {
 
 /* --- Encabezado / marca --- */
 .marca {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
   border-bottom: 2px solid var(--border-color);
   padding-bottom: 20px;
   margin-bottom: 24px;
-  flex-wrap: wrap;
+}
+
+/* Columna del logo + eslogan */
+.bloque-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 .logo {
   background: transparent;
-  padding: 6px 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, .1);
+  padding: 0;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 220px;
-  height: 110px;
+  width: 260px; /* Tamaño mucho más grande y visible */
+  height: 110px; /* Mayor altura para que destaque */
 }
 .logo img { 
   width: 100%; 
   height: 100%; 
   object-fit: contain; 
   display: block;
-  /* Convierte el logo (zorro y letras) completamente en blanco */
-  filter: brightness(0) invert(1);
+  /* Filtro de alto contraste + brillo + resplandor blanco intenso */
+  filter: brightness(1.35) contrast(1.25) 
+          drop-shadow(0 0 12px rgba(255, 255, 255, 0.85)) 
+          drop-shadow(0 0 3px rgba(255, 255, 255, 1));
 }
-h1 { margin: 0; font-size: 24px; font-weight: 700; color: #f1f5f9; }
-.lema {
-  margin: 4px 0 0;
-  font-size: 11px;
-  color: #fff;
+.slogan-logo {
+  font-size: 11.5px;
+  color: #cbd5e1;
   text-transform: uppercase;
-  letter-spacing: .1em;
-  font-weight: 600;
+  letter-spacing: .14em;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
 }
+
+/* Columna central del título */
+.titulo-marca {
+  text-align: center;
+}
+h1 { 
+  margin: 0; 
+  font-family: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 25px; 
+  font-weight: 700; 
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Columna derecha de la fecha */
 .fecha-header {
-  margin-left: auto;
   font-size: 13px;
   color: #cbd5e1;
   font-weight: 600;
@@ -86,6 +112,16 @@ h1 { margin: 0; font-size: 24px; font-weight: 700; color: #f1f5f9; }
   padding: 8px 16px;
   border-radius: 8px;
   border: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+/* Ajuste responsive para celulares */
+@media (max-width: 768px) {
+  .marca {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
 }
 
 /* --- Formulario --- */
@@ -251,37 +287,24 @@ button.gris:hover { background: #52525b; }
 #btnNueva { background: var(--success); color: #fff; display: none; align-items: center; margin-left: auto; }
 #btnNueva:hover { background: #0d9668; }
 
-/* --- Tabla --- */
+/* --- Tabla Amplia y Completa (Sin recortes) --- */
 .table-responsive { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-color); }
-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+table { width: 100%; table-layout: auto; border-collapse: collapse; }
 th, td {
-  padding: 13px 9px;
+  padding: 14px 12px;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 13.5px;
   vertical-align: middle;
+  word-break: break-word;
 }
-th { background: #202024; color: #f1f5f9; font-weight: 600; text-transform: uppercase; font-size: 11px; }
+th { background: #202024; color: #f1f5f9; font-weight: 600; text-transform: uppercase; font-size: 11px; white-space: nowrap; }
 tr:nth-child(even) { background: #121214; }
-.num { text-align: right; font-variant-numeric: tabular-nums; }
-.ganancia-txt { color: #34d399; font-weight: 700; }
+.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ganancia-txt { color: #34d399; font-weight: 700; white-space: nowrap; }
 .vacio { text-align: center; color: var(--text-muted); padding: 32px; font-style: italic; }
 
-col.c-cliente { width: 10%; }
-col.c-tel { width: 8%; }
-col.c-tec { width: 6%; }
-col.c-disp { width: 14%; }
-col.c-serv { width: 15%; }
-col.c-comp { width: 6%; }
-col.c-cli { width: 6%; }
-col.c-gan { width: 6%; }
-col.c-nota { width: 5%; }
-col.c-fecha { width: 9%; }
-col.c-acc { width: 15%; }
-td.celda-acc { overflow: visible; }
+td.celda-acc { white-space: nowrap; }
 .celda-acc .acc-wrap { display: flex; gap: 6px; justify-content: center; }
 .celda-acc button { padding: 5px 10px; font-size: 11.5px; }
 
@@ -374,34 +397,6 @@ td.celda-acc { overflow: visible; }
 }
 .msg-modal.error { display: block; background: rgba(239, 68, 68, .12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, .4); }
 .msg-modal.ok { display: block; background: rgba(16, 185, 129, .12); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, .4); }
-
-/* --- Responsive --- */
-@media (max-width: 1100px) {
-  #tabla .col-nota, #tabla .col-comp { display: none; }
-}
-@media (max-width: 900px) {
-  #tabla .col-tec, #tabla .col-tel { display: none; }
-  .form-row { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 640px) {
-  body { padding: 12px; }
-  .container { padding: 18px; }
-  .form-row { grid-template-columns: 1fr; }
-  #tabla thead { display: none; }
-  #tabla tbody tr {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 2px 10px;
-    border-bottom: 1px solid var(--border-color);
-    padding: 10px 4px;
-  }
-  #tabla td { border: none; padding: 2px 0; white-space: normal; }
-  #tabla td[data-etiq]::before { content: attr(data-etiq) ": "; color: var(--text-muted); font-size: 11px; }
-  #tabla td.celda-acc { grid-column: 1 / -1; display: flex; gap: 8px; margin-top: 6px; }
-  .celda-acc .acc-wrap { justify-content: flex-start; }
-  #tabla .col-nota, #tabla .col-comp, #tabla .col-tec, #tabla .col-tel { display: block; }
-  .admin-footer-area { flex-direction: column; align-items: flex-start; }
-}
 </style>
 </head>
 
@@ -412,11 +407,18 @@ td.celda-acc { overflow: visible; }
        ENCABEZADO
        ============================================================ -->
   <div class="marca">
-    <div class="logo"><img src="logo.png" alt="LIFOX TECH" onerror="this.style.display='none'"></div>
-    <div>
-      <h1>Control de Precios y Reparaciones</h1>
-      <p class="lema">Garantía, calidad y confianza</p>
+    <!-- Bloque de la izquierda: Logo resaltado + Eslogan pegado debajo -->
+    <div class="bloque-logo">
+      <div class="logo"><img src="logo.png" alt="LIFOX TECH" onerror="this.style.display='none'"></div>
+      <span class="slogan-logo">Garantía, Calidad y Confianza</span>
     </div>
+
+    <!-- Bloque central: Título centrado -->
+    <div class="titulo-marca">
+      <h1>Control de Precios y Reparaciones</h1>
+    </div>
+
+    <!-- Bloque derecho: Fecha -->
     <div id="fechaActual" class="fecha-header">Cargando fecha...</div>
   </div>
 
@@ -680,7 +682,7 @@ td.celda-acc { overflow: visible; }
   </form>
 
   <!-- ============================================================
-       BUSCADOR + BARRA DE ESTADO (con reloj automático)
+       BUSCADOR + BARRA DE ESTADO
        ============================================================ -->
   <input type="text" id="searchBox" class="search-box"
          placeholder="🔍 Buscar por cliente, teléfono, técnico, dispositivo..."
@@ -699,22 +701,17 @@ td.celda-acc { overflow: visible; }
        ============================================================ -->
   <div class="table-responsive">
     <table id="tabla">
-      <colgroup>
-        <col class="c-cliente"><col class="c-tel"><col class="c-tec"><col class="c-disp">
-        <col class="c-serv"><col class="c-comp"><col class="c-cli"><col class="c-gan">
-        <col class="c-nota"><col class="c-fecha"><col class="c-acc" id="colAcc">
-      </colgroup>
       <thead>
         <tr>
           <th>Cliente</th>
-          <th class="col-tel">Teléfono</th>
-          <th class="col-tec">Técnico</th>
+          <th>Teléfono</th>
+          <th>Técnico</th>
           <th>Dispositivo</th>
           <th>Reparaciones / Servicios</th>
-          <th class="num col-comp">Compra</th>
+          <th class="num">Compra</th>
           <th class="num">Cliente</th>
           <th class="num">Ganancia</th>
-          <th class="col-nota">Nota</th>
+          <th>Nota</th>
           <th>Fecha / Hora</th>
           <th class="col-admin admin-panel" style="text-align:center;">Acciones</th>
         </tr>
@@ -784,35 +781,13 @@ td.celda-acc { overflow: visible; }
 </div>
 
 <!-- ============================================================
-     DETECTOR DE ERRORES DE CARGA
-     ============================================================ -->
-<script>
-window.addEventListener('error', function (ev) {
-  var s = document.getElementById('loadingStatus');
-  var p = document.getElementById('punto');
-  if (s) s.textContent = 'ERROR: ' + ev.message + ' (linea ' + ev.lineno + ')';
-  if (p) p.className = 'punto err';
-});
-setTimeout(function () {
-  if (!window.__ok) {
-    var s = document.getElementById('loadingStatus');
-    var p = document.getElementById('punto');
-    if (s) s.textContent = 'EL SCRIPT NO ARRANCO (archivo incompleto o en cache)';
-    if (p) p.className = 'punto err';
-  }
-}, 2500);
-</script>
-
-<!-- ============================================================
      APLICACIÓN
      ============================================================ -->
 <script>
 "use strict";
 
-/* ---------- Configuración ---------- */
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXl6vlj3UF6J2jZLfvoB-N_8L5gzEz0TRUzZ6lN8PDgGV_0YOVUcRCZHxQvMK812YqFA/exec";
 
-/* ---------- Almacenamiento con respaldo ---------- */
 const memStore = {};
 const store = {
   get(k) { try { return localStorage.getItem(k); } catch (e) { return memStore[k] || null; } },
@@ -826,7 +801,6 @@ function sesionPoner(v) {
   try { if (v) sessionStorage.setItem('isAdmin', 'true'); else sessionStorage.removeItem('isAdmin'); } catch (e) {}
 }
 
-/* ---------- Referencias del DOM ---------- */
 const priceForm = document.getElementById('priceForm');
 const inventoryTable = document.getElementById('inventoryTable');
 const searchBox = document.getElementById('searchBox');
@@ -847,7 +821,6 @@ const btnDeshacer = document.getElementById('btnDeshacer');
 const btnCancelar = document.getElementById('btnCancelar');
 const btnNueva = document.getElementById('btnNueva');
 
-/* ---------- Catálogos ---------- */
 const SERVICIOS = {
   iPhone: [
     'Cambio de pantalla', 'Cambio de batería', 'Cambio de flex', 'Cambio de tapa trasera',
@@ -874,16 +847,12 @@ const TITULOS = {
   PC: 'Servicios para Computadoras'
 };
 
-/* ---------- Estado local ---------- */
 let seleccionados = new Set();
 let snapshot = null;
 let editandoId = null;
 let isAdmin = sesionLeer();
 let validando = false;
 
-/* ============================================================
-   SERVICIOS DINÁMICOS Y CHIPS
-   ============================================================ */
 function renderServicios(tipo) {
   const box = document.getElementById('serviciosBox');
   const seccion = document.getElementById('seccionServicios');
@@ -955,9 +924,6 @@ function renderChips() {
   });
 }
 
-/* ============================================================
-   ESTADO DEL FORMULARIO
-   ============================================================ */
 function capturarEstado() {
   const campos = ['clientName', 'clientPhone', 'technicianName', 'deviceCategory', 'mobileOS',
                   'iphoneModel', 'iphoneColor', 'iphoneStorage', 'androidModel', 'androidColor',
@@ -1048,9 +1014,6 @@ function aplicarVisibilidad() {
   document.getElementById('seccionAndroidSpecs').style.display = (cat === 'movil' && os === 'Android') ? 'block' : 'none';
 }
 
-/* ============================================================
-   ADMINISTRACIÓN
-   ============================================================ */
 async function verificarPassword() {
   if (validando) return;
 
@@ -1195,9 +1158,6 @@ function verificarAdminUI() {
     el.style.display = isAdmin ? 'table-cell' : 'none';
   });
 
-  const colAcc = document.getElementById('colAcc');
-  if (colAcc) colAcc.style.display = isAdmin ? '' : 'none';
-
   const b = document.getElementById('btnAdminLogin');
   if (b) b.textContent = isAdmin ? '🔓 Cerrar Sesión Admin' : '🔐 Modo Administrador';
 
@@ -1207,9 +1167,6 @@ function verificarAdminUI() {
   btnNueva.style.display = isAdmin ? 'inline-flex' : 'none';
 }
 
-/* ============================================================
-   FECHA Y RELOJ AUTOMÁTICO
-   ============================================================ */
 function mostrarFecha() {
   try {
     const o = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -1226,9 +1183,6 @@ function actualizarReloj() {
   catch (e) { relojVivo.textContent = new Date().toLocaleTimeString(); }
 }
 
-/* ============================================================
-   UTILIDADES
-   ============================================================ */
 const money = function (n) {
   return '$' + Number(n || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
@@ -1255,9 +1209,6 @@ async function fetchTimeout(url, ms) {
   finally { clearTimeout(t); }
 }
 
-/* ============================================================
-   SINCRONIZACIÓN
-   ============================================================ */
 let inventory = [];
 try {
   const cached = store.get('lifox_inventory_cache');
@@ -1302,9 +1253,6 @@ async function loadInventory(silent) {
   }
 }
 
-/* ============================================================
-   RENDER DE LA TABLA
-   ============================================================ */
 function displayItems(filter) {
   if (filter === undefined) filter = '';
   const f = String(filter).trim().toLowerCase();
@@ -1337,16 +1285,16 @@ function displayItems(filter) {
     const tr = document.createElement('tr');
 
     let html =
-      '<td data-etiq="Cliente" title="' + esc(it.client) + '"><strong>' + esc(it.client) + '</strong></td>' +
-      '<td data-etiq="Teléfono" class="col-tel">' + esc(it.phone || '-') + '</td>' +
-      '<td data-etiq="Técnico" class="col-tec"><span style="background:#27272a;padding:4px 8px;border-radius:4px;font-weight:600;color:#38bdf8;">' + esc(it.technician) + '</span></td>' +
-      '<td data-etiq="Dispositivo" title="' + esc(it.name) + '">' + esc(it.name) + '</td>' +
-      '<td data-etiq="Servicios" title="' + esc(it.type) + '">' + esc(it.type) + '</td>' +
-      '<td data-etiq="Compra" class="num col-comp">' + money(it.pCompra) + '</td>' +
-      '<td data-etiq="Cliente" class="num">' + money(it.pCliente) + '</td>' +
-      '<td data-etiq="Ganancia" class="num ganancia-txt">' + money(it.profit) + '</td>' +
-      '<td data-etiq="Nota" class="col-nota" title="' + esc(it.note || '') + '">' + esc(it.note || '-') + '</td>' +
-      '<td data-etiq="Fecha">' + esc(it.date) + ' <br><small style="color:#94a3b8">' + esc(it.time) + '</small></td>';
+      '<td><strong>' + esc(it.client) + '</strong></td>' +
+      '<td>' + esc(it.phone || '-') + '</td>' +
+      '<td><span style="background:#27272a;padding:4px 8px;border-radius:4px;font-weight:600;color:#38bdf8;">' + esc(it.technician) + '</span></td>' +
+      '<td>' + esc(it.name) + '</td>' +
+      '<td>' + esc(it.type) + '</td>' +
+      '<td class="num">' + money(it.pCompra) + '</td>' +
+      '<td class="num">' + money(it.pCliente) + '</td>' +
+      '<td class="num ganancia-txt">' + money(it.profit) + '</td>' +
+      '<td>' + esc(it.note || '-') + '</td>' +
+      '<td>' + esc(it.date) + ' <br><small style="color:#94a3b8">' + esc(it.time) + '</small></td>';
 
     if (isAdmin) {
       html += '<td class="celda-acc"><div class="acc-wrap">' +
@@ -1366,9 +1314,6 @@ function displayItems(filter) {
   });
 }
 
-/* ============================================================
-   TEXTO DEL DISPOSITIVO
-   ============================================================ */
 function dispositivoTexto() {
   const cat = document.getElementById('deviceCategory').value;
 
@@ -1393,9 +1338,6 @@ function dispositivoTexto() {
   return ('Android ' + mAndroid + (cAndroid ? ' / ' + cAndroid : '')).trim();
 }
 
-/* ============================================================
-   EDITAR
-   ============================================================ */
 function editarRegistro(it) {
   if (!isAdmin) return;
   abrirFormulario();
@@ -1450,9 +1392,6 @@ function editarRegistro(it) {
   btnDeshacer.disabled = true;
 }
 
-/* ============================================================
-   BORRAR
-   ============================================================ */
 async function borrarRegistro(it) {
   const etiqueta = it.client || 'sin nombre';
   if (!confirm('¿Borrar el registro de "' + etiqueta + '"?\n\nEsta acción no se puede deshacer.')) return;
@@ -1478,9 +1417,6 @@ async function borrarRegistro(it) {
   }
 }
 
-/* ============================================================
-   ENVÍO DEL FORMULARIO
-   ============================================================ */
 priceForm.addEventListener('submit', async function (ev) {
   ev.preventDefault();
 
@@ -1531,7 +1467,6 @@ priceForm.addEventListener('submit', async function (ev) {
     const data = await r.json().catch(function () { return { success: false }; });
     if (!data || !data.success) throw new Error('servidor rechazo');
 
-    // Mantiene el formulario abierto, resetea los campos y permite seguir cargando trabajos
     limpiarFormulario();
     priceForm.style.display = 'flex';
     document.getElementById('clientName').focus();
@@ -1544,9 +1479,6 @@ priceForm.addEventListener('submit', async function (ev) {
   }
 });
 
-/* ============================================================
-   EVENTOS DE INTERFAZ
-   ============================================================ */
 btnNueva.addEventListener('click', abrirFormulario);
 
 document.getElementById('deviceCategory').addEventListener('change', function () {
@@ -1605,14 +1537,11 @@ document.addEventListener('visibilitychange', function () {
   if (!document.hidden) loadInventory(true);
 });
 
-/* ============================================================
-   ARRANQUE
-   ============================================================ */
 function iniciar() {
   window.__ok = true;
 
-  try { verificarAdminUI(); } catch (e) { console.error(e); }
-  try { mostrarFecha(); } catch (e) { console.error(e); }
+  try { verificarAdminUI(); } catch (e) {}
+  try { mostrarFecha(); } catch (e) {}
 
   try {
     actualizarReloj();
@@ -1621,8 +1550,8 @@ function iniciar() {
 
   try { setInterval(mostrarFecha, 30000); } catch (e) {}
 
-  try { displayItems(searchBox.value); } catch (e) { console.error(e); }
-  try { loadInventory(false); } catch (e) { console.error(e); }
+  try { displayItems(searchBox.value); } catch (e) {}
+  try { loadInventory(false); } catch (e) {}
   try { setInterval(function () { loadInventory(true); }, 7000); } catch (e) {}
 }
 
