@@ -1,66 +1,323 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<link rel="icon" type="image/png" href="logo.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Control de Precios y Reparaciones - TecnoServicios</title>
 <style>
-body{font-family:Arial,sans-serif;margin:20px;background:#f4f6f9;color:#333}
-h1{color:#1a252f;font-size:22px}
-.container{max-width:1200px;margin:0 auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
-form{background:#eef2f7;padding:15px;border-radius:6px;margin-bottom:16px;display:flex;flex-direction:column;gap:12px}
-.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
-input,select,textarea,button{padding:10px;border:1px solid #ccc;border-radius:4px;font-size:14px;font-family:inherit}
-textarea{resize:vertical;height:60px}
-button{background:#2ecc71;color:#fff;border:none;cursor:pointer;font-weight:bold}
-button:hover{background:#27ae60}
-button:disabled{background:#95a5a6;cursor:wait}
-button.mini{padding:5px 9px;font-size:12px}
-button.rojo{background:#e74c3c}
-button.rojo:hover{background:#c0392b}
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --success: #10b981;
+  --success-hover: #059669;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+}
 
-/* Estilos para el contenedor de opciones dinámicas */
-.checkbox-group{background:#fff;padding:10px;border:1px solid #ccc;border-radius:4px;max-height:160px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
-.checkbox-item{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
-.seccion-reparaciones{display:none;background:#fdfefe;padding:10px;border:1px dashed #bdc3c7;border-radius:4px}
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 24px;
+  background: var(--bg-main);
+  color: var(--text-main);
+}
 
-.search-box{width:100%;padding:10px;margin-bottom:12px;box-sizing:border-box;font-size:16px;border:2px solid #2ecc71;border-radius:4px}
-.barra{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px;color:#7f8c8d;flex-wrap:wrap}
-.punto{width:9px;height:9px;border-radius:50%;background:#95a5a6;display:inline-block}
-.punto.ok{background:#2ecc71}.punto.err{background:#e74c3c}
-table{width:100%;border-collapse:collapse;margin-top:10px}
-th,td{padding:12px;text-align:left;border-bottom:1px solid #ddd;font-size:13px}
-th{background:#34495e;color:#fff}
-tr:hover{background:#f1f1f1}
-.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-.ganancia-txt{color:#27ae60;font-weight:bold}
-.vacio{text-align:center;color:#7f8c8d;padding:24px}
-@media(max-width:600px){body{margin:8px}.container{padding:12px}}
-.marca{display:flex;align-items:center;gap:14px;border-bottom:2px solid #2ecc71;padding-bottom:14px;margin-bottom:18px;flex-wrap:wrap}
-.logo img{width:155px;height:104px;margin:-27px 0 0 -28px;max-width:none;display:block}
-.lema{margin:3px 0 0;font-size:12px;color:#7f8c8d;text-transform:uppercase;letter-spacing:.06em}
-.fecha-header{margin-left:auto;font-size:13px;color:#2c3e50;font-weight:bold;background:#eef2f7;padding:6px 12px;border-radius:6px;border:1px solid #dcdde1}
-.admin-panel{display:none}
-.admin-link{margin-top:20px;text-align:right;font-size:12px}
-.admin-link a{color:#7f8c8d;text-decoration:none;cursor:pointer}
-.admin-link a:hover{color:#333;text-decoration:underline}
+.container {
+  max-width: 1250px;
+  margin: 0 auto;
+  background: var(--card-bg);
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
 
-.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:1000}
-.modal-box{background:#fff;padding:20px;border-radius:8px;width:300px;box-shadow:0 4px 8px rgba(0,0,0,0.2);text-align:center}
-.modal-box h3{margin-top:0;color:#2c3e50;font-size:16px}
-.modal-box input{width:80%;margin-bottom:12px;padding:8px;font-size:16px;text-align:center}
-.modal-buttons{display:flex;justify-content:center;gap:10px}
-.modal-buttons button{padding:6px 12px;font-size:13px}
-.btn-gris{background:#95a5a6}
-.btn-gris:hover{background:#7f8c8d}
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.logo img {
+  width: 140px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.lema {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+.fecha-header {
+  margin-left: auto;
+  font-size: 13px;
+  color: #334155;
+  font-weight: 600;
+  background: #f1f5f9;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+form {
+  background: #f8fafc;
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border-color);
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+input, select, textarea {
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+textarea {
+  resize: vertical;
+  height: 70px;
+}
+
+.seccion-reparaciones {
+  display: none;
+  background: #fff;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+.seccion-reparaciones label.titulo-grupo {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  display: block;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.checkbox-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  background: #f8fafc;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+.checkbox-item:hover {
+  background: #f1f5f9;
+}
+.checkbox-item input {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+}
+
+.split-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  background: #e2e8f0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.split-option input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+button {
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s, transform 0.1s;
+}
+button:active {
+  transform: scale(0.98);
+}
+#btnSubmit {
+  background: var(--success);
+  color: #fff;
+  font-size: 15px;
+}
+#btnSubmit:hover {
+  background: var(--success-hover);
+}
+button.mini {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+button.rojo {
+  background: var(--danger);
+  color: #fff;
+}
+button.rojo:hover {
+  background: var(--danger-hover);
+}
+
+.search-box {
+  width: 100%;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+  font-size: 15px;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  background: #fff;
+}
+.search-box:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  outline: none;
+}
+.barra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+.punto {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  display: inline-block;
+}
+.punto.ok { background: var(--success); }
+.punto.err { background: var(--danger); }
+
+.table-responsive {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+th, td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 13px;
+}
+th {
+  background: #1e293b;
+  color: #fff;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+tr:nth-child(even) { background: #f8fafc; }
+tr:hover { background: #f1f5f9; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.ganancia-txt { color: var(--success); font-weight: 700; }
+.vacio { text-align: center; color: var(--text-muted); padding: 32px; font-style: italic; }
+
+.admin-panel { display: none; }
+.admin-link {
+  margin-top: 24px;
+  text-align: right;
+  font-size: 13px;
+}
+.admin-link a {
+  color: var(--text-muted);
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+.admin-link a:hover {
+  color: var(--text-main);
+  text-decoration: underline;
+}
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-box {
+  background: #fff;
+  padding: 28px;
+  border-radius: 14px;
+  width: 320px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+.modal-box h3 { margin-top: 0; color: #0f172a; font-size: 18px; }
+.modal-box input { width: 100%; margin-bottom: 16px; box-sizing: border-box; text-align: center; font-size: 16px; }
+.modal-buttons { display: flex; justify-content: center; gap: 10px; }
+.modal-buttons button { padding: 8px 16px; font-size: 13px; width: 100%; }
+.btn-gris { background: #64748b; color: #fff; }
+.btn-gris:hover { background: #475569; }
 </style>
 </head>
 <body>
 
 <div class="container">
  <div class="marca">
-  <div class="logo"><img src="logo.png" alt="LIFOX TECH"></div>
+  <div class="logo">
+    <img src="logo.png" alt="LIFOX TECH" onerror="this.style.display='none'">
+  </div>
   <div>
     <h1>Control de Precios y Reparaciones</h1>
     <p class="lema">Garantía, calidad y confianza</p>
@@ -68,43 +325,160 @@ tr:hover{background:#f1f1f1}
   <div id="fechaActual" class="fecha-header">Cargando fecha...</div>
 </div>
 
-  <!-- Formulario de Registro con selección de dispositivo -->
   <form id="priceForm" class="admin-panel">
     <div class="form-row">
       <input type="text" id="clientName" placeholder="Nombre del Cliente" maxlength="80" required>
-      <input type="text" id="itemName" placeholder="Modelo del Dispositivo (Ej. iPhone 13, HP Pavilion)" maxlength="80" required>
+      <input type="tel" id="clientPhone" placeholder="Teléfono del Cliente (Ej. 809-000-0000)" maxlength="20" required>
     </div>
 
     <div class="form-row">
       <select id="deviceCategory" required>
-        <option value="">Seleccione Tipo de Dispositivo</option>
-        <option value="movil">📱 Dispositivo Móvil (iPhone / Android)</option>
-        <option value="pc">💻 Computadora / Laptop (PC)</option>
+        <option value="">📱 Seleccione Tipo de Dispositivo</option>
+        <option value="movil">Dispositivo Móvil (iPhone / Android)</option>
+        <option value="pc">Computadora / Laptop (PC)</option>
       </select>
     </div>
 
-    <!-- Sección que aparece dinámicamente según el dispositivo -->
+    <!-- SECCIÓN MÓVIL: Selector de OS -->
+    <div id="seccionOS" class="seccion-reparaciones" style="display:none;">
+      <label class="titulo-grupo">Sistema Operativo del Móvil:</label>
+      <select id="mobileOS">
+        <option value="">Seleccione plataforma...</option>
+        <option value="iPhone">iPhone (iOS)</option>
+        <option value="Android">Android</option>
+      </select>
+    </div>
+
+    <!-- DETALLES ESPECÍFICOS PARA IPHONE -->
+    <div id="seccionIphoneSpecs" class="seccion-reparaciones" style="display:none; background:#f1f5f9;">
+      <label class="titulo-grupo">Especificaciones del iPhone:</label>
+      <div class="form-row" style="margin-bottom: 10px;">
+        <select id="iphoneModel">
+          <option value="">Seleccione Modelo de iPhone</option>
+          <option value="iPhone 6">iPhone 6</option>
+          <option value="iPhone 6 Plus">iPhone 6 Plus</option>
+          <option value="iPhone 6s">iPhone 6s</option>
+          <option value="iPhone 6s Plus">iPhone 6s Plus</option>
+          <option value="iPhone SE (1ª gen)">iPhone SE (1ª gen)</option>
+          <option value="iPhone 7">iPhone 7</option>
+          <option value="iPhone 7 Plus">iPhone 7 Plus</option>
+          <option value="iPhone 8">iPhone 8</option>
+          <option value="iPhone 8 Plus">iPhone 8 Plus</option>
+          <option value="iPhone X">iPhone X</option>
+          <option value="iPhone XR">iPhone XR</option>
+          <option value="iPhone XS">iPhone XS</option>
+          <option value="iPhone XS Max">iPhone XS Max</option>
+          <option value="iPhone 11">iPhone 11</option>
+          <option value="iPhone 11 Pro">iPhone 11 Pro</option>
+          <option value="iPhone 11 Pro Max">iPhone 11 Pro Max</option>
+          <option value="iPhone SE (2ª gen)">iPhone SE (2ª gen)</option>
+          <option value="iPhone 12">iPhone 12</option>
+          <option value="iPhone 12 mini">iPhone 12 mini</option>
+          <option value="iPhone 12 Pro">iPhone 12 Pro</option>
+          <option value="iPhone 12 Pro Max">iPhone 12 Pro Max</option>
+          <option value="iPhone 13">iPhone 13</option>
+          <option value="iPhone 13 mini">iPhone 13 mini</option>
+          <option value="iPhone 13 Pro">iPhone 13 Pro</option>
+          <option value="iPhone 13 Pro Max">iPhone 13 Pro Max</option>
+          <option value="iPhone SE (3ª gen)">iPhone SE (3ª gen)</option>
+          <option value="iPhone 14">iPhone 14</option>
+          <option value="iPhone 14 Plus">iPhone 14 Plus</option>
+          <option value="iPhone 14 Pro">iPhone 14 Pro</option>
+          <option value="iPhone 14 Pro Max">iPhone 14 Pro Max</option>
+          <option value="iPhone 15">iPhone 15</option>
+          <option value="iPhone 15 Plus">iPhone 15 Plus</option>
+          <option value="iPhone 15 Pro">iPhone 15 Pro</option>
+          <option value="iPhone 15 Pro Max">iPhone 15 Pro Max</option>
+          <option value="iPhone 16">iPhone 16</option>
+          <option value="iPhone 16 Plus">iPhone 16 Plus</option>
+          <option value="iPhone 16 Pro">iPhone 16 Pro</option>
+          <option value="iPhone 16 Pro Max">iPhone 16 Pro Max</option>
+        </select>
+
+        <select id="iphoneColor">
+          <option value="">Seleccione Color</option>
+          <option value="Negro / Space Gray">Negro / Space Gray</option>
+          <option value="Blanco / Silver">Blanco / Silver</option>
+          <option value="Dorado / Gold">Dorado / Gold</option>
+          <option value="Rosado / Rose Gold">Rosado / Rose Gold</option>
+          <option value="Rojo / Product RED">Rojo / Product RED</option>
+          <option value="Azul / Blue">Azul / Blue</option>
+          <option value="Verde / Green">Verde / Green</option>
+          <option value="Morado / Purple">Morado / Purple</option>
+          <option value="Titanio Natural">Titanio Natural</option>
+          <option value="Titanio Desierto">Titanio Desierto</option>
+          <option value="Otro">Otro</option>
+        </select>
+
+        <select id="iphoneStorage">
+          <option value="">Capacidad</option>
+          <option value="16GB">16 GB</option>
+          <option value="32GB">32 GB</option>
+          <option value="64GB">64 GB</option>
+          <option value="128GB">128 GB</option>
+          <option value="256GB">256 GB</option>
+          <option value="512GB">512 GB</option>
+          <option value="1TB">1 TB</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- CAMPO PARA MODELO ANDROID -->
+    <div id="seccionAndroidSpecs" class="seccion-reparaciones" style="display:none; background:#f1f5f9;">
+      <label class="titulo-grupo">Modelo de Dispositivo Android:</label>
+      <input type="text" id="androidModel" placeholder="Ej. Samsung Galaxy S23, Xiaomi Redmi Note 12...">
+    </div>
+
+    <!-- DETALLES ESPECÍFICOS PARA COMPUTADORAS / LAPTOPS -->
+    <div id="seccionPCSpecs" class="seccion-reparaciones" style="display:none; background:#f1f5f9;">
+      <label class="titulo-grupo">Especificaciones de la Computadora / Laptop:</label>
+      <div class="form-row" style="margin-bottom: 10px;">
+        <input type="text" id="pcModel" placeholder="Modelo (Ej. HP Pavilion, Lenovo ThinkPad, iMac...)">
+        <select id="pcColor">
+          <option value="">Seleccione Color</option>
+          <option value="Negro">Negro</option>
+          <option value="Plateado / Gris / Silver">Plateado / Gris / Silver</option>
+          <option value="Blanco">Blanco</option>
+          <option value="Azul">Azul</option>
+          <option value="Rojo">Rojo</option>
+          <option value="Rosado">Rosado</option>
+          <option value="Dorado / Gold">Dorado / Gold</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+    </div>
+
     <div id="seccionMovil" class="seccion-reparaciones">
-      <label style="font-size:12px;font-weight:bold;color:#34495e;display:block;margin-bottom:6px;">Servicios para Móviles:</label>
+      <label class="titulo-grupo">Servicios para Móviles:</label>
       <div class="checkbox-group">
         <label class="checkbox-item"><input type="checkbox" name="rep" value="Cambio de pantalla"> Cambio de pantalla</label>
         <label class="checkbox-item"><input type="checkbox" name="rep" value="Cambio de flex"> Cambio de flex</label>
         <label class="checkbox-item"><input type="checkbox" name="rep" value="Cambio de bocina"> Cambio de bocina</label>
         <label class="checkbox-item"><input type="checkbox" name="rep" value="Cambio de cristal trasero"> Cambio de cristal trasero</label>
         <label class="checkbox-item"><input type="checkbox" name="rep" value="Cambio de cristal de cámara"> Cambio de cristal de cámara</label>
-        <label class="checkbox-item"><input type="checkbox" name="rep" value="Microsoldadura"> Microsoldadura</label>
+        <label class="checkbox-item"><input type="checkbox" name="rep" value="Cambio de software"> Cambio de software</label>
+        <label class="checkbox-item"><input type="checkbox" name="rep" value="Desbloqueo de red"> Desbloqueo de red</label>
+        <label class="checkbox-item"><input type="checkbox" name="rep" value="Desbloqueo de iCloud"> Desbloqueo de iCloud</label>
+        <label class="checkbox-item"><input type="checkbox" name="rep" value="Activación de turbo sim en iPhone"> Activación de turbo sim en iPhone</label>
       </div>
     </div>
 
     <div id="seccionPC" class="seccion-reparaciones">
-      <label style="font-size:12px;font-weight:bold;color:#34495e;display:block;margin-bottom:6px;">Servicios para Computadoras / Laptops:</label>
+      <label class="titulo-grupo">Servicios / Reparaciones de Computadoras:</label>
       <div class="checkbox-group">
         <label class="checkbox-item"><input type="checkbox" name="rep" value="Instalación de Windows"> Instalación de Windows</label>
         <label class="checkbox-item"><input type="checkbox" name="rep" value="Instalación de paquete de office"> Instalación de Office</label>
         <label class="checkbox-item"><input type="checkbox" name="rep" value="Cambio de Software"> Cambio de Software</label>
         <label class="checkbox-item"><input type="checkbox" name="rep" value="Colocación de pasta térmica"> Pasta térmica</label>
-        <label class="checkbox-item"><input type="checkbox" name="rep" value="Microsoldadura"> Microsoldadura</label>
+        <label class="checkbox-item"><input type="checkbox" name="rep" value="Desbloqueo"> Desbloqueo</label>
       </div>
+    </div>
+
+    <!-- OPCIÓN DE DIVISIÓN DE GANANCIA 50/50 -->
+    <div class="form-row">
+      <label class="split-option">
+        <input type="checkbox" id="splitProfit"> Dividir ganancia 50/50 (Servicio de un solo precio)
+      </label>
     </div>
 
     <div class="form-row">
@@ -117,30 +491,33 @@ tr:hover{background:#f1f1f1}
     <button type="submit" id="btnSubmit">Registrar en la Nube</button>
   </form>
 
-  <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar por cliente, dispositivo, reparación o notas...">
+  <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar por cliente, teléfono, dispositivo, reparación o notas...">
 
   <div class="barra">
     <span class="punto" id="punto"></span>
     <span id="loadingStatus">Cargando registros...</span>
-    <button type="button" class="mini" id="btnReload">Actualizar ahora</button>
+    <button type="button" class="mini" id="btnReload" style="background:#475569; color:#fff;">Actualizar ahora</button>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Cliente</th>
-        <th>Dispositivo</th>
-        <th>Reparaciones / Servicios</th>
-        <th class="num">Compra</th>
-        <th class="num">Cliente</th>
-        <th class="num">Ganancia</th>
-        <th>Nota</th>
-        <th>Fecha / Hora</th>
-        <th class="col-admin admin-panel" style="width: 100px;"></th>
-      </tr>
-    </thead>
-    <tbody id="inventoryTable"></tbody>
-  </table>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Teléfono</th>
+          <th>Dispositivo</th>
+          <th>Reparaciones / Servicios</th>
+          <th class="num">Compra</th>
+          <th class="num">Cliente</th>
+          <th class="num">Ganancia</th>
+          <th>Nota</th>
+          <th>Fecha / Hora</th>
+          <th class="col-admin admin-panel" style="width: 100px; text-align:center;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="inventoryTable"></tbody>
+    </table>
+  </div>
 
   <div class="admin-link">
     <a id="btnAdminLogin" onclick="toggleAdmin()">🔐 Modo Administrador</a>
@@ -159,8 +536,7 @@ tr:hover{background:#f1f1f1}
 </div>
 
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbycBCLYcUhsjIQzA6LIQeVjPxUSYbJD4KCYp3DqrvPNSHZtHZABj_Gfl_oqHUu8sCKaqQ/exec";
-const ADMIN_PASSWORD = "199926"; 
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXl6vlj3UF6J2jZLfvoB-N_8L5gzEz0TRUzZ6lN8PDgGV_0YOVUcRCZHxQvMK812YqFA/exec";
 
 const priceForm = document.getElementById('priceForm');
 const inventoryTable = document.getElementById('inventoryTable');
@@ -171,35 +547,80 @@ const btnSubmit = document.getElementById('btnSubmit');
 const fechaActual = document.getElementById('fechaActual');
 const adminModal = document.getElementById('adminModal');
 const adminPasswordInput = document.getElementById('adminPasswordInput');
+
 const deviceCategory = document.getElementById('deviceCategory');
+const seccionOS = document.getElementById('seccionOS');
+const mobileOS = document.getElementById('mobileOS');
+const seccionIphoneSpecs = document.getElementById('seccionIphoneSpecs');
+const seccionAndroidSpecs = document.getElementById('seccionAndroidSpecs');
+const seccionPCSpecs = document.getElementById('seccionPCSpecs');
 const seccionMovil = document.getElementById('seccionMovil');
 const seccionPC = document.getElementById('seccionPC');
+const splitProfitCheckbox = document.getElementById('splitProfit');
+const itemCompraInput = document.getElementById('itemCompra');
+const itemClienteInput = document.getElementById('itemCliente');
 
 let inventory = [];
 let isAdmin = sessionStorage.getItem('isAdmin') === 'true';
 
-// Mostrar u ocultar opciones de reparaciones según el tipo de dispositivo elegido
+// Lógica para manejar el check de 50/50
+splitProfitCheckbox.addEventListener('change', () => {
+  if (splitProfitCheckbox.checked) {
+    itemCompraInput.value = '0';
+    itemCompraInput.disabled = true;
+    itemCompraInput.style.background = '#e2e8f0';
+  } else {
+    itemCompraInput.value = '';
+    itemCompraInput.disabled = false;
+    itemCompraInput.style.background = '#fff';
+  }
+});
+
 deviceCategory.addEventListener('change', () => {
   const val = deviceCategory.value;
+  seccionOS.style.display = 'none';
+  seccionIphoneSpecs.style.display = 'none';
+  seccionAndroidSpecs.style.display = 'none';
+  seccionPCSpecs.style.display = 'none';
   seccionMovil.style.display = 'none';
   seccionPC.style.display = 'none';
-
-  // Desmarcar todas al cambiar de categoría
+  mobileOS.value = '';
   document.querySelectorAll('input[name="rep"]').forEach(cb => cb.checked = false);
 
   if (val === 'movil') {
-    seccionMovil.style.display = 'block';
+    seccionOS.style.display = 'block';
   } else if (val === 'pc') {
+    seccionPCSpecs.style.display = 'block';
     seccionPC.style.display = 'block';
   }
 });
 
+mobileOS.addEventListener('change', () => {
+  const os = mobileOS.value;
+  seccionIphoneSpecs.style.display = 'none';
+  seccionAndroidSpecs.style.display = 'none';
+  seccionMovil.style.display = 'none';
+
+  if (os === 'iPhone') {
+    seccionIphoneSpecs.style.display = 'block';
+    seccionMovil.style.display = 'block';
+  } else if (os === 'Android') {
+    seccionAndroidSpecs.style.display = 'block';
+    seccionMovil.style.display = 'block';
+  }
+});
+
 function verificarAdminUI() {
-  const elementosAdmin = document.querySelectorAll('.admin-panel');
-  elementosAdmin.forEach(el => {
-    el.style.display = isAdmin ? (el.tagName === 'FORM' ? 'flex' : 'table-cell') : 'none';
+  const elms = document.querySelectorAll('.admin-panel');
+  elms.forEach(el => {
+    if (el.tagName === 'FORM') {
+      el.style.display = isAdmin ? 'flex' : 'none';
+    } else {
+      el.style.display = isAdmin ? 'table-cell' : 'none';
+    }
   });
-  document.getElementById('btnAdminLogin').textContent = isAdmin ? '🔓 Cerrar Sesión Admin' : '🔐 Modo Administrador';
+  const btnLogin = document.getElementById('btnAdminLogin');
+  if (btnLogin) btnLogin.textContent = isAdmin ? '🔓 Cerrar Sesión Admin' : '🔐 Modo Administrador';
 }
 
 function toggleAdmin() {
@@ -208,7 +629,6 @@ function toggleAdmin() {
     isAdmin = false;
     verificarAdminUI();
     displayItems(searchBox.value);
-    alert('Sesión de administrador cerrada.');
   } else {
     adminModal.style.display = 'flex';
     adminPasswordInput.value = '';
@@ -218,27 +638,45 @@ function toggleAdmin() {
 
 function cerrarModal() { adminModal.style.display = 'none'; }
 
-function verificarPassword() {
-  if (adminPasswordInput.value === ADMIN_PASSWORD) {
-    sessionStorage.setItem('isAdmin', 'true');
-    isAdmin = true;
-    verificarAdminUI();
-    displayItems(searchBox.value);
-    cerrarModal();
-    alert('¡Modo administrador activado!');
-  } else {
-    alert('Contraseña incorrecta.');
-    adminPasswordInput.value = '';
-    adminPasswordInput.focus();
+async function verificarPassword() {
+  const passIngresada = adminPasswordInput.value;
+  if (!passIngresada) return;
+
+  try {
+    estado('ok', 'Verificando credenciales...');
+    const res = await fetch(`${WEB_APP_URL}?action=verifyAdmin&pass=${encodeURIComponent(passIngresada)}&t=${Date.now()}`);
+    const data = await res.json();
+
+    if (data.success) {
+      sessionStorage.setItem('isAdmin', 'true');
+      isAdmin = true;
+      verificarAdminUI();
+      displayItems(searchBox.value);
+      cerrarModal();
+      estado('ok', 'Acceso concedido');
+    } else {
+      alert('Contraseña incorrecta.');
+      adminPasswordInput.value = '';
+      adminPasswordInput.focus();
+      estado('ok', 'Sincronizado');
+    }
+  } catch (err) {
+    alert('Error al conectar con la nube para verificar la contraseña.');
+    estado('err', 'Error de conexión');
   }
 }
 
 adminPasswordInput.addEventListener('keypress', e => { if (e.key === 'Enter') verificarPassword(); });
 
 function mostrarFecha() {
-  if (!fechaActual) return;
-  const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  fechaActual.textContent = new Date().toLocaleDateString('es-DO', opciones);
+  try {
+    if (!fechaActual) return;
+    const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const textoFecha = new Date().toLocaleDateString('es-DO', opciones);
+    fechaActual.textContent = textoFecha.charAt(0).toUpperCase() + textoFecha.slice(1);
+  } catch(e) {
+    fechaActual.textContent = "Fecha actual";
+  }
 }
 
 const money = n => '$' + Number(n || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -251,18 +689,18 @@ async function loadInventory() {
     const data = await r.json();
     inventory = Array.isArray(data)?data:[];
     displayItems(searchBox.value);
-    estado('ok','🟢 Sincronizado · '+new Date().toLocaleTimeString('es-DO'));
+    estado('ok','Sincronizado · '+new Date().toLocaleTimeString('es-DO'));
   } catch(e) {
-    estado('err','❌ Sin conexión con la nube');
+    estado('err','Sin conexión con la nube');
   }
 }
 
 function displayItems(filter=''){
   const f = filter.trim().toLowerCase();
   inventoryTable.innerHTML='';
-  const lista = inventory.filter(it=>!f || String(it.client).toLowerCase().includes(f) || String(it.name).toLowerCase().includes(f) || String(it.type).toLowerCase().includes(f) || String(it.note).toLowerCase().includes(f));
+  const lista = inventory.filter(it=>!f || String(it.client).toLowerCase().includes(f) || String(it.phone).toLowerCase().includes(f) || String(it.name).toLowerCase().includes(f) || String(it.type).toLowerCase().includes(f) || String(it.note).toLowerCase().includes(f));
   
-  const totalCols = isAdmin ? 9 : 8;
+  const totalCols = isAdmin ? 10 : 9;
 
   if(!lista.length){
     inventoryTable.innerHTML='<tr><td colspan="'+totalCols+'" class="vacio">'+(f?'Sin coincidencias.':'Aún no hay registros guardados.')+'</td></tr>';
@@ -273,17 +711,18 @@ function displayItems(filter=''){
   lista.forEach(it=>{
     const tr=document.createElement('tr');
     let html='<td><strong>'+esc(it.client)+'</strong></td>'+
+      '<td>'+esc(it.phone || '-')+'</td>'+
       '<td>'+esc(it.name)+'</td>'+
       '<td>'+esc(it.type)+'</td>'+
       '<td class="num">'+money(it.pCompra)+'</td>'+
       '<td class="num">'+money(it.pCliente)+'</td>'+
       '<td class="num ganancia-txt">'+money(it.profit)+'</td>'+
       '<td>'+esc(it.note || '-')+'</td>'+
-      '<td>'+esc(it.date)+' <br><small style="color:#7f8c8d">'+esc(it.time)+'</small></td>';
+      '<td>'+esc(it.date)+' <br><small style="color:#64748b">'+esc(it.time)+'</small></td>';
     
     if(isAdmin){
-      html+='<td style="white-space:nowrap">'+
-        '<button class="mini" data-edit="'+esc(it.id)+'" data-compra="'+it.pCompra+'" data-cliente="'+it.pCliente+'">Editar</button> '+
+      html+='<td style="white-space:nowrap; text-align:center;">'+
+        '<button class="mini" data-edit="'+esc(it.id)+'" data-compra="'+it.pCompra+'" data-cliente="'+it.pCliente+'" style="background:#2563eb; color:#fff;">Editar</button> '+
         '<button class="mini rojo" data-del="'+esc(it.id)+'">Borrar</button></td>';
     }
     
@@ -297,12 +736,53 @@ priceForm.addEventListener('submit', async e => {
   if(!isAdmin) return;
   
   const client = document.getElementById('clientName').value.trim();
-  const name = document.getElementById('itemName').value.trim();
-  const pCompra = Number(document.getElementById('itemCompra').value);
-  const pCliente = Number(document.getElementById('itemCliente').value);
+  const phone = document.getElementById('clientPhone').value.trim();
+  const category = deviceCategory.value;
+  
+  let deviceName = '';
+  if (category === 'pc') {
+    const pcMod = document.getElementById('pcModel').value.trim();
+    const pcCol = document.getElementById('pcColor').value;
+    if(!pcMod || !pcCol) {
+      alert('Por favor ingrese el modelo y el color de la computadora / laptop.');
+      return;
+    }
+    deviceName = `${pcMod} (${pcCol})`;
+  } else if (category === 'movil') {
+    const os = mobileOS.value;
+    if (os === 'iPhone') {
+      const mod = document.getElementById('iphoneModel').value;
+      const col = document.getElementById('iphoneColor').value;
+      const sto = document.getElementById('iphoneStorage').value;
+      if(!mod || !col || !sto) {
+        alert('Por favor complete las especificaciones del iPhone (Modelo, Color y Capacidad).');
+        return;
+      }
+      deviceName = `${mod} (${col}, ${sto})`;
+    } else if (os === 'Android') {
+      const andMod = document.getElementById('androidModel').value.trim();
+      if(!andMod) {
+        alert('Por favor escriba el modelo del dispositivo Android.');
+        return;
+      }
+      deviceName = andMod;
+    } else {
+      alert('Seleccione si es iPhone o Android.');
+      return;
+    }
+  }
+
+  let pCompra = splitProfitCheckbox.checked ? 0 : Number(itemCompraInput.value);
+  let pCliente = Number(itemClienteInput.value);
+  let profit = pCliente - pCompra;
+
+  // Si se marcó 50/50, la ganancia real registrada se divide a la mitad matemáticamente para reflejar el acuerdo
+  if (splitProfitCheckbox.checked) {
+    profit = pCliente / 2;
+  }
+
   const note = document.getElementById('itemNote').value.trim();
 
-  // Recolectar checkboxes seleccionados que estén visibles
   const checkboxes = document.querySelectorAll('input[name="rep"]:checked');
   const seleccionadas = Array.from(checkboxes).map(cb => cb.value);
   
@@ -312,14 +792,14 @@ priceForm.addEventListener('submit', async e => {
   }
 
   const typeStr = seleccionadas.join(', ');
-  const profit = pCliente - pCompra;
 
   const ahora = new Date();
   const tempId = 'temp_' + Date.now();
   const nuevoItem = {
     id: tempId,
     client: client,
-    name: name,
+    phone: phone,
+    name: deviceName,
     type: typeStr,
     pCompra: pCompra,
     pCliente: pCliente,
@@ -332,20 +812,27 @@ priceForm.addEventListener('submit', async e => {
   inventory.unshift(nuevoItem);
   displayItems(searchBox.value);
   priceForm.reset();
+  splitProfitCheckbox.checked = false;
+  itemCompraInput.disabled = false;
+  itemCompraInput.style.background = '#fff';
+  seccionOS.style.display = 'none';
+  seccionIphoneSpecs.style.display = 'none';
+  seccionAndroidSpecs.style.display = 'none';
+  seccionPCSpecs.style.display = 'none';
   seccionMovil.style.display = 'none';
   seccionPC.style.display = 'none';
-  estado('ok', '⚡ Guardado (Sincronizando...)');
+  estado('ok', 'Guardado (Sincronizando...)');
 
   try {
     await fetch(WEB_APP_URL, {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ client, name, type: typeStr, pCompra, pCliente, note })
+      body: JSON.stringify({ client, phone, name: deviceName, type: typeStr, pCompra, pCliente, note })
     });
     setTimeout(loadInventory, 1000);
   } catch(err) {
-    estado('err', '❌ Error al sincronizar con la nube');
+    estado('err', 'Error al sincronizar con la nube');
   }
 });
 
@@ -361,7 +848,7 @@ inventoryTable.addEventListener('click', async e => {
       await fetch(WEB_APP_URL+'?action=delete&id='+encodeURIComponent(del.dataset.del)+'&t='+Date.now());
       estado('ok', 'Registro borrado');
       setTimeout(loadInventory, 400);
-    } catch(err) { estado('err', '❌ No se pudo borrar'); }
+    } catch(err) { estado('err', 'No se pudo borrar'); }
   }
 
   if(ed) {
@@ -380,7 +867,7 @@ inventoryTable.addEventListener('click', async e => {
       await fetch(WEB_APP_URL+'?action=update&id='+encodeURIComponent(ed.dataset.edit)+'&pCompra='+nc+'&pCliente='+ncl+'&t='+Date.now());
       estado('ok', 'Precios actualizados');
       setTimeout(loadInventory, 400);
-    } catch(err) { estado('err', '❌ No se pudo actualizar'); }
+    } catch(err) { estado('err', 'No se pudo actualizar'); }
   }
 });
 
