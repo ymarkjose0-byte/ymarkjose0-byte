@@ -47,9 +47,8 @@ body {
   flex-wrap: wrap;
 }
 
-/* Contenedor del logo optimizado para conservar el rojo y volver blanco lo demás */
 .logo {
-  background: #ffffff; /* Fondo blanco sutil dentro del cuadro para que contraste perfecto */
+  background: rgba(255, 255, 255, 0.08);
   padding: 8px 14px;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(255, 255, 255, 0.15);
@@ -75,7 +74,7 @@ h1 {
 .lema {
   margin: 4px 0 0;
   font-size: 11px;
-  color: #ffffff; /* Slogan en blanco nítido */
+  color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 600;
@@ -350,6 +349,15 @@ tr:hover { background: #27272a; }
       <input type="tel" id="clientPhone" placeholder="Teléfono del Cliente (Ej. 809-000-0000)" maxlength="20" required>
     </div>
 
+    <!-- SELECCIÓN DEL TÉCNICO -->
+    <div class="form-row">
+      <select id="technicianName" required>
+        <option value="" style="background:#18181b;">🛠️ Seleccione Técnico</option>
+        <option value="YMARK" style="background:#18181b;">YMARK</option>
+        <option value="WINDER" style="background:#18181b;">WINDER</option>
+      </select>
+    </div>
+
     <div class="form-row">
       <select id="deviceCategory" required>
         <option value="" style="background:#18181b;">📱 Seleccione Tipo de Dispositivo</option>
@@ -510,7 +518,7 @@ tr:hover { background: #27272a; }
     <button type="submit" id="btnSubmit">Registrar en la Nube</button>
   </form>
 
-  <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar por cliente, teléfono, dispositivo, reparación o notas...">
+  <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar por cliente, teléfono, técnico, dispositivo..." autocomplete="off">
 
   <div class="barra">
     <span class="punto" id="punto"></span>
@@ -524,6 +532,7 @@ tr:hover { background: #27272a; }
         <tr>
           <th>Cliente</th>
           <th>Teléfono</th>
+          <th>Técnico</th>
           <th>Dispositivo</th>
           <th>Reparaciones / Servicios</th>
           <th class="num">Compra</th>
@@ -543,12 +552,12 @@ tr:hover { background: #27272a; }
   </div>
 </div>
 
-<!-- MODAL DE LOGIN (USUARIO Y CONTRASEÑA) -->
+<!-- MODAL DE LOGIN -->
 <div id="adminModal" class="modal-overlay">
   <div class="modal-box">
     <h3>Acceso de Administrador</h3>
-    <input type="text" id="adminUserInput" placeholder="Usuario (Ej. admin)">
-    <input type="password" id="adminPasswordInput" placeholder="Contraseña">
+    <input type="text" id="adminUserInput" placeholder="Usuario (Ej. admin)" autocomplete="off">
+    <input type="password" id="adminPasswordInput" placeholder="Contraseña" autocomplete="current-password">
     <div class="modal-buttons">
       <button type="button" onclick="verificarPassword()">Ingresar</button>
       <button type="button" class="btn-gris" onclick="cerrarModal()">Cancelar</button>
@@ -570,6 +579,7 @@ const adminModal = document.getElementById('adminModal');
 const adminUserInput = document.getElementById('adminUserInput');
 const adminPasswordInput = document.getElementById('adminPasswordInput');
 
+const technicianName = document.getElementById('technicianName');
 const deviceCategory = document.getElementById('deviceCategory');
 const seccionOS = document.getElementById('seccionOS');
 const mobileOS = document.getElementById('mobileOS');
@@ -684,7 +694,7 @@ async function verificarPassword() {
       estado('ok', 'Sincronizado');
     }
   } catch (err) {
-    alert('Error al conectar con la nube para verificar credenciales.');
+    alert('Error al conectar con la nube.');
     estado('err', 'Error de conexión');
   }
 }
@@ -722,9 +732,9 @@ async function loadInventory() {
 function displayItems(filter=''){
   const f = filter.trim().toLowerCase();
   inventoryTable.innerHTML='';
-  const lista = inventory.filter(it=>!f || String(it.client).toLowerCase().includes(f) || String(it.phone).toLowerCase().includes(f) || String(it.name).toLowerCase().includes(f) || String(it.type).toLowerCase().includes(f) || String(it.note).toLowerCase().includes(f));
+  const lista = inventory.filter(it=>!f || String(it.client).toLowerCase().includes(f) || String(it.phone).toLowerCase().includes(f) || String(it.technician).toLowerCase().includes(f) || String(it.name).toLowerCase().includes(f) || String(it.type).toLowerCase().includes(f) || String(it.note).toLowerCase().includes(f));
   
-  const totalCols = isAdmin ? 10 : 9;
+  const totalCols = isAdmin ? 11 : 10;
 
   if(!lista.length){
     inventoryTable.innerHTML='<tr><td colspan="'+totalCols+'" class="vacio">'+(f?'Sin coincidencias.':'Aún no hay registros guardados.')+'</td></tr>';
@@ -736,6 +746,7 @@ function displayItems(filter=''){
     const tr=document.createElement('tr');
     let html='<td><strong>'+esc(it.client)+'</strong></td>'+
       '<td>'+esc(it.phone || '-')+'</td>'+
+      '<td><span style="background:#27272a; padding:4px 8px; border-radius:4px; font-weight:600; color:#38bdf8;">'+esc(it.technician)+'</span></td>'+
       '<td>'+esc(it.name)+'</td>'+
       '<td>'+esc(it.type)+'</td>'+
       '<td class="num">'+money(it.pCompra)+'</td>'+
@@ -761,8 +772,14 @@ priceForm.addEventListener('submit', async e => {
   
   const client = document.getElementById('clientName').value.trim();
   const phone = document.getElementById('clientPhone').value.trim();
+  const technician = technicianName.value;
   const category = deviceCategory.value;
   
+  if(!technician) {
+    alert('Por favor seleccione el técnico que realizó el trabajo.');
+    return;
+  }
+
   let deviceName = '';
   if (category === 'pc') {
     const pcMod = document.getElementById('pcModel').value.trim();
@@ -779,7 +796,7 @@ priceForm.addEventListener('submit', async e => {
       const col = document.getElementById('iphoneColor').value;
       const sto = document.getElementById('iphoneStorage').value;
       if(!mod || !col || !sto) {
-        alert('Por favor complete las especificaciones del iPhone (Modelo, Color y Capacidad).');
+        alert('Por favor complete las especificaciones del iPhone.');
         return;
       }
       deviceName = `${mod} (${col}, ${sto})`;
@@ -805,7 +822,6 @@ priceForm.addEventListener('submit', async e => {
   }
 
   const note = document.getElementById('itemNote').value.trim();
-
   const checkboxes = document.querySelectorAll('input[name="rep"]:checked');
   const seleccionadas = Array.from(checkboxes).map(cb => cb.value);
   
@@ -822,6 +838,7 @@ priceForm.addEventListener('submit', async e => {
     id: tempId,
     client: client,
     phone: phone,
+    technician: technician,
     name: deviceName,
     type: typeStr,
     pCompra: pCompra,
@@ -851,9 +868,10 @@ priceForm.addEventListener('submit', async e => {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ client, phone, name: deviceName, type: typeStr, pCompra, pCliente, note })
+      body: JSON.stringify({ client, phone, technician, name: deviceName, type: typeStr, pCompra, pCliente, note })
     });
-    setTimeout(loadInventory, 1000);
+    // Reducido a 600ms para que actualice más rápido sin demoras
+    setTimeout(loadInventory, 600);
   } catch(err) {
     estado('err', 'Error al sincronizar con la nube');
   }
@@ -870,7 +888,7 @@ inventoryTable.addEventListener('click', async e => {
     try {
       await fetch(WEB_APP_URL+'?action=delete&id='+encodeURIComponent(del.dataset.del)+'&t='+Date.now());
       estado('ok', 'Registro borrado');
-      setTimeout(loadInventory, 400);
+      setTimeout(loadInventory, 300);
     } catch(err) { estado('err', 'No se pudo borrar'); }
   }
 
@@ -889,7 +907,7 @@ inventoryTable.addEventListener('click', async e => {
     try {
       await fetch(WEB_APP_URL+'?action=update&id='+encodeURIComponent(ed.dataset.edit)+'&pCompra='+nc+'&pCliente='+ncl+'&t='+Date.now());
       estado('ok', 'Precios actualizados');
-      setTimeout(loadInventory, 400);
+      setTimeout(loadInventory, 300);
     } catch(err) { estado('err', 'No se pudo actualizar'); }
   }
 });
