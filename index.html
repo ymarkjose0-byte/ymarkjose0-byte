@@ -299,6 +299,7 @@ tr:hover { background: #27272a; }
     <div class="watermark">Desarrollado y Gestionado por Ymark Jose Ramirez Vargas</div>
     <div class="admin-link">
       <a id="btnAdminLogin" onclick="toggleAdmin()">🔐 Modo Administrador</a>
+      <a id="btnCambiarPass" onclick="cambiarPassword()" style="display:none; margin-left:14px;">🔑 Cambiar contraseña</a>
     </div>
   </div>
 </div>
@@ -338,6 +339,87 @@ try {
 
 let isAdmin = sessionStorage.getItem('isAdmin') === 'true';
 
+/* ================== LOGIN LOCAL (SIN CORREO, SIN NUBE) ================== */
+const ADMIN_USER = "admin";
+const DEFAULT_PASS = "199926hacha3043";
+const PASS_KEY = "lifox_admin_hash";
+
+async function sha256(txt) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(txt));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function hashFallback(txt) {
+  let h = 5381;
+  for (let i = 0; i < txt.length; i++) h = ((h * 33) ^ txt.charCodeAt(i)) >>> 0;
+  return "f" + h.toString(16);
+}
+
+async function hashPass(txt) {
+  try {
+    if (window.crypto && crypto.subtle && crypto.subtle.digest) return "s" + await sha256(txt);
+  } catch (e) {}
+  return hashFallback(txt);
+}
+
+async function coincidePass(pass) {
+  let guardado = localStorage.getItem(PASS_KEY);
+  if (!guardado) {
+    guardado = await hashPass(DEFAULT_PASS);
+    localStorage.setItem(PASS_KEY, guardado);
+  }
+  const cands = [hashFallback(pass)];
+  try {
+    if (window.crypto && crypto.subtle && crypto.subtle.digest) cands.push("s" + await sha256(pass));
+  } catch (e) {}
+  return cands.indexOf(guardado) !== -1;
+}
+
+async function verificarPassword() {
+  const usuario = adminUserInput.value.trim();
+  const pass = adminPasswordInput.value.trim();
+  if (!usuario || !pass) { alert('Complete todos los campos.'); return; }
+
+  if (usuario.toLowerCase() !== ADMIN_USER || !(await coincidePass(pass))) {
+    alert('Usuario o contraseña incorrectos.');
+    adminPasswordInput.value = '';
+    adminPasswordInput.focus();
+    return;
+  }
+
+  sessionStorage.setItem('isAdmin', 'true');
+  isAdmin = true;
+  verificarAdminUI();
+  displayItems(searchBox.value);
+  cerrarModal();
+  estado('ok', 'Acceso concedido');
+}
+
+async function cambiarPassword() {
+  const actual = prompt('Contraseña actual:\n\n(Deja vacío y acepta para RESTABLECER la contraseña de fábrica en este navegador).');
+  if (actual === null) return;
+
+  if (actual.trim() === '') {
+    if (!confirm('¿Restablecer la contraseña de administrador a la de fábrica en este navegador?')) return;
+    localStorage.removeItem(PASS_KEY);
+    alert('Contraseña restablecida a la de fábrica.');
+    return;
+  }
+  if (!(await coincidePass(actual.trim()))) { alert('La contraseña actual no es correcta.'); return; }
+
+  const nueva = prompt('Nueva contraseña (mínimo 4 caracteres):');
+  if (nueva === null) return;
+  if (nueva.trim().length < 4) { alert('La contraseña es demasiado corta.'); return; }
+
+  const conf = prompt('Repite la nueva contraseña:');
+  if (conf === null) return;
+  if (nueva.trim() !== conf.trim()) { alert('Las contraseñas no coinciden.'); return; }
+
+  localStorage.setItem(PASS_KEY, await hashPass(nueva.trim()));
+  alert('Contraseña actualizada en este navegador.');
+}
+/* ======================================================================= */
+
 function cerrarModal() { 
   adminModal.style.display = 'none'; 
   adminUserInput.value = '';
@@ -358,49 +440,6 @@ function toggleAdmin() {
   }
 }
 
-async function verificarPassword() {
-  const usuario = adminUserInput.value.trim();
-  const pass = adminPasswordInput.value.trim();
-  if (!usuario || !pass) { alert('Complete todos los campos.'); return; }
-
-  // Contraseña local por defecto de respaldo
-  const passwordLocalValida = localStorage.getItem('lifox_admin_pass') || "199926hacha3043";
-
-  if (usuario === "admin" && pass === passwordLocalValida) {
-    sessionStorage.setItem('isAdmin', 'true');
-    isAdmin = true;
-    verificarAdminUI();
-    displayItems(searchBox.value);
-    cerrarModal();
-    estado('ok', 'Acceso concedido');
-    return;
-  }
-
-  try {
-    estado('ok', 'Verificando con la nube...');
-    const res = await fetch(`${WEB_APP_URL}?action=verifyAdmin&user=${encodeURIComponent(usuario)}&pass=${encodeURIComponent(pass)}&t=${Date.now()}`);
-    const data = await res.json();
-
-    if (data.success) {
-      localStorage.setItem('lifox_admin_pass', pass);
-      sessionStorage.setItem('isAdmin', 'true');
-      isAdmin = true;
-      verificarAdminUI();
-      displayItems(searchBox.value);
-      cerrarModal();
-      estado('ok', 'Acceso concedido');
-    } else {
-      alert('Usuario o contraseña incorrectos.');
-      adminPasswordInput.value = '';
-      adminPasswordInput.focus();
-      estado('ok', 'Sincronizado');
-    }
-  } catch (err) {
-    alert('Usuario o contraseña incorrectos.');
-    estado('err', 'Error de conexión');
-  }
-}
-
 function verificarAdminUI() {
   const elms = document.querySelectorAll('.admin-panel');
   elms.forEach(el => {
@@ -409,6 +448,8 @@ function verificarAdminUI() {
   });
   const btnLogin = document.getElementById('btnAdminLogin');
   if (btnLogin) btnLogin.textContent = isAdmin ? '🔓 Cerrar Sesión Admin' : '🔐 Modo Administrador';
+  const btnPass = document.getElementById('btnCambiarPass');
+  if (btnPass) btnPass.style.display = isAdmin ? 'inline' : 'none';
 }
 
 function mostrarFecha() {
@@ -446,62 +487,4 @@ function displayItems(filter=''){
   
   const totalCols = isAdmin ? 11 : 10;
   if(!lista.length){
-    inventoryTable.innerHTML='<tr><td colspan="'+totalCols+'" class="vacio">'+(f?'Sin coincidencias.':'Aún no hay registros guardados.')+'</td></tr>';
-    return;
-  }
-  
-  lista.sort((a,b)=>String(a.client).localeCompare(String(b.client),'es'));
-  lista.forEach(it=>{
-    const tr=document.createElement('tr');
-    let html='<td><strong>'+esc(it.client)+'</strong></td>'+
-      '<td>'+esc(it.phone || '-')+'</td>'+
-      '<td><span style="background:#27272a; padding:4px 8px; border-radius:4px; font-weight:600; color:#38bdf8;">'+esc(it.technician)+'</span></td>'+
-      '<td>'+esc(it.name)+'</td>'+
-      '<td>'+esc(it.type)+'</td>'+
-      '<td class="num">'+money(it.pCompra)+'</td>'+
-      '<td class="num">'+money(it.pCliente)+'</td>'+
-      '<td class="num ganancia-txt">'+money(it.profit)+'</td>'+
-      '<td>'+esc(it.note || '-')+'</td>'+
-      '<td>'+esc(it.date)+' <br><small style="color:#94a3b8">'+esc(it.time)+'</small></td>';
-    
-    if(isAdmin){
-      html+='<td style="white-space:nowrap; text-align:center;">'+
-        '<button class="mini" data-edit="'+esc(it.id)+'" data-compra="'+it.pCompra+'" data-cliente="'+it.pCliente+'" style="background:#3b82f6; color:#fff;">Editar</button> '+
-        '<button class="mini rojo" data-del="'+esc(it.id)+'">Borrar</button></td>';
-    }
-    tr.innerHTML=html;
-    inventoryTable.appendChild(tr);
-  });
-}
-
-document.getElementById('deviceCategory').addEventListener('change', (e) => {
-  const val = e.target.value;
-  document.getElementById('seccionOS').style.display = val === 'movil' ? 'block' : 'none';
-  document.getElementById('seccionPCSpecs').style.display = val === 'pc' ? 'block' : 'none';
-  document.getElementById('seccionPC').style.display = val === 'pc' ? 'block' : 'none';
-});
-
-document.getElementById('mobileOS').addEventListener('change', (e) => {
-  const os = e.target.value;
-  document.getElementById('seccionIphoneSpecs').style.display = os === 'iPhone' ? 'block' : 'none';
-  document.getElementById('seccionAndroidSpecs').style.display = os === 'Android' ? 'block' : 'none';
-  document.getElementById('seccionMovil').style.display = (os === 'iPhone' || os === 'Android') ? 'block' : 'none';
-});
-
-document.getElementById('splitProfit').addEventListener('change', (e) => {
-  const itemCompra = document.getElementById('itemCompra');
-  if (e.target.checked) { itemCompra.value = '0'; itemCompra.disabled = true; }
-  else { itemCompra.value = ''; itemCompra.disabled = false; }
-});
-
-searchBox.addEventListener('input', e => displayItems(e.target.value));
-document.getElementById('btnReload').addEventListener('click', loadInventory);
-
-verificarAdminUI();
-mostrarFecha();
-displayItems(searchBox.value);
-loadInventory();
-setInterval(() => { if(!document.hidden) loadInventory(); }, 15000);
-</script>
-</body>
-</html>
+    inventoryTable.innerHTML='<tr><td colspan="'+totalCol
