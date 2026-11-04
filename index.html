@@ -64,16 +64,9 @@ tr:nth-child(even) { background: #121214; }
 .modal-buttons { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
 .modal-buttons button { padding: 8px 16px; font-size: 13px; width: 100%; }
 .btn-gris { background: #3f3f46; color: #fff; }
-
-/* PANEL DE DIAGNÓSTICO (bórralo cuando todo funcione) */
-#debug { max-width: 1250px; margin: 0 auto 16px; background: #2a0d0d; border: 2px solid #ef4444; border-radius: 10px; padding: 14px 18px; font-family: Consolas, monospace; font-size: 12px; color: #fca5a5; white-space: pre-wrap; word-break: break-word; }
-#debug b { color: #fff; }
 </style>
 </head>
 <body>
-
-<div id="debug"><b>DIAGNÓSTICO</b>
-Esperando...</div>
 
 <div class="container">
  <div class="marca">
@@ -224,28 +217,26 @@ Esperando...</div>
 </div>
 
 <script>
-var DBG = document.getElementById('debug');
-function dbg(msg) { DBG.innerHTML += '\n' + msg; }
-dbg('Script de diagnostico activo.');
-
 window.addEventListener('error', function (ev) {
-  dbg('!! ERROR: ' + ev.message + ' | linea: ' + ev.lineno + ':' + ev.colno);
-});
-window.addEventListener('unhandledrejection', function (ev) {
-  dbg('!! PROMESA RECHAZADA: ' + (ev.reason && ev.reason.message ? ev.reason.message : ev.reason));
+  var s = document.getElementById('loadingStatus');
+  var p = document.getElementById('punto');
+  if (s) s.textContent = 'ERROR: ' + ev.message + ' (linea ' + ev.lineno + ')';
+  if (p) p.className = 'punto err';
 });
 setTimeout(function () {
-  if (!window.__arrancado) dbg('!! EL SCRIPT PRINCIPAL NO SE EJECUTO (error de sintaxis o archivo en cache).');
-}, 2000);
+  if (!window.__ok) {
+    var s = document.getElementById('loadingStatus');
+    var p = document.getElementById('punto');
+    if (s) s.textContent = 'EL SCRIPT NO ARRANCO (archivo incompleto o en cache)';
+    if (p) p.className = 'punto err';
+  }
+}, 2500);
 </script>
 
 <script>
-window.__arrancado = true;
 "use strict";
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbycBCLYcUhsjIQzA6LIQeVjPxUSYbJD4KCYp3DqrvPNSHZtHZABj_Gfl_oqHUu8sCKaqQ/exec";
-
-dbg('1) Script principal en ejecucion.');
 
 const memStore = {};
 const store = {
@@ -267,8 +258,6 @@ const adminModal = document.getElementById('adminModal');
 const adminUserInput = document.getElementById('adminUserInput');
 const adminPasswordInput = document.getElementById('adminPasswordInput');
 
-dbg('2) Elementos: tabla=' + !!inventoryTable + ' fecha=' + !!fechaActual + ' modal=' + !!adminModal);
-
 let inventory = [];
 try {
   const cached = store.get('lifox_inventory_cache');
@@ -277,21 +266,18 @@ try {
 
 let isAdmin = sesionLeer();
 
-/* ---------- Login contra el servidor (sin credenciales en el HTML) ---------- */
 async function verificarPassword() {
   const usuario = adminUserInput.value.trim();
   const pass = adminPasswordInput.value.trim();
   if (!usuario || !pass) { alert('Complete todos los campos.'); return; }
 
   estado('ok', 'Verificando con el servidor...');
-  dbg('3) Enviando credenciales al servidor...');
 
   try {
     const r = await fetchTimeout(WEB_APP_URL + '?action=verifyAdmin&user=' + encodeURIComponent(usuario) + '&pass=' + encodeURIComponent(pass) + '&t=' + Date.now(), 15000);
     const data = await r.json();
 
     if (data.success) {
-      dbg('4) Credenciales correctas.');
       sesionPoner(true);
       isAdmin = true;
       verificarAdminUI();
@@ -299,14 +285,12 @@ async function verificarPassword() {
       cerrarModal();
       estado('ok', 'Acceso concedido');
     } else {
-      dbg('4) Credenciales rechazadas.');
       alert('Usuario o contraseña incorrectos.');
       adminPasswordInput.value = '';
       adminPasswordInput.focus();
       estado('ok', 'Sincronizado');
     }
   } catch (e) {
-    dbg('4) FALLO DE RED: ' + e.message);
     alert('No se pudo verificar con el servidor. Revisa tu conexión.');
     estado('err', 'Error de conexión');
   }
@@ -333,7 +317,6 @@ async function cambiarPassword() {
   }
 }
 
-/* ---------- UI ---------- */
 function cerrarModal() { adminModal.style.display='none'; adminUserInput.value=''; adminPasswordInput.value=''; }
 function toggleAdmin() {
   if (isAdmin) { sesionPoner(false); isAdmin = false; verificarAdminUI(); displayItems(searchBox.value); }
@@ -360,7 +343,6 @@ const money = function (n) { return '$' + Number(n||0).toLocaleString('es-DO', {
 const esc = function (s) { return String(s===undefined||s===null?'':s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
 function estado(cls, txt) { if (punto) punto.className = 'punto ' + cls; if (loadingStatus) loadingStatus.textContent = txt; }
 
-/* ---------- Datos ---------- */
 async function fetchTimeout(url, ms) {
   if (!window.AbortController) return fetch(url, { cache:'no-store' });
   const ctrl = new AbortController();
@@ -370,7 +352,6 @@ async function fetchTimeout(url, ms) {
 }
 
 async function loadInventory() {
-  dbg('5) Consultando registros...');
   try {
     const r = await fetchTimeout(WEB_APP_URL + '?t=' + Date.now(), 12000);
     const data = await r.json();
@@ -379,16 +360,13 @@ async function loadInventory() {
       store.set('lifox_inventory_cache', JSON.stringify(inventory));
       displayItems(searchBox.value);
       estado('ok', 'Sincronizado · ' + new Date().toLocaleTimeString('es-DO'));
-      dbg('6) Recibidos ' + data.length + ' registros.');
     } else {
       displayItems(searchBox.value);
       estado('err', 'Respuesta inesperada del servidor');
-      dbg('6) Respuesta no valida.');
     }
   } catch (e) {
     displayItems(searchBox.value);
-    estado('err', 'Sin conexion con la nube (mostrando copia local)');
-    dbg('6) FALLO DE RED: ' + e.message);
+    estado('err', 'Sin conexión con la nube (mostrando copia local)');
   }
 }
 
@@ -429,7 +407,72 @@ function displayItems(filter) {
   });
 }
 
-/* ---------- Eventos ---------- */
+function dispositivoTexto() {
+  const cat = document.getElementById('deviceCategory').value;
+  if (cat === 'pc') {
+    const m = document.getElementById('pcModel').value.trim();
+    const c = document.getElementById('pcColor').value;
+    return ('PC ' + m + (c ? ' / ' + c : '')).trim();
+  }
+  const os = document.getElementById('mobileOS').value;
+  if (os === 'iPhone') {
+    const m = document.getElementById('iphoneModel').value;
+    const c = document.getElementById('iphoneColor').value;
+    const s = document.getElementById('iphoneStorage').value;
+    return ('iPhone ' + m + ' / ' + c + ' / ' + s).trim();
+  }
+  return ('Android ' + document.getElementById('androidModel').value.trim()).trim();
+}
+
+priceForm.addEventListener('submit', async function (ev) {
+  ev.preventDefault();
+
+  const cliente = document.getElementById('clientName').value.trim();
+  const telefono = document.getElementById('clientPhone').value.trim();
+  const tecnico = document.getElementById('technicianName').value;
+  const categoria = document.getElementById('deviceCategory').value;
+
+  if (!cliente || !telefono || !tecnico || !categoria) { alert('Complete cliente, teléfono, técnico y tipo de dispositivo.'); return; }
+
+  const servicios = Array.prototype.slice.call(document.querySelectorAll('input[name="rep"]:checked')).map(function (c) { return c.value; });
+  if (!servicios.length) { alert('Marque al menos un servicio.'); return; }
+
+  const payload = {
+    client: cliente,
+    phone: telefono,
+    technician: tecnico,
+    name: dispositivoTexto(),
+    type: servicios.join(', '),
+    pCompra: Number(document.getElementById('itemCompra').value || 0),
+    pCliente: Number(document.getElementById('itemCliente').value || 0),
+    note: document.getElementById('itemNote').value.trim()
+  };
+
+  if (isNaN(payload.pCliente) || payload.pCliente <= 0) { alert('Indique el precio al cliente.'); return; }
+
+  estado('ok', 'Guardando...');
+  try {
+    await fetch(WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    priceForm.reset();
+    document.getElementById('seccionOS').style.display = 'none';
+    document.getElementById('seccionIphoneSpecs').style.display = 'none';
+    document.getElementById('seccionAndroidSpecs').style.display = 'none';
+    document.getElementById('seccionPCSpecs').style.display = 'none';
+    document.getElementById('seccionMovil').style.display = 'block';
+    document.getElementById('seccionPC').style.display = 'none';
+    document.getElementById('itemCompra').disabled = false;
+    await loadInventory();
+    estado('ok', 'Registro guardado');
+  } catch (e) {
+    alert('No se pudo guardar el registro.');
+    estado('err', 'Error al guardar');
+  }
+});
+
 document.getElementById('deviceCategory').addEventListener('change', function (e) {
   const v = e.target.value;
   document.getElementById('seccionOS').style.display = v === 'movil' ? 'block' : 'none';
@@ -450,11 +493,11 @@ searchBox.addEventListener('input', function (e) { displayItems(e.target.value);
 document.getElementById('btnReload').addEventListener('click', loadInventory);
 
 function iniciar() {
-  dbg('7) Iniciando interfaz...');
-  try { verificarAdminUI(); } catch (e) { dbg('X verificarAdminUI: ' + e.message); }
-  try { mostrarFecha(); } catch (e) { dbg('X mostrarFecha: ' + e.message); }
-  try { displayItems(searchBox.value); } catch (e) { dbg('X displayItems: ' + e.message); }
-  try { loadInventory(); } catch (e) { dbg('X loadInventory: ' + e.message); }
+  window.__ok = true;
+  try { verificarAdminUI(); } catch (e) { console.error(e); }
+  try { mostrarFecha(); } catch (e) { console.error(e); }
+  try { displayItems(searchBox.value); } catch (e) { console.error(e); }
+  try { loadInventory(); } catch (e) { console.error(e); }
   try { setInterval(function () { if (!document.hidden) loadInventory(); }, 15000); } catch (e) {}
 }
 
