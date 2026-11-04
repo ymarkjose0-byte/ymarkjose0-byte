@@ -12,11 +12,11 @@
   --success-hover: #059669;
   --danger: #ef4444;
   --danger-hover: #dc2626;
-  --bg-main: #09090b; /* Fondo general negro oscuro */
-  --card-bg: #18181b; /* Fondo de tarjetas oscuro */
-  --text-main: #f8fafc; /* Texto principal claro */
-  --text-muted: #94a3b8; /* Texto secundario gris */
-  --border-color: #27272a; /* Bordes oscuros */
+  --bg-main: #09090b;
+  --card-bg: #18181b;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-color: #27272a;
 }
 
 body {
@@ -47,13 +47,13 @@ body {
   flex-wrap: wrap;
 }
 
-/* Contenedor del logo con sombreado blanco translúcido */
+/* Contenedor del logo optimizado para conservar el rojo y volver blanco lo demás */
 .logo {
-  background: rgba(255, 255, 255, 0.08);
-  padding: 12px 18px;
+  background: #ffffff; /* Fondo blanco sutil dentro del cuadro para que contraste perfecto */
+  padding: 8px 14px;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -75,7 +75,7 @@ h1 {
 .lema {
   margin: 4px 0 0;
   font-size: 11px;
-  color: var(--text-muted);
+  color: #ffffff; /* Slogan en blanco nítido */
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 600;
@@ -547,7 +547,7 @@ tr:hover { background: #27272a; }
 <div id="adminModal" class="modal-overlay">
   <div class="modal-box">
     <h3>Acceso de Administrador</h3>
-    <input type="text" id="adminUserInput" placeholder="Usuario">
+    <input type="text" id="adminUserInput" placeholder="Usuario (Ej. admin)">
     <input type="password" id="adminPasswordInput" placeholder="Contraseña">
     <div class="modal-buttons">
       <button type="button" onclick="verificarPassword()">Ingresar</button>
@@ -585,7 +585,6 @@ const itemClienteInput = document.getElementById('itemCliente');
 let inventory = [];
 let isAdmin = sessionStorage.getItem('isAdmin') === 'true';
 
-// Lógica para manejar el check de 50/50
 splitProfitCheckbox.addEventListener('change', () => {
   if (splitProfitCheckbox.checked) {
     itemCompraInput.value = '0';
@@ -661,7 +660,6 @@ function toggleAdmin() {
 
 function cerrarModal() { adminModal.style.display = 'none'; }
 
-// Verificación segura de usuario y contraseña en el servidor
 async function verificarPassword() {
   const usuarioIngresado = adminUserInput.value.trim();
   const passIngresada = adminPasswordInput.value;
