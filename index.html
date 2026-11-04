@@ -57,13 +57,27 @@ tr:nth-child(even) { background: #121214; }
 .watermark { font-size: 12px; color: #52525b; font-weight: 500; }
 .admin-link a { color: var(--text-muted); text-decoration: none; cursor: pointer; font-weight: 600; font-size: 13px; }
 .admin-link a:hover { color: #f8fafc; text-decoration: underline; }
-.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.8); justify-content: center; align-items: center; z-index: 1000; }
-.modal-box { background: #18181b; border: 1px solid var(--border-color); padding: 28px; border-radius: 14px; width: 320px; text-align: center; }
-.modal-box h3 { margin-top: 0; color: #f8fafc; font-size: 18px; margin-bottom: 16px; }
+
+/* MODALES */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.8); backdrop-filter: blur(6px); justify-content: center; align-items: center; z-index: 1000; padding: 20px; box-sizing: border-box; }
+.modal-box { background: #18181b; border: 1px solid var(--border-color); padding: 28px; border-radius: 14px; width: 340px; max-width: 100%; box-shadow: 0 20px 25px -5px rgba(0,0,0,.7); text-align: center; animation: aparecer .16s ease-out; }
+@keyframes aparecer { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+.modal-box h3 { margin-top: 0; color: #f8fafc; font-size: 18px; margin-bottom: 6px; }
+.modal-box .sub { margin: 0 0 18px; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
 .modal-box input { width: 100%; margin-bottom: 12px; box-sizing: border-box; text-align: center; font-size: 15px; }
 .modal-buttons { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
-.modal-buttons button { padding: 8px 16px; font-size: 13px; width: 100%; }
+.modal-buttons button { padding: 9px 16px; font-size: 13px; width: 100%; }
 .btn-gris { background: #3f3f46; color: #fff; }
+.btn-gris:hover { background: #52525b; }
+.btn-azul { background: var(--primary); color: #fff; }
+.btn-azul:hover { background: #2563eb; }
+.btn-azul:disabled { opacity: .6; cursor: default; }
+.campo-label { display: block; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; margin-bottom: 6px; }
+.campo-grupo { margin-bottom: 14px; }
+.campo-grupo input { margin-bottom: 0; text-align: left; }
+.msg-modal { display: none; font-size: 12.5px; font-weight: 600; padding: 9px 12px; border-radius: 8px; margin-bottom: 14px; text-align: left; }
+.msg-modal.error { display: block; background: rgba(239,68,68,.12); color: #fca5a5; border: 1px solid rgba(239,68,68,.4); }
+.msg-modal.ok { display: block; background: rgba(16,185,129,.12); color: #6ee7b7; border: 1px solid rgba(16,185,129,.4); }
 </style>
 </head>
 <body>
@@ -199,19 +213,46 @@ tr:nth-child(even) { background: #121214; }
     <div class="watermark">Desarrollado y Gestionado por Ymark Jose Ramirez Vargas</div>
     <div class="admin-link">
       <a id="btnAdminLogin" onclick="toggleAdmin()">🔐 Modo Administrador</a>
-      <a id="btnCambiarPass" onclick="cambiarPassword()" style="display:none; margin-left:14px;">🔑 Cambiar contraseña</a>
+      <a id="btnCambiarPass" onclick="abrirCambiarPassword()" style="display:none; margin-left:14px;">🔑 Cambiar contraseña</a>
     </div>
   </div>
 </div>
 
+<!-- MODAL LOGIN -->
 <div id="adminModal" class="modal-overlay">
   <div class="modal-box">
     <h3>Acceso de Administrador</h3>
-    <input type="text" id="adminUserInput" placeholder="Usuario">
-    <input type="password" id="adminPasswordInput" placeholder="Contraseña">
+    <p class="sub">Ingresa tus credenciales para administrar los registros.</p>
+    <input type="text" id="adminUserInput" placeholder="Usuario" autocomplete="off">
+    <input type="password" id="adminPasswordInput" placeholder="Contraseña" autocomplete="current-password">
     <div class="modal-buttons">
-      <button type="button" onclick="verificarPassword()">Ingresar</button>
+      <button type="button" class="btn-azul" onclick="verificarPassword()">Ingresar</button>
       <button type="button" class="btn-gris" onclick="cerrarModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CAMBIAR CONTRASEÑA -->
+<div id="passModal" class="modal-overlay">
+  <div class="modal-box" style="width:380px;">
+    <h3>Cambiar contraseña</h3>
+    <p class="sub">La nueva contraseña se guarda en el servidor y aplica en todos los dispositivos.</p>
+    <div id="passMsg" class="msg-modal"></div>
+    <div class="campo-grupo">
+      <label class="campo-label" for="passActual">Contraseña actual</label>
+      <input type="password" id="passActual" autocomplete="current-password">
+    </div>
+    <div class="campo-grupo">
+      <label class="campo-label" for="passNueva">Nueva contraseña</label>
+      <input type="password" id="passNueva" autocomplete="new-password">
+    </div>
+    <div class="campo-grupo">
+      <label class="campo-label" for="passConfirmar">Repetir nueva contraseña</label>
+      <input type="password" id="passConfirmar" autocomplete="new-password">
+    </div>
+    <div class="modal-buttons">
+      <button type="button" class="btn-azul" id="btnGuardarPass" onclick="guardarNuevaPassword()">Guardar</button>
+      <button type="button" class="btn-gris" onclick="cerrarPassModal()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -257,6 +298,12 @@ const fechaActual = document.getElementById('fechaActual');
 const adminModal = document.getElementById('adminModal');
 const adminUserInput = document.getElementById('adminUserInput');
 const adminPasswordInput = document.getElementById('adminPasswordInput');
+const passModal = document.getElementById('passModal');
+const passActual = document.getElementById('passActual');
+const passNueva = document.getElementById('passNueva');
+const passConfirmar = document.getElementById('passConfirmar');
+const passMsg = document.getElementById('passMsg');
+const btnGuardarPass = document.getElementById('btnGuardarPass');
 
 let inventory = [];
 try {
@@ -296,27 +343,74 @@ async function verificarPassword() {
   }
 }
 
-async function cambiarPassword() {
-  const actual = prompt('Contraseña actual:');
-  if (actual === null) return;
+/* ---------- Modal cambiar contraseña ---------- */
+function abrirCambiarPassword() {
+  passActual.value = '';
+  passNueva.value = '';
+  passConfirmar.value = '';
+  passMsg.className = 'msg-modal';
+  passMsg.textContent = '';
+  btnGuardarPass.disabled = false;
+  btnGuardarPass.textContent = 'Guardar';
+  passModal.style.display = 'flex';
+  setTimeout(function () { passActual.focus(); }, 50);
+}
 
-  const nueva = prompt('Nueva contraseña (mínimo 4 caracteres):');
-  if (nueva === null) return;
-  if (nueva.trim().length < 4) { alert('La contraseña es demasiado corta.'); return; }
+function cerrarPassModal() {
+  passModal.style.display = 'none';
+  passActual.value = '';
+  passNueva.value = '';
+  passConfirmar.value = '';
+}
 
-  const conf = prompt('Repite la nueva contraseña:');
-  if (conf === null) return;
-  if (nueva.trim() !== conf.trim()) { alert('Las contraseñas no coinciden.'); return; }
+function mostrarMsgPass(tipo, texto) {
+  passMsg.className = 'msg-modal ' + tipo;
+  passMsg.textContent = texto;
+}
+
+async function guardarNuevaPassword() {
+  const actual = passActual.value.trim();
+  const nueva = passNueva.value.trim();
+  const conf = passConfirmar.value.trim();
+
+  if (!actual) { mostrarMsgPass('error', 'Escribe tu contraseña actual.'); passActual.focus(); return; }
+  if (nueva.length < 4) { mostrarMsgPass('error', 'La nueva contraseña debe tener al menos 4 caracteres.'); passNueva.focus(); return; }
+  if (nueva !== conf) { mostrarMsgPass('error', 'Las contraseñas nuevas no coinciden.'); passConfirmar.focus(); return; }
+
+  btnGuardarPass.disabled = true;
+  btnGuardarPass.textContent = 'Guardando...';
+  mostrarMsgPass('ok', 'Contactando al servidor...');
 
   try {
-    const r = await fetchTimeout(WEB_APP_URL + '?action=cambiarPass&actual=' + encodeURIComponent(actual.trim()) + '&nueva=' + encodeURIComponent(nueva.trim()) + '&t=' + Date.now(), 15000);
+    const r = await fetchTimeout(WEB_APP_URL + '?action=cambiarPass&actual=' + encodeURIComponent(actual) + '&nueva=' + encodeURIComponent(nueva) + '&t=' + Date.now(), 15000);
     const data = await r.json();
-    alert(data.message || (data.success ? 'Contraseña actualizada.' : 'No se pudo cambiar la contraseña.'));
+
+    if (data.success) {
+      mostrarMsgPass('ok', 'Contraseña actualizada correctamente.');
+      passActual.value = '';
+      passNueva.value = '';
+      passConfirmar.value = '';
+      btnGuardarPass.textContent = 'Listo';
+      setTimeout(cerrarPassModal, 1400);
+    } else {
+      mostrarMsgPass('error', data.message || 'No se pudo cambiar la contraseña.');
+      btnGuardarPass.disabled = false;
+      btnGuardarPass.textContent = 'Guardar';
+    }
   } catch (e) {
-    alert('No se pudo contactar al servidor.');
+    mostrarMsgPass('error', 'No se pudo contactar al servidor.');
+    btnGuardarPass.disabled = false;
+    btnGuardarPass.textContent = 'Guardar';
   }
 }
 
+[passActual, passNueva, passConfirmar].forEach(function (campo) {
+  campo.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Enter') { ev.preventDefault(); guardarNuevaPassword(); }
+  });
+});
+
+/* ---------- UI ---------- */
 function cerrarModal() { adminModal.style.display='none'; adminUserInput.value=''; adminPasswordInput.value=''; }
 function toggleAdmin() {
   if (isAdmin) { sesionPoner(false); isAdmin = false; verificarAdminUI(); displayItems(searchBox.value); }
@@ -491,6 +585,14 @@ document.getElementById('splitProfit').addEventListener('change', function (e) {
 });
 searchBox.addEventListener('input', function (e) { displayItems(e.target.value); });
 document.getElementById('btnReload').addEventListener('click', loadInventory);
+
+[adminModal, passModal].forEach(function (overlay) {
+  overlay.addEventListener('click', function (ev) {
+    if (ev.target === overlay) {
+      if (overlay === adminModal) cerrarModal(); else cerrarPassModal();
+    }
+  });
+});
 
 function iniciar() {
   window.__ok = true;
