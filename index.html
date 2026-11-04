@@ -569,12 +569,17 @@ tr:hover { background: #27272a; }
   </div>
 </div>
 
-<!-- MODAL DE LOGIN -->
+<!-- MODAL DE LOGIN CON RECUPERACIÓN POR WHATSAPP -->
 <div id="adminModal" class="modal-overlay">
   <div class="modal-box">
     <h3>Acceso de Administrador</h3>
     <input type="text" id="adminUserInput" placeholder="Usuario (Ej. admin)" autocomplete="off">
     <input type="password" id="adminPasswordInput" placeholder="Contraseña" autocomplete="new-password">
+    <div style="margin-bottom: 12px; text-align: left;">
+      <a onclick="pedirRecuperacionWhatsApp()" style="font-size: 12px; color: #3b82f6; cursor: pointer; text-decoration: underline;">
+        ¿Olvidaste tu contraseña? (Recuperar por WhatsApp)
+      </a>
+    </div>
     <div class="modal-buttons">
       <button type="button" onclick="verificarPassword()">Ingresar</button>
       <button type="button" class="btn-gris" onclick="cerrarModal()">Cancelar</button>
@@ -583,7 +588,7 @@ tr:hover { background: #27272a; }
 </div>
 
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbycBCLYcUhsjIQzA6LIQeVjPxUSYbJD4KCYp3DqrvPNSHZtHZABj_Gfl_oqHUu8sCKaqQ/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXl6vlj3UF6J2jZLfvoB-N_8L5gzEz0TRUzZ6lN8PDgGV_0YOVUcRCZHxQvMK812YqFA/exec";
 
 const priceForm = document.getElementById('priceForm');
 const inventoryTable = document.getElementById('inventoryTable');
@@ -609,7 +614,7 @@ const splitProfitCheckbox = document.getElementById('splitProfit');
 const itemCompraInput = document.getElementById('itemCompra');
 const itemClienteInput = document.getElementById('itemCliente');
 
-// CARGAR MEMORIA CACHÉ LOCAL
+// CARGAR DATOS DESDE LOCALSTORAGE PARA VISIBILIDAD INMEDIATA
 let inventory = [];
 try {
   const cached = localStorage.getItem('lifox_inventory_cache');
@@ -721,6 +726,25 @@ async function verificarPassword() {
   } catch (err) {
     alert('Error al conectar con la nube.');
     estado('err', 'Error de conexión');
+  }
+}
+
+async function pedirRecuperacionWhatsApp() {
+  const telefono = prompt("Ingresa tu número de teléfono autorizado (Ej. 8094655320):");
+  if (!telefono) return;
+
+  try {
+    const res = await fetch(`${WEB_APP_URL}?action=solicitarPass&phone=${encodeURIComponent(telefono)}&t=${Date.now()}`);
+    const data = await res.json();
+
+    if (data.success && data.whatsappUrl) {
+      window.open(data.whatsappUrl, '_blank');
+      alert("¡Código generado! Revisa la pestaña de WhatsApp que se acaba de abrir.");
+    } else {
+      alert(data.message || "Número no autorizado o error en el sistema.");
+    }
+  } catch (err) {
+    alert("Error al conectar con el servidor para la recuperación.");
   }
 }
 
@@ -951,10 +975,10 @@ document.getElementById('btnReload').addEventListener('click', loadInventory);
 verificarAdminUI();
 mostrarFecha();
 
-// MOSTRAR DATOS DE MEMORIA LOCAL INMEDIATAMENTE
+// MOSTRAR DATOS DE MEMORIA LOCAL AL INSTANTE
 displayItems(searchBox.value);
 
-// LUEGO SINCRONIZAR DE MANERA SILENCIOSA EN SEGUNDO PLANO
+// SINCRONIZAR SILENCIOSAMENTE EN SEGUNDO PLANO
 loadInventory();
 
 setInterval(() => { if(!document.hidden) loadInventory(); }, 15000);
