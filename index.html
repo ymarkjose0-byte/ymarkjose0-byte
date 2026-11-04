@@ -6,17 +6,17 @@
 <title>Control de Precios y Reparaciones - TecnoServicios</title>
 <style>
 :root {
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
   --success: #10b981;
   --success-hover: #059669;
   --danger: #ef4444;
   --danger-hover: #dc2626;
-  --bg-main: #f8fafc;
-  --card-bg: #ffffff;
-  --text-main: #1e293b;
-  --text-muted: #64748b;
-  --border-color: #e2e8f0;
+  --bg-main: #09090b; /* Fondo general negro oscuro */
+  --card-bg: #18181b; /* Fondo de tarjetas oscuro */
+  --text-main: #f8fafc; /* Texto principal claro */
+  --text-muted: #94a3b8; /* Texto secundario gris */
+  --border-color: #27272a; /* Bordes oscuros */
 }
 
 body {
@@ -33,7 +33,8 @@ body {
   background: var(--card-bg);
   padding: 32px;
   border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-color);
 }
 
 .marca {
@@ -45,17 +46,31 @@ body {
   margin-bottom: 24px;
   flex-wrap: wrap;
 }
+
+/* Contenedor del logo con sombreado blanco translúcido */
+.logo {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 12px 18px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .logo img {
-  width: 140px;
+  width: 130px;
   height: auto;
   object-fit: contain;
   display: block;
 }
+
 h1 {
   margin: 0;
   font-size: 24px;
   font-weight: 700;
-  color: #0f172a;
+  color: #f1f5f9;
 }
 .lema {
   margin: 4px 0 0;
@@ -68,16 +83,16 @@ h1 {
 .fecha-header {
   margin-left: auto;
   font-size: 13px;
-  color: #334155;
+  color: #cbd5e1;
   font-weight: 600;
-  background: #f1f5f9;
+  background: #27272a;
   padding: 8px 16px;
   border-radius: 8px;
   border: 1px solid var(--border-color);
 }
 
 form {
-  background: #f8fafc;
+  background: #202024;
   padding: 24px;
   border-radius: 12px;
   margin-bottom: 24px;
@@ -97,13 +112,14 @@ input, select, textarea {
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
-  background: #fff;
+  background: #121214;
+  color: #f8fafc;
   transition: all 0.2s ease;
 }
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 textarea {
   resize: vertical;
@@ -112,7 +128,7 @@ textarea {
 
 .seccion-reparaciones {
   display: none;
-  background: #fff;
+  background: #18181b;
   padding: 16px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -120,7 +136,7 @@ textarea {
 .seccion-reparaciones label.titulo-grupo {
   font-size: 12px;
   font-weight: 700;
-  color: #475569;
+  color: #94a3b8;
   display: block;
   margin-bottom: 10px;
   text-transform: uppercase;
@@ -137,13 +153,14 @@ textarea {
   gap: 8px;
   font-size: 13px;
   cursor: pointer;
-  background: #f8fafc;
+  background: #202024;
   padding: 8px 12px;
   border-radius: 6px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
+  color: #cbd5e1;
 }
 .checkbox-item:hover {
-  background: #f1f5f9;
+  background: #27272a;
 }
 .checkbox-item input {
   cursor: pointer;
@@ -158,8 +175,8 @@ textarea {
   gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: #334155;
-  background: #e2e8f0;
+  color: #cbd5e1;
+  background: #27272a;
   padding: 10px 14px;
   border-radius: 8px;
   cursor: pointer;
@@ -212,11 +229,12 @@ button.rojo:hover {
   font-size: 15px;
   border: 2px solid var(--border-color);
   border-radius: 10px;
-  background: #fff;
+  background: #121214;
+  color: #fff;
 }
 .search-box:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
   outline: none;
 }
 .barra {
@@ -232,7 +250,7 @@ button.rojo:hover {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #cbd5e1;
+  background: #64748b;
   display: inline-block;
 }
 .punto.ok { background: var(--success); }
@@ -255,17 +273,17 @@ th, td {
   font-size: 13px;
 }
 th {
-  background: #1e293b;
-  color: #fff;
+  background: #202024;
+  color: #f1f5f9;
   font-weight: 600;
   text-transform: uppercase;
   font-size: 11px;
   letter-spacing: 0.05em;
 }
-tr:nth-child(even) { background: #f8fafc; }
-tr:hover { background: #f1f5f9; }
+tr:nth-child(even) { background: #121214; }
+tr:hover { background: #27272a; }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
-.ganancia-txt { color: var(--success); font-weight: 700; }
+.ganancia-txt { color: #34d399; font-weight: 700; }
 .vacio { text-align: center; color: var(--text-muted); padding: 32px; font-style: italic; }
 
 .admin-panel { display: none; }
@@ -281,7 +299,7 @@ tr:hover { background: #f1f5f9; }
   font-weight: 600;
 }
 .admin-link a:hover {
-  color: var(--text-main);
+  color: #f8fafc;
   text-decoration: underline;
 }
 
@@ -289,26 +307,27 @@ tr:hover { background: #f1f5f9; }
   display: none;
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(6px);
   justify-content: center;
   align-items: center;
   z-index: 1000;
 }
 .modal-box {
-  background: #fff;
+  background: #18181b;
+  border: 1px solid var(--border-color);
   padding: 28px;
   border-radius: 14px;
   width: 320px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
   text-align: center;
 }
-.modal-box h3 { margin-top: 0; color: #0f172a; font-size: 18px; }
-.modal-box input { width: 100%; margin-bottom: 16px; box-sizing: border-box; text-align: center; font-size: 16px; }
-.modal-buttons { display: flex; justify-content: center; gap: 10px; }
+.modal-box h3 { margin-top: 0; color: #f8fafc; font-size: 18px; margin-bottom: 16px; }
+.modal-box input { width: 100%; margin-bottom: 12px; box-sizing: border-box; text-align: center; font-size: 15px; }
+.modal-buttons { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
 .modal-buttons button { padding: 8px 16px; font-size: 13px; width: 100%; }
-.btn-gris { background: #64748b; color: #fff; }
-.btn-gris:hover { background: #475569; }
+.btn-gris { background: #3f3f46; color: #fff; }
+.btn-gris:hover { background: #52525b; }
 </style>
 </head>
 <body>
@@ -333,9 +352,9 @@ tr:hover { background: #f1f5f9; }
 
     <div class="form-row">
       <select id="deviceCategory" required>
-        <option value="">📱 Seleccione Tipo de Dispositivo</option>
-        <option value="movil">Dispositivo Móvil (iPhone / Android)</option>
-        <option value="pc">Computadora / Laptop (PC)</option>
+        <option value="" style="background:#18181b;">📱 Seleccione Tipo de Dispositivo</option>
+        <option value="movil" style="background:#18181b;">Dispositivo Móvil (iPhone / Android)</option>
+        <option value="pc" style="background:#18181b;">Computadora / Laptop (PC)</option>
       </select>
     </div>
 
@@ -343,18 +362,18 @@ tr:hover { background: #f1f5f9; }
     <div id="seccionOS" class="seccion-reparaciones" style="display:none;">
       <label class="titulo-grupo">Sistema Operativo del Móvil:</label>
       <select id="mobileOS">
-        <option value="">Seleccione plataforma...</option>
-        <option value="iPhone">iPhone (iOS)</option>
-        <option value="Android">Android</option>
+        <option value="" style="background:#18181b;">Seleccione plataforma...</option>
+        <option value="iPhone" style="background:#18181b;">iPhone (iOS)</option>
+        <option value="Android" style="background:#18181b;">Android</option>
       </select>
     </div>
 
     <!-- DETALLES ESPECÍFICOS PARA IPHONE -->
-    <div id="seccionIphoneSpecs" class="seccion-reparaciones" style="display:none; background:#f1f5f9;">
+    <div id="seccionIphoneSpecs" class="seccion-reparaciones" style="display:none; background:#121214;">
       <label class="titulo-grupo">Especificaciones del iPhone:</label>
       <div class="form-row" style="margin-bottom: 10px;">
         <select id="iphoneModel">
-          <option value="">Seleccione Modelo de iPhone</option>
+          <option value="" style="background:#18181b;">Seleccione Modelo de iPhone</option>
           <option value="iPhone 6">iPhone 6</option>
           <option value="iPhone 6 Plus">iPhone 6 Plus</option>
           <option value="iPhone 6s">iPhone 6s</option>
@@ -396,7 +415,7 @@ tr:hover { background: #f1f5f9; }
         </select>
 
         <select id="iphoneColor">
-          <option value="">Seleccione Color</option>
+          <option value="" style="background:#18181b;">Seleccione Color</option>
           <option value="Negro / Space Gray">Negro / Space Gray</option>
           <option value="Blanco / Silver">Blanco / Silver</option>
           <option value="Dorado / Gold">Dorado / Gold</option>
@@ -411,7 +430,7 @@ tr:hover { background: #f1f5f9; }
         </select>
 
         <select id="iphoneStorage">
-          <option value="">Capacidad</option>
+          <option value="" style="background:#18181b;">Capacidad</option>
           <option value="16GB">16 GB</option>
           <option value="32GB">32 GB</option>
           <option value="64GB">64 GB</option>
@@ -424,18 +443,18 @@ tr:hover { background: #f1f5f9; }
     </div>
 
     <!-- CAMPO PARA MODELO ANDROID -->
-    <div id="seccionAndroidSpecs" class="seccion-reparaciones" style="display:none; background:#f1f5f9;">
+    <div id="seccionAndroidSpecs" class="seccion-reparaciones" style="display:none; background:#121214;">
       <label class="titulo-grupo">Modelo de Dispositivo Android:</label>
       <input type="text" id="androidModel" placeholder="Ej. Samsung Galaxy S23, Xiaomi Redmi Note 12...">
     </div>
 
     <!-- DETALLES ESPECÍFICOS PARA COMPUTADORAS / LAPTOPS -->
-    <div id="seccionPCSpecs" class="seccion-reparaciones" style="display:none; background:#f1f5f9;">
+    <div id="seccionPCSpecs" class="seccion-reparaciones" style="display:none; background:#121214;">
       <label class="titulo-grupo">Especificaciones de la Computadora / Laptop:</label>
       <div class="form-row" style="margin-bottom: 10px;">
         <input type="text" id="pcModel" placeholder="Modelo (Ej. HP Pavilion, Lenovo ThinkPad, iMac...)">
         <select id="pcColor">
-          <option value="">Seleccione Color</option>
+          <option value="" style="background:#18181b;">Seleccione Color</option>
           <option value="Negro">Negro</option>
           <option value="Plateado / Gris / Silver">Plateado / Gris / Silver</option>
           <option value="Blanco">Blanco</option>
@@ -496,7 +515,7 @@ tr:hover { background: #f1f5f9; }
   <div class="barra">
     <span class="punto" id="punto"></span>
     <span id="loadingStatus">Cargando registros...</span>
-    <button type="button" class="mini" id="btnReload" style="background:#475569; color:#fff;">Actualizar ahora</button>
+    <button type="button" class="mini" id="btnReload" style="background:#3f3f46; color:#fff;">Actualizar ahora</button>
   </div>
 
   <div class="table-responsive">
@@ -524,9 +543,11 @@ tr:hover { background: #f1f5f9; }
   </div>
 </div>
 
+<!-- MODAL DE LOGIN (USUARIO Y CONTRASEÑA) -->
 <div id="adminModal" class="modal-overlay">
   <div class="modal-box">
     <h3>Acceso de Administrador</h3>
+    <input type="text" id="adminUserInput" placeholder="Usuario (Ej. admin)">
     <input type="password" id="adminPasswordInput" placeholder="Contraseña">
     <div class="modal-buttons">
       <button type="button" onclick="verificarPassword()">Ingresar</button>
@@ -546,6 +567,7 @@ const punto = document.getElementById('punto');
 const btnSubmit = document.getElementById('btnSubmit');
 const fechaActual = document.getElementById('fechaActual');
 const adminModal = document.getElementById('adminModal');
+const adminUserInput = document.getElementById('adminUserInput');
 const adminPasswordInput = document.getElementById('adminPasswordInput');
 
 const deviceCategory = document.getElementById('deviceCategory');
@@ -568,11 +590,11 @@ splitProfitCheckbox.addEventListener('change', () => {
   if (splitProfitCheckbox.checked) {
     itemCompraInput.value = '0';
     itemCompraInput.disabled = true;
-    itemCompraInput.style.background = '#e2e8f0';
+    itemCompraInput.style.background = '#27272a';
   } else {
     itemCompraInput.value = '';
     itemCompraInput.disabled = false;
-    itemCompraInput.style.background = '#fff';
+    itemCompraInput.style.background = '#121214';
   }
 });
 
@@ -631,20 +653,23 @@ function toggleAdmin() {
     displayItems(searchBox.value);
   } else {
     adminModal.style.display = 'flex';
+    adminUserInput.value = '';
     adminPasswordInput.value = '';
-    adminPasswordInput.focus();
+    adminUserInput.focus();
   }
 }
 
 function cerrarModal() { adminModal.style.display = 'none'; }
 
+// Verificación segura de usuario y contraseña en el servidor
 async function verificarPassword() {
+  const usuarioIngresado = adminUserInput.value.trim();
   const passIngresada = adminPasswordInput.value;
-  if (!passIngresada) return;
+  if (!usuarioIngresado || !passIngresada) return;
 
   try {
     estado('ok', 'Verificando credenciales...');
-    const res = await fetch(`${WEB_APP_URL}?action=verifyAdmin&pass=${encodeURIComponent(passIngresada)}&t=${Date.now()}`);
+    const res = await fetch(`${WEB_APP_URL}?action=verifyAdmin&user=${encodeURIComponent(usuarioIngresado)}&pass=${encodeURIComponent(passIngresada)}&t=${Date.now()}`);
     const data = await res.json();
 
     if (data.success) {
@@ -655,18 +680,19 @@ async function verificarPassword() {
       cerrarModal();
       estado('ok', 'Acceso concedido');
     } else {
-      alert('Contraseña incorrecta.');
+      alert('Usuario o contraseña incorrectos.');
       adminPasswordInput.value = '';
       adminPasswordInput.focus();
       estado('ok', 'Sincronizado');
     }
   } catch (err) {
-    alert('Error al conectar con la nube para verificar la contraseña.');
+    alert('Error al conectar con la nube para verificar credenciales.');
     estado('err', 'Error de conexión');
   }
 }
 
 adminPasswordInput.addEventListener('keypress', e => { if (e.key === 'Enter') verificarPassword(); });
+adminUserInput.addEventListener('keypress', e => { if (e.key === 'Enter') adminPasswordInput.focus(); });
 
 function mostrarFecha() {
   try {
@@ -718,11 +744,11 @@ function displayItems(filter=''){
       '<td class="num">'+money(it.pCliente)+'</td>'+
       '<td class="num ganancia-txt">'+money(it.profit)+'</td>'+
       '<td>'+esc(it.note || '-')+'</td>'+
-      '<td>'+esc(it.date)+' <br><small style="color:#64748b">'+esc(it.time)+'</small></td>';
+      '<td>'+esc(it.date)+' <br><small style="color:#94a3b8">'+esc(it.time)+'</small></td>';
     
     if(isAdmin){
       html+='<td style="white-space:nowrap; text-align:center;">'+
-        '<button class="mini" data-edit="'+esc(it.id)+'" data-compra="'+it.pCompra+'" data-cliente="'+it.pCliente+'" style="background:#2563eb; color:#fff;">Editar</button> '+
+        '<button class="mini" data-edit="'+esc(it.id)+'" data-compra="'+it.pCompra+'" data-cliente="'+it.pCliente+'" style="background:#3b82f6; color:#fff;">Editar</button> '+
         '<button class="mini rojo" data-del="'+esc(it.id)+'">Borrar</button></td>';
     }
     
@@ -776,7 +802,6 @@ priceForm.addEventListener('submit', async e => {
   let pCliente = Number(itemClienteInput.value);
   let profit = pCliente - pCompra;
 
-  // Si se marcó 50/50, la ganancia real registrada se divide a la mitad matemáticamente para reflejar el acuerdo
   if (splitProfitCheckbox.checked) {
     profit = pCliente / 2;
   }
@@ -814,7 +839,7 @@ priceForm.addEventListener('submit', async e => {
   priceForm.reset();
   splitProfitCheckbox.checked = false;
   itemCompraInput.disabled = false;
-  itemCompraInput.style.background = '#fff';
+  itemCompraInput.style.background = '#121214';
   seccionOS.style.display = 'none';
   seccionIphoneSpecs.style.display = 'none';
   seccionAndroidSpecs.style.display = 'none';
