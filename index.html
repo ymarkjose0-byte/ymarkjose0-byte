@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Control de Precios y Reparaciones - TecnoServicios</title>
+
+<!-- ============================================================
+     ESTILOS
+     ============================================================ -->
 <style>
 :root {
   --primary: #3b82f6;
@@ -15,56 +19,322 @@
   --text-muted: #94a3b8;
   --border-color: #27272a;
 }
-body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; margin: 0; padding: 24px; background: var(--bg-main); color: var(--text-main); }
-.container { max-width: 1250px; margin: 0 auto; background: var(--card-bg); padding: 32px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,.5); border: 1px solid var(--border-color); }
-.marca { display: flex; align-items: center; gap: 16px; border-bottom: 2px solid var(--border-color); padding-bottom: 20px; margin-bottom: 24px; flex-wrap: wrap; }
-.logo { background: rgba(255,255,255,.08); padding: 8px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; }
+
+/* --- Base --- */
+* { box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 24px;
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+.container {
+  max-width: 1250px;
+  margin: 0 auto;
+  background: var(--card-bg);
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, .5);
+  border: 1px solid var(--border-color);
+}
+
+/* --- Encabezado / marca --- */
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.logo {
+  background: rgba(255, 255, 255, .08);
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .logo img { width: 130px; height: auto; object-fit: contain; display: block; }
 h1 { margin: 0; font-size: 24px; font-weight: 700; color: #f1f5f9; }
-.lema { margin: 4px 0 0; font-size: 11px; color: #fff; text-transform: uppercase; letter-spacing: .1em; font-weight: 600; }
-.fecha-header { margin-left: auto; font-size: 13px; color: #cbd5e1; font-weight: 600; background: #27272a; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-color); }
-form { background: #202024; padding: 24px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border-color); display: none; flex-direction: column; gap: 16px; }
+.lema {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-weight: 600;
+}
+.fecha-header {
+  margin-left: auto;
+  font-size: 13px;
+  color: #cbd5e1;
+  font-weight: 600;
+  background: #27272a;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+/* --- Formulario --- */
+form {
+  background: #202024;
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border-color);
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+}
 .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-input, select, textarea { padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; font-family: inherit; background: #121214; color: #f8fafc; }
-input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,.2); }
+input, select, textarea {
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #121214;
+  color: #f8fafc;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, .2);
+}
 textarea { resize: vertical; height: 70px; }
-.seccion-reparaciones { display: none; background: #18181b; padding: 16px; border: 1px solid var(--border-color); border-radius: 8px; }
-.seccion-reparaciones label.titulo-grupo { font-size: 12px; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 10px; text-transform: uppercase; }
-.checkbox-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
-.checkbox-item { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; background: #202024; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); color: #cbd5e1; }
-.checkbox-item input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary); }
-.split-option { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #cbd5e1; background: #27272a; padding: 10px 14px; border-radius: 8px; cursor: pointer; }
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #e8f0fe inset;
+  -webkit-text-fill-color: #101418;
+  caret-color: #101418;
+  transition: background-color 9999s ease-out;
+}
+
+/* --- Secciones del formulario --- */
+.seccion-reparaciones {
+  display: none;
+  background: #18181b;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+.seccion-reparaciones label.titulo-grupo {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  display: block;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+.checkbox-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 10px; }
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  background: #202024;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  color: #cbd5e1;
+  user-select: none;
+}
+.checkbox-item:hover { border-color: #3f3f46; }
+.checkbox-item input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary); flex: none; margin: 0; }
+.checkbox-item.marcado { border-color: var(--primary); background: #16233a; color: #dbeafe; }
+
+/* --- Chips de servicios --- */
+.chips-box { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.chips-box:empty { display: none; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+  border-radius: 999px;
+  background: #1e3a5f;
+  color: #cfe3ff;
+  font-size: 12px;
+  font-weight: 600;
+}
+.chip button { background: none; border: none; color: #9fc4ff; cursor: pointer; font-size: 15px; line-height: 1; padding: 0 3px; }
+
+.split-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #cbd5e1;
+  background: #27272a;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
 .split-option input { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
+
+/* --- Botones --- */
 button { padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
+button:focus { outline: none; }
+button:focus-visible { box-shadow: 0 0 0 3px rgba(59, 130, 246, .35); }
+button:disabled { opacity: .5; cursor: not-allowed; }
 #btnSubmit { background: var(--success); color: #fff; font-size: 15px; }
 button.mini { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
 button.rojo { background: var(--danger); color: #fff; }
-.search-box { width: 100%; padding: 14px 18px; margin-bottom: 16px; box-sizing: border-box; font-size: 15px; border: 2px solid var(--border-color); border-radius: 10px; background: #121214; color: #fff; }
-.barra { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 13px; color: var(--text-muted); flex-wrap: wrap; }
-.punto { width: 10px; height: 10px; border-radius: 50%; background: #64748b; display: inline-block; }
+button.rojo:hover { background: #dc2626; }
+button.gris { background: #3f3f46; color: #fff; }
+button.gris:hover { background: #52525b; }
+.acciones-form { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* --- Buscador y barra de estado --- */
+.search-box {
+  width: 100%;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  font-size: 15px;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  background: #121214;
+  color: #fff;
+}
+.barra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+.punto {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #64748b;
+  display: inline-block;
+  transition: background .25s;
+}
 .punto.ok { background: var(--success); }
 .punto.err { background: var(--danger); }
+#relojVivo {
+  display: none;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: #cbd5e1;
+  letter-spacing: .02em;
+}
+#btnReload {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 3px 9px;
+  font-size: 14px;
+  line-height: 1.1;
+  border-radius: 6px;
+}
+#btnReload:hover { color: #fff; border-color: #52525b; }
+#btnNueva { background: var(--success); color: #fff; display: none; align-items: center; margin-left: auto; }
+#btnNueva:hover { background: #0d9668; }
+
+/* --- Tabla --- */
 .table-responsive { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-color); }
-table { width: 100%; border-collapse: collapse; white-space: nowrap; }
-th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+th, td {
+  padding: 13px 9px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
 th { background: #202024; color: #f1f5f9; font-weight: 600; text-transform: uppercase; font-size: 11px; }
 tr:nth-child(even) { background: #121214; }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
 .ganancia-txt { color: #34d399; font-weight: 700; }
 .vacio { text-align: center; color: var(--text-muted); padding: 32px; font-style: italic; }
+
+col.c-cliente { width: 10%; }
+col.c-tel { width: 8%; }
+col.c-tec { width: 6%; }
+col.c-disp { width: 14%; }
+col.c-serv { width: 15%; }
+col.c-comp { width: 6%; }
+col.c-cli { width: 6%; }
+col.c-gan { width: 6%; }
+col.c-nota { width: 5%; }
+col.c-fecha { width: 9%; }
+col.c-acc { width: 15%; }
+td.celda-acc { overflow: visible; }
+.celda-acc .acc-wrap { display: flex; gap: 6px; justify-content: center; }
+.celda-acc button { padding: 5px 10px; font-size: 11.5px; }
+
+/* --- Footer / marca de agua --- */
 .admin-panel { display: none; }
-.admin-footer-area { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; flex-wrap: wrap; gap: 10px; }
-.watermark { font-size: 12px; color: #52525b; font-weight: 500; }
+.admin-footer-area {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 18px;
+}
+.watermark { display: flex; flex-direction: column; gap: 3px; }
+.wm-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: .18em; color: #5b6270; font-weight: 700; }
+.wm-nombre {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: .015em;
+  background: linear-gradient(90deg, #60a5fa 0%, #22d3ee 45%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 10px rgba(59, 130, 246, .35));
+}
+.wm-linea { height: 2px; width: 46px; border-radius: 2px; margin-top: 6px; background: linear-gradient(90deg, #3b82f6, #a78bfa); }
 .admin-link a { color: var(--text-muted); text-decoration: none; cursor: pointer; font-weight: 600; font-size: 13px; }
 .admin-link a:hover { color: #f8fafc; text-decoration: underline; }
 
-/* MODALES */
-.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.8); backdrop-filter: blur(6px); justify-content: center; align-items: center; z-index: 1000; padding: 20px; box-sizing: border-box; }
-.modal-box { background: #18181b; border: 1px solid var(--border-color); padding: 28px; border-radius: 14px; width: 340px; max-width: 100%; box-shadow: 0 20px 25px -5px rgba(0,0,0,.7); text-align: center; animation: aparecer .16s ease-out; }
-@keyframes aparecer { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
-.modal-box h3 { margin-top: 0; color: #f8fafc; font-size: 18px; margin-bottom: 6px; }
+/* --- Modales --- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, .8);
+  backdrop-filter: blur(6px);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+.modal-box {
+  background: #18181b;
+  border: 1px solid var(--border-color);
+  padding: 28px;
+  border-radius: 14px;
+  width: 340px;
+  max-width: 100%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, .7);
+  text-align: center;
+  animation: aparecer .16s ease-out;
+}
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(8px) scale(.98); }
+  to { opacity: 1; transform: none; }
+}
+.modal-box h3 { margin: 0 0 6px; color: #f8fafc; font-size: 18px; }
 .modal-box .sub { margin: 0 0 18px; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
-.modal-box input { width: 100%; margin-bottom: 12px; box-sizing: border-box; text-align: center; font-size: 15px; }
+.modal-box input { width: 100%; margin-bottom: 12px; text-align: center; font-size: 15px; }
 .modal-buttons { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
 .modal-buttons button { padding: 9px 16px; font-size: 13px; width: 100%; }
 .btn-gris { background: #3f3f46; color: #fff; }
@@ -72,145 +342,387 @@ tr:nth-child(even) { background: #121214; }
 .btn-azul { background: var(--primary); color: #fff; }
 .btn-azul:hover { background: #2563eb; }
 .btn-azul:disabled { opacity: .6; cursor: default; }
-.campo-label { display: block; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; margin-bottom: 6px; }
+.campo-label {
+  display: block;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
 .campo-grupo { margin-bottom: 14px; }
 .campo-grupo input { margin-bottom: 0; text-align: left; }
-.msg-modal { display: none; font-size: 12.5px; font-weight: 600; padding: 9px 12px; border-radius: 8px; margin-bottom: 14px; text-align: left; }
-.msg-modal.error { display: block; background: rgba(239,68,68,.12); color: #fca5a5; border: 1px solid rgba(239,68,68,.4); }
-.msg-modal.ok { display: block; background: rgba(16,185,129,.12); color: #6ee7b7; border: 1px solid rgba(16,185,129,.4); }
+.msg-modal {
+  display: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 9px 12px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  text-align: left;
+}
+.msg-modal.error { display: block; background: rgba(239, 68, 68, .12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, .4); }
+.msg-modal.ok { display: block; background: rgba(16, 185, 129, .12); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, .4); }
+
+/* --- Responsive --- */
+@media (max-width: 1100px) {
+  #tabla .col-nota, #tabla .col-comp { display: none; }
+}
+@media (max-width: 900px) {
+  #tabla .col-tec, #tabla .col-tel { display: none; }
+  .form-row { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  body { padding: 12px; }
+  .container { padding: 18px; }
+  .form-row { grid-template-columns: 1fr; }
+  #tabla thead { display: none; }
+  #tabla tbody tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 10px;
+    border-bottom: 1px solid var(--border-color);
+    padding: 10px 4px;
+  }
+  #tabla td { border: none; padding: 2px 0; white-space: normal; }
+  #tabla td[data-etiq]::before { content: attr(data-etiq) ": "; color: var(--text-muted); font-size: 11px; }
+  #tabla td.celda-acc { grid-column: 1 / -1; display: flex; gap: 8px; margin-top: 6px; }
+  .celda-acc .acc-wrap { justify-content: flex-start; }
+  #tabla .col-nota, #tabla .col-comp, #tabla .col-tec, #tabla .col-tel { display: block; }
+  .admin-footer-area { flex-direction: column; align-items: flex-start; }
+}
 </style>
 </head>
+
 <body>
-
 <div class="container">
- <div class="marca">
-  <div class="logo"><img src="logo.png" alt="LIFOX TECH" onerror="this.style.display='none'"></div>
-  <div>
-    <h1>Control de Precios y Reparaciones</h1>
-    <p class="lema">Garantía, calidad y confianza</p>
-  </div>
-  <div id="fechaActual" class="fecha-header">Cargando fecha...</div>
-</div>
 
-  <form id="priceForm" class="admin-panel" autocomplete="off">
-    <div class="form-row">
-      <input type="text" id="clientName" placeholder="Nombre del Cliente" maxlength="80" required>
-      <input type="tel" id="clientPhone" placeholder="Teléfono del Cliente (Ej. 809-000-0000)" maxlength="20" required>
+  <!-- ============================================================
+       ENCABEZADO
+       ============================================================ -->
+  <div class="marca">
+    <div class="logo"><img src="logo.png" alt="LIFOX TECH" onerror="this.style.display='none'"></div>
+    <div>
+      <h1>Control de Precios y Reparaciones</h1>
+      <p class="lema">Garantía, calidad y confianza</p>
     </div>
+    <div id="fechaActual" class="fecha-header">Cargando fecha...</div>
+  </div>
+
+  <!-- ============================================================
+       FORMULARIO
+       ============================================================ -->
+  <form id="priceForm" autocomplete="off">
+
+    <!-- Datos del cliente -->
     <div class="form-row">
-      <select id="technicianName" required>
+      <input type="text" id="clientName" name="cli_nombre" placeholder="Nombre del Cliente" maxlength="80"
+             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" required>
+      <input type="tel" id="clientPhone" name="cli_tel" placeholder="Teléfono del Cliente (Ej. 809-000-0000)"
+             maxlength="20" autocomplete="off" autocorrect="off" spellcheck="false" required>
+    </div>
+
+    <!-- Técnico -->
+    <div class="form-row">
+      <select id="technicianName" name="tecnico" required>
         <option value="">🛠️ Seleccione Técnico</option>
         <option value="YMARK">YMARK</option>
         <option value="WINDER">WINDER</option>
       </select>
     </div>
+
+    <!-- Tipo de dispositivo -->
     <div class="form-row">
-      <select id="deviceCategory" required>
+      <select id="deviceCategory" name="categoria" required>
         <option value="">📱 Seleccione Tipo de Dispositivo</option>
         <option value="movil">Dispositivo Móvil (iPhone / Android)</option>
         <option value="pc">Computadora / Laptop (PC)</option>
       </select>
     </div>
+
+    <!-- Sistema operativo -->
     <div id="seccionOS" class="seccion-reparaciones">
       <label class="titulo-grupo">Sistema Operativo del Móvil:</label>
-      <select id="mobileOS">
+      <select id="mobileOS" name="plataforma">
         <option value="">Seleccione plataforma...</option>
         <option value="iPhone">iPhone (iOS)</option>
         <option value="Android">Android</option>
       </select>
     </div>
+
+    <!-- Especificaciones iPhone -->
     <div id="seccionIphoneSpecs" class="seccion-reparaciones" style="background:#121214;">
       <label class="titulo-grupo">Especificaciones del iPhone:</label>
       <div class="form-row" style="margin-bottom:10px;">
-        <select id="iphoneModel">
+
+        <select id="iphoneModel" name="modelo_iphone">
           <option value="">Seleccione Modelo de iPhone</option>
-          <option value="iPhone 11">iPhone 11</option>
-          <option value="iPhone 12">iPhone 12</option>
-          <option value="iPhone 13">iPhone 13</option>
-          <option value="iPhone 14">iPhone 14</option>
-          <option value="iPhone 15">iPhone 15</option>
-          <option value="iPhone 16">iPhone 16</option>
+          <optgroup label="2014 – 2017">
+            <option value="iPhone 6">iPhone 6</option>
+            <option value="iPhone 6 Plus">iPhone 6 Plus</option>
+            <option value="iPhone 6s">iPhone 6s</option>
+            <option value="iPhone 6s Plus">iPhone 6s Plus</option>
+            <option value="iPhone SE (1ª gen)">iPhone SE (1ª gen)</option>
+            <option value="iPhone 7">iPhone 7</option>
+            <option value="iPhone 7 Plus">iPhone 7 Plus</option>
+          </optgroup>
+          <optgroup label="2017 – 2019">
+            <option value="iPhone 8">iPhone 8</option>
+            <option value="iPhone 8 Plus">iPhone 8 Plus</option>
+            <option value="iPhone X">iPhone X</option>
+            <option value="iPhone XR">iPhone XR</option>
+            <option value="iPhone XS">iPhone XS</option>
+            <option value="iPhone XS Max">iPhone XS Max</option>
+          </optgroup>
+          <optgroup label="2019 – 2022">
+            <option value="iPhone 11">iPhone 11</option>
+            <option value="iPhone 11 Pro">iPhone 11 Pro</option>
+            <option value="iPhone 11 Pro Max">iPhone 11 Pro Max</option>
+            <option value="iPhone SE (2ª gen)">iPhone SE (2ª gen)</option>
+            <option value="iPhone 12">iPhone 12</option>
+            <option value="iPhone 12 mini">iPhone 12 mini</option>
+            <option value="iPhone 12 Pro">iPhone 12 Pro</option>
+            <option value="iPhone 12 Pro Max">iPhone 12 Pro Max</option>
+            <option value="iPhone 13">iPhone 13</option>
+            <option value="iPhone 13 mini">iPhone 13 mini</option>
+            <option value="iPhone 13 Pro">iPhone 13 Pro</option>
+            <option value="iPhone 13 Pro Max">iPhone 13 Pro Max</option>
+            <option value="iPhone SE (3ª gen)">iPhone SE (3ª gen)</option>
+          </optgroup>
+          <optgroup label="2022 – 2025">
+            <option value="iPhone 14">iPhone 14</option>
+            <option value="iPhone 14 Plus">iPhone 14 Plus</option>
+            <option value="iPhone 14 Pro">iPhone 14 Pro</option>
+            <option value="iPhone 14 Pro Max">iPhone 14 Pro Max</option>
+            <option value="iPhone 15">iPhone 15</option>
+            <option value="iPhone 15 Plus">iPhone 15 Plus</option>
+            <option value="iPhone 15 Pro">iPhone 15 Pro</option>
+            <option value="iPhone 15 Pro Max">iPhone 15 Pro Max</option>
+            <option value="iPhone 16">iPhone 16</option>
+            <option value="iPhone 16 Plus">iPhone 16 Plus</option>
+            <option value="iPhone 16 Pro">iPhone 16 Pro</option>
+            <option value="iPhone 16 Pro Max">iPhone 16 Pro Max</option>
+            <option value="iPhone 16e">iPhone 16e</option>
+          </optgroup>
+          <optgroup label="Últimos modelos">
+            <option value="iPhone 17">iPhone 17</option>
+            <option value="iPhone 17 Air">iPhone 17 Air</option>
+            <option value="iPhone 17 Pro">iPhone 17 Pro</option>
+            <option value="iPhone 17 Pro Max">iPhone 17 Pro Max</option>
+            <option value="iPhone 18">iPhone 18</option>
+            <option value="iPhone 18 Pro">iPhone 18 Pro</option>
+            <option value="iPhone 18 Pro Max">iPhone 18 Pro Max</option>
+          </optgroup>
         </select>
-        <select id="iphoneColor">
+
+        <select id="iphoneColor" name="color_iphone">
           <option value="">Seleccione Color</option>
           <option value="Negro">Negro</option>
           <option value="Blanco">Blanco</option>
+          <option value="Gris">Gris</option>
+          <option value="Gris espacial">Gris espacial</option>
+          <option value="Plata">Plata</option>
+          <option value="Grafito">Grafito</option>
+          <option value="Medianoche">Medianoche</option>
+          <option value="Blanco estrella">Blanco estrella</option>
           <option value="Azul">Azul</option>
+          <option value="Azul marino">Azul marino</option>
+          <option value="Azul cielo">Azul cielo</option>
+          <option value="Verde">Verde</option>
+          <option value="Verde menta">Verde menta</option>
+          <option value="Verde oliva">Verde oliva</option>
+          <option value="Rojo">Rojo</option>
+          <option value="Rosa">Rosa</option>
+          <option value="Rosa palo">Rosa palo</option>
+          <option value="Morado">Morado</option>
+          <option value="Lila">Lila</option>
+          <option value="Amarillo">Amarillo</option>
+          <option value="Naranja">Naranja</option>
+          <option value="Coral">Coral</option>
+          <option value="Dorado">Dorado</option>
+          <option value="Bronce">Bronce</option>
+          <option value="Titanio natural">Titanio natural</option>
+          <option value="Titanio azul">Titanio azul</option>
+          <option value="Titanio negro">Titanio negro</option>
+          <option value="Titanio blanco">Titanio blanco</option>
           <option value="Otro">Otro</option>
         </select>
-        <select id="iphoneStorage">
+
+        <select id="iphoneStorage" name="capacidad">
           <option value="">Capacidad</option>
+          <option value="16GB">16 GB</option>
+          <option value="32GB">32 GB</option>
           <option value="64GB">64 GB</option>
           <option value="128GB">128 GB</option>
           <option value="256GB">256 GB</option>
+          <option value="512GB">512 GB</option>
+          <option value="1TB">1 TB</option>
+        </select>
+
+      </div>
+    </div>
+
+    <!-- Especificaciones Android -->
+    <div id="seccionAndroidSpecs" class="seccion-reparaciones" style="background:#121214;">
+      <label class="titulo-grupo">Especificaciones del Dispositivo Android:</label>
+      <div class="form-row" style="margin-bottom:10px;">
+        <input type="text" id="androidModel" name="modelo_android" placeholder="Ej. Samsung Galaxy S23..."
+               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <select id="androidColor" name="color_android">
+          <option value="">Seleccione Color</option>
+          <option value="Negro">Negro</option>
+          <option value="Negro mate">Negro mate</option>
+          <option value="Blanco">Blanco</option>
+          <option value="Gris">Gris</option>
+          <option value="Gris oscuro">Gris oscuro</option>
+          <option value="Plateado">Plateado</option>
+          <option value="Grafito">Grafito</option>
+          <option value="Azul">Azul</option>
+          <option value="Azul marino">Azul marino</option>
+          <option value="Azul cielo">Azul cielo</option>
+          <option value="Verde">Verde</option>
+          <option value="Verde menta">Verde menta</option>
+          <option value="Verde oliva">Verde oliva</option>
+          <option value="Rojo">Rojo</option>
+          <option value="Rosa">Rosa</option>
+          <option value="Rosa palo">Rosa palo</option>
+          <option value="Morado">Morado</option>
+          <option value="Lila">Lila</option>
+          <option value="Amarillo">Amarillo</option>
+          <option value="Naranja">Naranja</option>
+          <option value="Coral">Coral</option>
+          <option value="Dorado">Dorado</option>
+          <option value="Bronce">Bronce</option>
+          <option value="Vinotinto">Vinotinto</option>
+          <option value="Turquesa">Turquesa</option>
+          <option value="Beige">Beige</option>
+          <option value="Otro">Otro</option>
         </select>
       </div>
     </div>
-    <div id="seccionAndroidSpecs" class="seccion-reparaciones" style="background:#121214;">
-      <label class="titulo-grupo">Modelo de Dispositivo Android:</label>
-      <input type="text" id="androidModel" placeholder="Ej. Samsung Galaxy S23...">
-    </div>
+
+    <!-- Especificaciones PC -->
     <div id="seccionPCSpecs" class="seccion-reparaciones" style="background:#121214;">
       <label class="titulo-grupo">Especificaciones de la Computadora:</label>
       <div class="form-row" style="margin-bottom:10px;">
-        <input type="text" id="pcModel" placeholder="Modelo (Ej. HP Pavilion...)">
-        <select id="pcColor">
+        <input type="text" id="pcModel" name="modelo_pc" placeholder="Modelo (Ej. HP Pavilion...)"
+               autocomplete="off" autocorrect="off" spellcheck="false">
+        <select id="pcColor" name="color_pc">
           <option value="">Seleccione Color</option>
           <option value="Negro">Negro</option>
+          <option value="Negro mate">Negro mate</option>
+          <option value="Gris oscuro">Gris oscuro</option>
+          <option value="Gris">Gris</option>
+          <option value="Gris claro">Gris claro</option>
           <option value="Plateado">Plateado</option>
+          <option value="Aluminio">Aluminio</option>
+          <option value="Blanco">Blanco</option>
+          <option value="Blanco perla">Blanco perla</option>
+          <option value="Crema">Crema</option>
+          <option value="Beige">Beige</option>
+          <option value="Azul">Azul</option>
+          <option value="Azul marino">Azul marino</option>
+          <option value="Azul metálico">Azul metálico</option>
+          <option value="Verde">Verde</option>
+          <option value="Verde militar">Verde militar</option>
+          <option value="Rojo">Rojo</option>
+          <option value="Vinotinto">Vinotinto</option>
+          <option value="Rosa">Rosa</option>
+          <option value="Morado">Morado</option>
+          <option value="Dorado">Dorado</option>
+          <option value="Bronce">Bronce</option>
+          <option value="Café">Café</option>
+          <option value="Transparente / RGB">Transparente / RGB</option>
+          <option value="Otro">Otro</option>
         </select>
       </div>
     </div>
-    <div id="seccionMovil" class="seccion-reparaciones">
-      <label class="titulo-grupo">Servicios para Móviles:</label>
-      <div class="checkbox-group">
-        <label class="checkbox-item"><input type="checkbox" name="rep" value="Cambio de pantalla"> Cambio de pantalla</label>
-        <label class="checkbox-item"><input type="checkbox" name="rep" value="Cambio de batería"> Cambio de batería</label>
-        <label class="checkbox-item"><input type="checkbox" name="rep" value="Cambio de software"> Cambio de software</label>
-      </div>
+
+    <!-- Servicios -->
+    <div id="seccionServicios" class="seccion-reparaciones">
+      <label class="titulo-grupo" id="tituloServicios">Servicios</label>
+      <div class="checkbox-group" id="serviciosBox"></div>
+      <div class="chips-box" id="chipsBox"></div>
     </div>
-    <div id="seccionPC" class="seccion-reparaciones">
-      <label class="titulo-grupo">Servicios para Computadoras:</label>
-      <div class="checkbox-group">
-        <label class="checkbox-item"><input type="checkbox" name="rep" value="Instalación de Windows"> Instalación de Windows</label>
-        <label class="checkbox-item"><input type="checkbox" name="rep" value="Mantenimiento"> Mantenimiento</label>
-      </div>
-    </div>
+
+    <!-- Ganancia compartida -->
     <div class="form-row">
-      <label class="split-option"><input type="checkbox" id="splitProfit"> Dividir ganancia 50/50 (Servicio de un solo precio)</label>
+      <label class="split-option">
+        <input type="checkbox" id="splitProfit"> Dividir ganancia 50/50 (Servicio de un solo precio)
+      </label>
     </div>
+
+    <!-- Precios -->
     <div class="form-row">
-      <input type="number" id="itemCompra" placeholder="Precio Compra ($)" step="0.01" min="0" required>
-      <input type="number" id="itemCliente" placeholder="Precio Cliente ($)" step="0.01" min="0" required>
+      <input type="number" id="itemCompra" name="compra" placeholder="Precio Compra ($)" step="0.01" min="0" required>
+      <input type="number" id="itemCliente" name="precio_cliente" placeholder="Precio Cliente ($)" step="0.01" min="0" required>
     </div>
-    <textarea id="itemNote" placeholder="Nota sobre el dispositivo..."></textarea>
-    <button type="submit" id="btnSubmit">Registrar en la Nube</button>
+
+    <textarea id="itemNote" name="nota" placeholder="Nota sobre el dispositivo..."
+              autocomplete="off" spellcheck="false"></textarea>
+
+    <div class="acciones-form">
+      <button type="submit" id="btnSubmit">Registrar en la Nube</button>
+      <button type="button" class="gris" id="btnDeshacer" disabled>Deshacer cambios</button>
+      <button type="button" class="gris" id="btnCancelar">Cancelar</button>
+    </div>
   </form>
 
-  <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar por cliente, teléfono, técnico, dispositivo...">
+  <!-- ============================================================
+       BUSCADOR + BARRA DE ESTADO (con reloj automático)
+       ============================================================ -->
+  <input type="text" id="searchBox" class="search-box"
+         placeholder="🔍 Buscar por cliente, teléfono, técnico, dispositivo..."
+         autocomplete="off" autocorrect="off" spellcheck="false">
 
   <div class="barra">
     <span class="punto" id="punto"></span>
     <span id="loadingStatus">Cargando registros...</span>
-    <button type="button" class="mini" id="btnReload" style="background:#3f3f46; color:#fff;">Actualizar ahora</button>
+    <span id="relojVivo"></span>
+    <button type="button" id="btnReload" title="Actualizar ahora">↻</button>
+    <button type="button" class="mini" id="btnNueva">➕ Nueva reparación</button>
   </div>
 
+  <!-- ============================================================
+       TABLA DE REGISTROS
+       ============================================================ -->
   <div class="table-responsive">
-    <table>
+    <table id="tabla">
+      <colgroup>
+        <col class="c-cliente"><col class="c-tel"><col class="c-tec"><col class="c-disp">
+        <col class="c-serv"><col class="c-comp"><col class="c-cli"><col class="c-gan">
+        <col class="c-nota"><col class="c-fecha"><col class="c-acc" id="colAcc">
+      </colgroup>
       <thead>
         <tr>
-          <th>Cliente</th><th>Teléfono</th><th>Técnico</th><th>Dispositivo</th>
-          <th>Reparaciones / Servicios</th><th class="num">Compra</th><th class="num">Cliente</th>
-          <th class="num">Ganancia</th><th>Nota</th><th>Fecha / Hora</th>
-          <th class="col-admin admin-panel" style="width:100px; text-align:center;">Acciones</th>
+          <th>Cliente</th>
+          <th class="col-tel">Teléfono</th>
+          <th class="col-tec">Técnico</th>
+          <th>Dispositivo</th>
+          <th>Reparaciones / Servicios</th>
+          <th class="num col-comp">Compra</th>
+          <th class="num">Cliente</th>
+          <th class="num">Ganancia</th>
+          <th class="col-nota">Nota</th>
+          <th>Fecha / Hora</th>
+          <th class="col-admin admin-panel" style="text-align:center;">Acciones</th>
         </tr>
       </thead>
       <tbody id="inventoryTable"></tbody>
     </table>
   </div>
 
+  <!-- ============================================================
+       PIE
+       ============================================================ -->
   <div class="admin-footer-area">
-    <div class="watermark">Desarrollado y Gestionado por Ymark Jose Ramirez Vargas</div>
+    <div class="watermark">
+      <span class="wm-label">Desarrollado y Gestionado por</span>
+      <span class="wm-nombre">Ymark Jose Ramirez Vargas</span>
+      <span class="wm-linea"></span>
+    </div>
     <div class="admin-link">
       <a id="btnAdminLogin" onclick="toggleAdmin()">🔐 Modo Administrador</a>
       <a id="btnCambiarPass" onclick="abrirCambiarPassword()" style="display:none; margin-left:14px;">🔑 Cambiar contraseña</a>
@@ -218,13 +730,16 @@ tr:nth-child(even) { background: #121214; }
   </div>
 </div>
 
-<!-- MODAL LOGIN -->
+<!-- ============================================================
+     MODAL LOGIN
+     ============================================================ -->
 <div id="adminModal" class="modal-overlay">
   <div class="modal-box">
     <h3>Acceso de Administrador</h3>
     <p class="sub">Ingresa tus credenciales para administrar los registros.</p>
-    <input type="text" id="adminUserInput" placeholder="Usuario" autocomplete="off">
-    <input type="password" id="adminPasswordInput" placeholder="Contraseña" autocomplete="current-password">
+    <input type="text" id="adminUserInput" placeholder="Usuario" autocomplete="new-password"
+           autocorrect="off" autocapitalize="off" spellcheck="false">
+    <input type="password" id="adminPasswordInput" placeholder="Contraseña" autocomplete="new-password">
     <div class="modal-buttons">
       <button type="button" class="btn-azul" onclick="verificarPassword()">Ingresar</button>
       <button type="button" class="btn-gris" onclick="cerrarModal()">Cancelar</button>
@@ -232,7 +747,9 @@ tr:nth-child(even) { background: #121214; }
   </div>
 </div>
 
-<!-- MODAL CAMBIAR CONTRASEÑA -->
+<!-- ============================================================
+     MODAL CAMBIAR CONTRASEÑA
+     ============================================================ -->
 <div id="passModal" class="modal-overlay">
   <div class="modal-box" style="width:380px;">
     <h3>Cambiar contraseña</h3>
@@ -240,7 +757,7 @@ tr:nth-child(even) { background: #121214; }
     <div id="passMsg" class="msg-modal"></div>
     <div class="campo-grupo">
       <label class="campo-label" for="passActual">Contraseña actual</label>
-      <input type="password" id="passActual" autocomplete="current-password">
+      <input type="password" id="passActual" autocomplete="new-password">
     </div>
     <div class="campo-grupo">
       <label class="campo-label" for="passNueva">Nueva contraseña</label>
@@ -257,6 +774,9 @@ tr:nth-child(even) { background: #121214; }
   </div>
 </div>
 
+<!-- ============================================================
+     DETECTOR DE ERRORES DE CARGA
+     ============================================================ -->
 <script>
 window.addEventListener('error', function (ev) {
   var s = document.getElementById('loadingStatus');
@@ -274,11 +794,16 @@ setTimeout(function () {
 }, 2500);
 </script>
 
+<!-- ============================================================
+     APLICACIÓN
+     ============================================================ -->
 <script>
 "use strict";
 
+/* ---------- Configuración ---------- */
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXl6vlj3UF6J2jZLfvoB-N_8L5gzEz0TRUzZ6lN8PDgGV_0YOVUcRCZHxQvMK812YqFA/exec";
 
+/* ---------- Almacenamiento con respaldo ---------- */
 const memStore = {};
 const store = {
   get(k) { try { return localStorage.getItem(k); } catch (e) { return memStore[k] || null; } },
@@ -287,14 +812,19 @@ const store = {
 };
 let memSesion = false;
 function sesionLeer() { try { return sessionStorage.getItem('isAdmin') === 'true'; } catch (e) { return memSesion; } }
-function sesionPoner(v) { memSesion = v; try { if (v) sessionStorage.setItem('isAdmin','true'); else sessionStorage.removeItem('isAdmin'); } catch (e) {} }
+function sesionPoner(v) {
+  memSesion = v;
+  try { if (v) sessionStorage.setItem('isAdmin', 'true'); else sessionStorage.removeItem('isAdmin'); } catch (e) {}
+}
 
+/* ---------- Referencias del DOM ---------- */
 const priceForm = document.getElementById('priceForm');
 const inventoryTable = document.getElementById('inventoryTable');
 const searchBox = document.getElementById('searchBox');
 const loadingStatus = document.getElementById('loadingStatus');
 const punto = document.getElementById('punto');
 const fechaActual = document.getElementById('fechaActual');
+const relojVivo = document.getElementById('relojVivo');
 const adminModal = document.getElementById('adminModal');
 const adminUserInput = document.getElementById('adminUserInput');
 const adminPasswordInput = document.getElementById('adminPasswordInput');
@@ -304,24 +834,232 @@ const passNueva = document.getElementById('passNueva');
 const passConfirmar = document.getElementById('passConfirmar');
 const passMsg = document.getElementById('passMsg');
 const btnGuardarPass = document.getElementById('btnGuardarPass');
+const btnDeshacer = document.getElementById('btnDeshacer');
+const btnCancelar = document.getElementById('btnCancelar');
+const btnNueva = document.getElementById('btnNueva');
 
-let inventory = [];
-try {
-  const cached = store.get('lifox_inventory_cache');
-  if (cached) inventory = JSON.parse(cached) || [];
-} catch (e) { inventory = []; }
+/* ---------- Catálogos ---------- */
+const SERVICIOS = {
+  iPhone: [
+    'Cambio de pantalla', 'Cambio de batería', 'Cambio de flex', 'Cambio de tapa trasera',
+    'Cambio de cámara', 'Cambio de puerto de carga', 'Desbloqueo de red',
+    'Desbloqueo de cuenta iCloud', 'Microsoldadura', 'Cambio de carcasa', 'Reparación de placa'
+  ],
+  Android: [
+    'Cambio de pantalla', 'Cambio de batería', 'Cambio de flex', 'Cambio de tapa trasera',
+    'Cambio de cámara', 'Cambio de puerto de carga', 'Desbloqueo de red',
+    'Desbloqueo de cuenta Google (FRP)', 'Microsoldadura', 'Cambio de software / flasheo',
+    'Reparación de placa'
+  ],
+  PC: [
+    'Instalación de Windows', 'Instalación de paquetes de Office', 'Mantenimiento y limpieza',
+    'Aplicación de pasta térmica', 'Cambio de pasta térmica', 'Ampliación de RAM',
+    'Cambio de SSD / HDD', 'Eliminación de virus y malware', 'Respaldo de datos',
+    'Reparación de bisagras', 'Cambio de teclado', 'Cambio de pantalla',
+    'Reparación de fuente de poder'
+  ]
+};
+const TITULOS = {
+  iPhone: 'Servicios para Móviles (iOS)',
+  Android: 'Servicios para Móviles (Android)',
+  PC: 'Servicios para Computadoras'
+};
 
+/* ---------- Estado local ---------- */
+let seleccionados = new Set();
+let snapshot = null;
+let editandoId = null;
 let isAdmin = sesionLeer();
+let validando = false;
 
+/* ============================================================
+   SERVICIOS DINÁMICOS Y CHIPS
+   ============================================================ */
+function renderServicios(tipo) {
+  const box = document.getElementById('serviciosBox');
+  const seccion = document.getElementById('seccionServicios');
+  box.innerHTML = '';
+  seleccionados.clear();
+  renderChips();
+
+  if (!tipo) {
+    seccion.style.display = 'none';
+    document.getElementById('tituloServicios').textContent = 'Servicios';
+    return;
+  }
+
+  seccion.style.display = 'block';
+  document.getElementById('tituloServicios').textContent = TITULOS[tipo] || 'Servicios';
+
+  (SERVICIOS[tipo] || []).forEach(function (nombre) {
+    const label = document.createElement('label');
+    label.className = 'checkbox-item';
+
+    const chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.name = 'rep';
+    chk.value = nombre;
+
+    const span = document.createElement('span');
+    span.textContent = nombre;
+
+    label.appendChild(chk);
+    label.appendChild(span);
+
+    chk.addEventListener('change', function () {
+      if (chk.checked) seleccionados.add(nombre);
+      else seleccionados.delete(nombre);
+      label.classList.toggle('marcado', chk.checked);
+      renderChips();
+    });
+
+    box.appendChild(label);
+  });
+}
+
+function renderChips() {
+  const box = document.getElementById('chipsBox');
+  box.innerHTML = '';
+
+  seleccionados.forEach(function (nombre) {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.appendChild(document.createTextNode(nombre + ' '));
+
+    const x = document.createElement('button');
+    x.type = 'button';
+    x.textContent = '×';
+    x.title = 'Quitar';
+    x.addEventListener('click', function () {
+      seleccionados.delete(nombre);
+      Array.prototype.forEach.call(document.querySelectorAll('#serviciosBox input'), function (i) {
+        if (i.value === nombre) {
+          i.checked = false;
+          i.parentElement.classList.remove('marcado');
+        }
+      });
+      renderChips();
+    });
+
+    chip.appendChild(x);
+    box.appendChild(chip);
+  });
+}
+
+/* ============================================================
+   ESTADO DEL FORMULARIO
+   ============================================================ */
+function capturarEstado() {
+  const campos = ['clientName', 'clientPhone', 'technicianName', 'deviceCategory', 'mobileOS',
+                  'iphoneModel', 'iphoneColor', 'iphoneStorage', 'androidModel', 'androidColor',
+                  'pcModel', 'pcColor', 'itemCompra', 'itemCliente', 'itemNote'];
+  const datos = {};
+  campos.forEach(function (id) {
+    const el = document.getElementById(id);
+    if (el) datos[id] = el.value;
+  });
+  return {
+    datos: datos,
+    servicios: Array.from(seleccionados),
+    split: document.getElementById('splitProfit').checked
+  };
+}
+
+function restaurarEstado(snap) {
+  if (!snap) return;
+
+  Object.keys(snap.datos).forEach(function (id) {
+    const el = document.getElementById(id);
+    if (el) el.value = snap.datos[id];
+  });
+
+  document.getElementById('splitProfit').checked = snap.split;
+  const ic = document.getElementById('itemCompra');
+  ic.disabled = !!snap.split;
+  if (snap.split) ic.value = '0';
+
+  aplicarVisibilidad();
+  renderServicios(tipoActual());
+
+  seleccionados = new Set(snap.servicios);
+  Array.prototype.forEach.call(document.querySelectorAll('#serviciosBox input'), function (i) {
+    i.checked = seleccionados.has(i.value);
+    i.parentElement.classList.toggle('marcado', i.checked);
+  });
+  renderChips();
+}
+
+function limpiarFormulario() {
+  priceForm.reset();
+  document.getElementById('splitProfit').checked = false;
+  document.getElementById('itemCompra').disabled = false;
+  seleccionados.clear();
+  document.getElementById('seccionOS').style.display = 'none';
+  document.getElementById('seccionIphoneSpecs').style.display = 'none';
+  document.getElementById('seccionAndroidSpecs').style.display = 'none';
+  document.getElementById('seccionPCSpecs').style.display = 'none';
+  renderServicios(null);
+  editandoId = null;
+  document.getElementById('btnSubmit').textContent = 'Registrar en la Nube';
+  snapshot = capturarEstado();
+  btnDeshacer.disabled = true;
+}
+
+function abrirFormulario() {
+  if (!isAdmin) { adminModal.style.display = 'flex'; adminUserInput.focus(); return; }
+  limpiarFormulario();
+  priceForm.style.display = 'flex';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(function () { document.getElementById('clientName').focus(); }, 120);
+}
+
+function cerrarFormulario() {
+  priceForm.style.display = 'none';
+  limpiarFormulario();
+}
+
+function tipoActual() {
+  const cat = document.getElementById('deviceCategory').value;
+  if (cat === 'pc') return 'PC';
+  if (cat === 'movil') {
+    const os = document.getElementById('mobileOS').value;
+    if (os === 'iPhone') return 'iPhone';
+    if (os === 'Android') return 'Android';
+  }
+  return null;
+}
+
+function aplicarVisibilidad() {
+  const cat = document.getElementById('deviceCategory').value;
+  const os = document.getElementById('mobileOS').value;
+
+  document.getElementById('seccionOS').style.display = cat === 'movil' ? 'block' : 'none';
+  document.getElementById('seccionPCSpecs').style.display = cat === 'pc' ? 'block' : 'none';
+  document.getElementById('seccionIphoneSpecs').style.display = (cat === 'movil' && os === 'iPhone') ? 'block' : 'none';
+  document.getElementById('seccionAndroidSpecs').style.display = (cat === 'movil' && os === 'Android') ? 'block' : 'none';
+}
+
+/* ============================================================
+   ADMINISTRACIÓN
+   ============================================================ */
 async function verificarPassword() {
+  if (validando) return;
+
   const usuario = adminUserInput.value.trim();
   const pass = adminPasswordInput.value.trim();
-  if (!usuario || !pass) { alert('Complete todos los campos.'); return; }
 
+  if (!usuario || !pass) {
+    if (!usuario) adminUserInput.focus(); else adminPasswordInput.focus();
+    alert('Complete todos los campos.');
+    return;
+  }
+
+  validando = true;
   estado('ok', 'Verificando con el servidor...');
 
   try {
-    const r = await fetchTimeout(WEB_APP_URL + '?action=verifyAdmin&user=' + encodeURIComponent(usuario) + '&pass=' + encodeURIComponent(pass) + '&t=' + Date.now(), 15000);
+    const r = await fetchTimeout(WEB_APP_URL + '?action=verifyAdmin&user=' + encodeURIComponent(usuario) +
+                                 '&pass=' + encodeURIComponent(pass) + '&t=' + Date.now(), 15000);
     const data = await r.json();
 
     if (data.success) {
@@ -335,15 +1073,26 @@ async function verificarPassword() {
       alert('Usuario o contraseña incorrectos.');
       adminPasswordInput.value = '';
       adminPasswordInput.focus();
-      estado('ok', 'Sincronizado');
+      estado('ok', 'Sincronizado · ');
     }
   } catch (e) {
     alert('No se pudo verificar con el servidor. Revisa tu conexión.');
     estado('err', 'Error de conexión');
+  } finally {
+    validando = false;
   }
 }
 
-/* ---------- Modal cambiar contraseña ---------- */
+[adminUserInput, adminPasswordInput].forEach(function (campo) {
+  campo.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Enter') {
+      ev.preventDefault();
+      if (campo === adminUserInput && !adminPasswordInput.value.trim()) { adminPasswordInput.focus(); return; }
+      verificarPassword();
+    }
+  });
+});
+
 function abrirCambiarPassword() {
   passActual.value = '';
   passNueva.value = '';
@@ -382,7 +1131,8 @@ async function guardarNuevaPassword() {
   mostrarMsgPass('ok', 'Contactando al servidor...');
 
   try {
-    const r = await fetchTimeout(WEB_APP_URL + '?action=cambiarPass&actual=' + encodeURIComponent(actual) + '&nueva=' + encodeURIComponent(nueva) + '&t=' + Date.now(), 15000);
+    const r = await fetchTimeout(WEB_APP_URL + '?action=cambiarPass&actual=' + encodeURIComponent(actual) +
+                                 '&nueva=' + encodeURIComponent(nueva) + '&t=' + Date.now(), 15000);
     const data = await r.json();
 
     if (data.success) {
@@ -410,114 +1160,318 @@ async function guardarNuevaPassword() {
   });
 });
 
-/* ---------- UI ---------- */
-function cerrarModal() { adminModal.style.display='none'; adminUserInput.value=''; adminPasswordInput.value=''; }
+function cerrarModal() {
+  adminModal.style.display = 'none';
+  adminUserInput.value = '';
+  adminPasswordInput.value = '';
+}
+
 function toggleAdmin() {
-  if (isAdmin) { sesionPoner(false); isAdmin = false; verificarAdminUI(); displayItems(searchBox.value); }
-  else { adminModal.style.display='flex'; adminUserInput.value=''; adminPasswordInput.value=''; adminUserInput.focus(); }
-}
-function verificarAdminUI() {
-  document.querySelectorAll('.admin-panel').forEach(function (el) {
-    if (el.tagName === 'FORM') el.style.display = isAdmin ? 'flex' : 'none';
-    else el.style.display = isAdmin ? 'table-cell' : 'none';
-  });
-  const b = document.getElementById('btnAdminLogin');
-  if (b) b.textContent = isAdmin ? '🔓 Cerrar Sesión Admin' : '🔐 Modo Administrador';
-  const p = document.getElementById('btnCambiarPass');
-  if (p) p.style.display = isAdmin ? 'inline' : 'none';
-}
-function mostrarFecha() {
-  try {
-    const o = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
-    const t = new Date().toLocaleDateString('es-DO', o);
-    fechaActual.textContent = t.charAt(0).toUpperCase() + t.slice(1);
-  } catch (e) { fechaActual.textContent = 'Fecha actual'; }
-}
-const money = function (n) { return '$' + Number(n||0).toLocaleString('es-DO', { minimumFractionDigits:2, maximumFractionDigits:2 }); };
-const esc = function (s) { return String(s===undefined||s===null?'':s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
-function estado(cls, txt) { if (punto) punto.className = 'punto ' + cls; if (loadingStatus) loadingStatus.textContent = txt; }
-
-async function fetchTimeout(url, ms) {
-  if (!window.AbortController) return fetch(url, { cache:'no-store' });
-  const ctrl = new AbortController();
-  const t = setTimeout(function () { ctrl.abort(); }, ms);
-  try { return await fetch(url, { cache:'no-store', signal: ctrl.signal }); }
-  finally { clearTimeout(t); }
-}
-
-async function loadInventory() {
-  try {
-    const r = await fetchTimeout(WEB_APP_URL + '?t=' + Date.now(), 12000);
-    const data = await r.json();
-    if (Array.isArray(data)) {
-      inventory = data;
-      store.set('lifox_inventory_cache', JSON.stringify(inventory));
-      displayItems(searchBox.value);
-      estado('ok', 'Sincronizado · ' + new Date().toLocaleTimeString('es-DO'));
-    } else {
-      displayItems(searchBox.value);
-      estado('err', 'Respuesta inesperada del servidor');
-    }
-  } catch (e) {
+  if (isAdmin) {
+    sesionPoner(false);
+    isAdmin = false;
+    cerrarFormulario();
+    verificarAdminUI();
     displayItems(searchBox.value);
-    estado('err', 'Sin conexión con la nube (mostrando copia local)');
+  } else {
+    adminModal.style.display = 'flex';
+    adminUserInput.value = '';
+    adminPasswordInput.value = '';
+    adminUserInput.focus();
   }
 }
 
+function verificarAdminUI() {
+  document.querySelectorAll('.admin-panel').forEach(function (el) {
+    el.style.display = isAdmin ? 'table-cell' : 'none';
+  });
+
+  const colAcc = document.getElementById('colAcc');
+  if (colAcc) colAcc.style.display = isAdmin ? '' : 'none';
+
+  const b = document.getElementById('btnAdminLogin');
+  if (b) b.textContent = isAdmin ? '🔓 Cerrar Sesión Admin' : '🔐 Modo Administrador';
+
+  const p = document.getElementById('btnCambiarPass');
+  if (p) p.style.display = isAdmin ? 'inline' : 'none';
+
+  btnNueva.style.display = isAdmin ? 'inline-flex' : 'none';
+}
+
+/* ============================================================
+   FECHA Y RELOJ AUTOMÁTICO
+   ============================================================ */
+function mostrarFecha() {
+  try {
+    const o = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const t = new Date().toLocaleDateString('es-DO', o);
+    fechaActual.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+  } catch (e) {
+    fechaActual.textContent = 'Fecha actual';
+  }
+}
+
+function actualizarReloj() {
+  if (!relojVivo) return;
+  try { relojVivo.textContent = new Date().toLocaleTimeString('es-DO'); }
+  catch (e) { relojVivo.textContent = new Date().toLocaleTimeString(); }
+}
+
+/* ============================================================
+   UTILIDADES
+   ============================================================ */
+const money = function (n) {
+  return '$' + Number(n || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+const esc = function (s) {
+  return String(s === undefined || s === null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+};
+
+function estado(cls, txt) {
+  if (punto) punto.className = 'punto ' + cls;
+  if (loadingStatus) loadingStatus.textContent = txt;
+
+  const conReloj = /^Sincronizado/i.test(String(txt));
+  if (relojVivo) relojVivo.style.display = conReloj ? 'inline' : 'none';
+  if (conReloj) actualizarReloj();
+}
+
+async function fetchTimeout(url, ms) {
+  if (!window.AbortController) return fetch(url, { cache: 'no-store' });
+  const ctrl = new AbortController();
+  const t = setTimeout(function () { ctrl.abort(); }, ms);
+  try { return await fetch(url, { cache: 'no-store', signal: ctrl.signal }); }
+  finally { clearTimeout(t); }
+}
+
+/* ============================================================
+   SINCRONIZACIÓN
+   ============================================================ */
+let inventory = [];
+try {
+  const cached = store.get('lifox_inventory_cache');
+  if (cached) inventory = JSON.parse(cached) || [];
+} catch (e) { inventory = []; }
+
+const pendientesBorrar = new Set();
+let firmaTabla = '';
+let fallosSeguidos = 0;
+let cargando = false;
+
+const claveRegistro = function (it) {
+  if (it.id !== undefined && it.id !== null) return String(it.id);
+  if (it.row !== undefined && it.row !== null) return String(it.row);
+  if (it.ID !== undefined && it.ID !== null) return String(it.ID);
+  return String(it.client || '') + '|' + String(it.date || '') + '|' + String(it.time || '');
+};
+
+async function loadInventory(silent) {
+  if (cargando || document.hidden) return;
+  if (adminModal.style.display === 'flex' || passModal.style.display === 'flex') return;
+  cargando = true;
+
+  try {
+    const r = await fetchTimeout(WEB_APP_URL + '?t=' + Date.now(), 9000);
+    const data = await r.json();
+    if (!Array.isArray(data)) throw new Error('respuesta invalida');
+
+    inventory = data.filter(function (it) { return !pendientesBorrar.has(claveRegistro(it)); });
+    store.set('lifox_inventory_cache', JSON.stringify(inventory));
+    fallosSeguidos = 0;
+    displayItems(searchBox.value);
+    estado('ok', 'Sincronizado · ');
+  } catch (e) {
+    fallosSeguidos++;
+    if (!silent || fallosSeguidos >= 2) {
+      displayItems(searchBox.value);
+      estado('err', 'Sin conexión (copia local)');
+    }
+  } finally {
+    cargando = false;
+  }
+}
+
+/* ============================================================
+   RENDER DE LA TABLA
+   ============================================================ */
 function displayItems(filter) {
   if (filter === undefined) filter = '';
   const f = String(filter).trim().toLowerCase();
-  inventoryTable.innerHTML = '';
+
   const lista = inventory.filter(function (it) {
     if (!f) return true;
     return [it.client, it.phone, it.technician, it.name, it.type, it.note].some(function (v) {
       return String(v || '').toLowerCase().indexOf(f) !== -1;
     });
   });
+
+  lista.sort(function (a, b) {
+    return String(a.client || '').localeCompare(String(b.client || ''), 'es');
+  });
+
+  const firma = JSON.stringify(lista) + '|' + isAdmin + '|' + f;
+  if (firma === firmaTabla) return;
+  firmaTabla = firma;
+
   const totalCols = isAdmin ? 11 : 10;
+  inventoryTable.innerHTML = '';
+
   if (!lista.length) {
-    inventoryTable.innerHTML = '<tr><td colspan="' + totalCols + '" class="vacio">' + (f ? 'Sin coincidencias.' : 'Aún no hay registros guardados.') + '</td></tr>';
+    inventoryTable.innerHTML = '<tr><td colspan="' + totalCols + '" class="vacio">' +
+      (f ? 'Sin coincidencias.' : 'Aún no hay registros guardados.') + '</td></tr>';
     return;
   }
-  lista.sort(function (a,b) { return String(a.client||'').localeCompare(String(b.client||''), 'es'); });
+
   lista.forEach(function (it) {
     const tr = document.createElement('tr');
-    let html = '<td><strong>' + esc(it.client) + '</strong></td>' +
-      '<td>' + esc(it.phone || '-') + '</td>' +
-      '<td><span style="background:#27272a;padding:4px 8px;border-radius:4px;font-weight:600;color:#38bdf8;">' + esc(it.technician) + '</span></td>' +
-      '<td>' + esc(it.name) + '</td><td>' + esc(it.type) + '</td>' +
-      '<td class="num">' + money(it.pCompra) + '</td>' +
-      '<td class="num">' + money(it.pCliente) + '</td>' +
-      '<td class="num ganancia-txt">' + money(it.profit) + '</td>' +
-      '<td>' + esc(it.note || '-') + '</td>' +
-      '<td>' + esc(it.date) + ' <br><small style="color:#94a3b8">' + esc(it.time) + '</small></td>';
+
+    let html =
+      '<td data-etiq="Cliente" title="' + esc(it.client) + '"><strong>' + esc(it.client) + '</strong></td>' +
+      '<td data-etiq="Teléfono" class="col-tel">' + esc(it.phone || '-') + '</td>' +
+      '<td data-etiq="Técnico" class="col-tec"><span style="background:#27272a;padding:4px 8px;border-radius:4px;font-weight:600;color:#38bdf8;">' + esc(it.technician) + '</span></td>' +
+      '<td data-etiq="Dispositivo" title="' + esc(it.name) + '">' + esc(it.name) + '</td>' +
+      '<td data-etiq="Servicios" title="' + esc(it.type) + '">' + esc(it.type) + '</td>' +
+      '<td data-etiq="Compra" class="num col-comp">' + money(it.pCompra) + '</td>' +
+      '<td data-etiq="Cliente" class="num">' + money(it.pCliente) + '</td>' +
+      '<td data-etiq="Ganancia" class="num ganancia-txt">' + money(it.profit) + '</td>' +
+      '<td data-etiq="Nota" class="col-nota" title="' + esc(it.note || '') + '">' + esc(it.note || '-') + '</td>' +
+      '<td data-etiq="Fecha">' + esc(it.date) + ' <br><small style="color:#94a3b8">' + esc(it.time) + '</small></td>';
+
     if (isAdmin) {
-      html += '<td style="white-space:nowrap;text-align:center;">' +
-        '<button class="mini" style="background:#3b82f6;color:#fff;">Editar</button> ' +
-        '<button class="mini rojo">Borrar</button></td>';
+      html += '<td class="celda-acc"><div class="acc-wrap">' +
+        '<button type="button" class="mini" data-accion="editar" style="background:#3b82f6;color:#fff;">Editar</button>' +
+        '<button type="button" class="mini rojo" data-accion="borrar">Borrar</button>' +
+        '</div></td>';
     }
+
     tr.innerHTML = html;
+
+    if (isAdmin) {
+      tr.querySelector('[data-accion="editar"]').addEventListener('click', function () { editarRegistro(it); });
+      tr.querySelector('[data-accion="borrar"]').addEventListener('click', function () { borrarRegistro(it); });
+    }
+
     inventoryTable.appendChild(tr);
   });
 }
 
+/* ============================================================
+   TEXTO DEL DISPOSITIVO
+   ============================================================ */
 function dispositivoTexto() {
   const cat = document.getElementById('deviceCategory').value;
+
   if (cat === 'pc') {
     const m = document.getElementById('pcModel').value.trim();
     const c = document.getElementById('pcColor').value;
     return ('PC ' + m + (c ? ' / ' + c : '')).trim();
   }
+
   const os = document.getElementById('mobileOS').value;
+
   if (os === 'iPhone') {
     const m = document.getElementById('iphoneModel').value;
     const c = document.getElementById('iphoneColor').value;
     const s = document.getElementById('iphoneStorage').value;
-    return ('iPhone ' + m + ' / ' + c + ' / ' + s).trim();
+    const mod = /^iPhone/i.test(m) ? m : ('iPhone ' + m);
+    return (mod + (c ? ' / ' + c : '') + (s ? ' / ' + s : '')).trim();
   }
-  return ('Android ' + document.getElementById('androidModel').value.trim()).trim();
+
+  const mAndroid = document.getElementById('androidModel').value.trim();
+  const cAndroid = document.getElementById('androidColor').value;
+  return ('Android ' + mAndroid + (cAndroid ? ' / ' + cAndroid : '')).trim();
 }
 
+/* ============================================================
+   EDITAR
+   ============================================================ */
+function editarRegistro(it) {
+  if (!isAdmin) return;
+  abrirFormulario();
+
+  document.getElementById('clientName').value = it.client || '';
+  document.getElementById('clientPhone').value = it.phone || '';
+  document.getElementById('technicianName').value = it.technician || '';
+
+  const nombre = String(it.name || '');
+  const partes = nombre.split('/').map(function (p) { return p.trim(); });
+
+  if (/^PC/i.test(nombre)) {
+    document.getElementById('deviceCategory').value = 'pc';
+    document.getElementById('pcModel').value = partes[0].replace(/^PC\s*/i, '');
+    document.getElementById('pcColor').value = partes[1] || '';
+  } else if (/^iPhone/i.test(nombre)) {
+    document.getElementById('deviceCategory').value = 'movil';
+    document.getElementById('mobileOS').value = 'iPhone';
+
+    const sel = document.getElementById('iphoneModel');
+    const modeloVal = partes[0];
+    const existe = Array.prototype.some.call(sel.options, function (o) { return o.value === modeloVal; });
+    sel.value = existe ? modeloVal : modeloVal.replace(/^iPhone\s*/i, '');
+
+    document.getElementById('iphoneColor').value = partes[1] || '';
+    document.getElementById('iphoneStorage').value = partes[2] || '';
+  } else if (/^Android/i.test(nombre)) {
+    document.getElementById('deviceCategory').value = 'movil';
+    document.getElementById('mobileOS').value = 'Android';
+    document.getElementById('androidModel').value = partes[0].replace(/^Android\s*/i, '');
+    document.getElementById('androidColor').value = partes[1] || '';
+  }
+
+  aplicarVisibilidad();
+  renderServicios(tipoActual());
+
+  const servicios = String(it.type || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+  seleccionados = new Set(servicios);
+  Array.prototype.forEach.call(document.querySelectorAll('#serviciosBox input'), function (i) {
+    i.checked = seleccionados.has(i.value);
+    i.parentElement.classList.toggle('marcado', i.checked);
+  });
+  renderChips();
+
+  document.getElementById('itemCompra').value = it.pCompra || 0;
+  document.getElementById('itemCliente').value = it.pCliente || 0;
+  document.getElementById('itemNote').value = it.note || '';
+
+  editandoId = claveRegistro(it);
+  document.getElementById('btnSubmit').textContent = 'Guardar cambios';
+  snapshot = capturarEstado();
+  btnDeshacer.disabled = true;
+}
+
+/* ============================================================
+   BORRAR
+   ============================================================ */
+async function borrarRegistro(it) {
+  const etiqueta = it.client || 'sin nombre';
+  if (!confirm('¿Borrar el registro de "' + etiqueta + '"?\n\nEsta acción no se puede deshacer.')) return;
+
+  const id = claveRegistro(it);
+  pendientesBorrar.add(id);
+  inventory = inventory.filter(function (x) { return x !== it; });
+  displayItems(searchBox.value);
+
+  if (editandoId !== null && String(editandoId) === String(id)) cerrarFormulario();
+
+  try {
+    const r = await fetchTimeout(WEB_APP_URL + '?action=delete&id=' + encodeURIComponent(id) + '&t=' + Date.now(), 15000);
+    const data = await r.json();
+    if (!data || !data.success) throw new Error('sin confirmacion');
+
+    pendientesBorrar.delete(id);
+    store.set('lifox_inventory_cache', JSON.stringify(inventory));
+    estado('ok', 'Registro borrado');
+    loadInventory(true);
+  } catch (e) {
+    estado('err', 'Borrado en este equipo (el servidor no confirmó)');
+  }
+}
+
+/* ============================================================
+   ENVÍO DEL FORMULARIO
+   ============================================================ */
 priceForm.addEventListener('submit', async function (ev) {
   ev.preventDefault();
 
@@ -526,9 +1480,16 @@ priceForm.addEventListener('submit', async function (ev) {
   const tecnico = document.getElementById('technicianName').value;
   const categoria = document.getElementById('deviceCategory').value;
 
-  if (!cliente || !telefono || !tecnico || !categoria) { alert('Complete cliente, teléfono, técnico y tipo de dispositivo.'); return; }
+  if (!cliente || !telefono || !tecnico || !categoria) {
+    alert('Complete cliente, teléfono, técnico y tipo de dispositivo.');
+    return;
+  }
+  if (categoria === 'movil' && !document.getElementById('mobileOS').value) {
+    alert('Seleccione la plataforma del móvil (iPhone o Android).');
+    return;
+  }
 
-  const servicios = Array.prototype.slice.call(document.querySelectorAll('input[name="rep"]:checked')).map(function (c) { return c.value; });
+  const servicios = Array.from(seleccionados);
   if (!servicios.length) { alert('Marque al menos un servicio.'); return; }
 
   const payload = {
@@ -544,47 +1505,72 @@ priceForm.addEventListener('submit', async function (ev) {
 
   if (isNaN(payload.pCliente) || payload.pCliente <= 0) { alert('Indique el precio al cliente.'); return; }
 
-  estado('ok', 'Guardando...');
+  const idEdit = editandoId;
+  estado('ok', idEdit !== null ? 'Guardando cambios...' : 'Guardando...');
+
   try {
-    await fetch(WEB_APP_URL, {
+    const url = idEdit !== null
+      ? WEB_APP_URL + '?action=update&id=' + encodeURIComponent(idEdit)
+      : WEB_APP_URL;
+
+    const r = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     });
-    priceForm.reset();
-    document.getElementById('seccionOS').style.display = 'none';
-    document.getElementById('seccionIphoneSpecs').style.display = 'none';
-    document.getElementById('seccionAndroidSpecs').style.display = 'none';
-    document.getElementById('seccionPCSpecs').style.display = 'none';
-    document.getElementById('seccionMovil').style.display = 'block';
-    document.getElementById('seccionPC').style.display = 'none';
-    document.getElementById('itemCompra').disabled = false;
-    await loadInventory();
+
+    const data = await r.json().catch(function () { return { success: false }; });
+    if (!data || !data.success) throw new Error('servidor rechazo');
+
+    cerrarFormulario();
+    await loadInventory(false);
     estado('ok', 'Registro guardado');
   } catch (e) {
-    alert('No se pudo guardar el registro.');
+    alert('No se pudo guardar el registro. Revisa la conexión e inténtalo otra vez.');
     estado('err', 'Error al guardar');
   }
 });
 
-document.getElementById('deviceCategory').addEventListener('change', function (e) {
-  const v = e.target.value;
-  document.getElementById('seccionOS').style.display = v === 'movil' ? 'block' : 'none';
-  document.getElementById('seccionPCSpecs').style.display = v === 'pc' ? 'block' : 'none';
-  document.getElementById('seccionPC').style.display = v === 'pc' ? 'block' : 'none';
+/* ============================================================
+   EVENTOS DE INTERFAZ
+   ============================================================ */
+btnNueva.addEventListener('click', abrirFormulario);
+
+document.getElementById('deviceCategory').addEventListener('change', function () {
+  aplicarVisibilidad();
+  renderServicios(tipoActual());
+  snapshot = capturarEstado();
+  btnDeshacer.disabled = true;
 });
-document.getElementById('mobileOS').addEventListener('change', function (e) {
-  const os = e.target.value;
-  document.getElementById('seccionIphoneSpecs').style.display = os === 'iPhone' ? 'block' : 'none';
-  document.getElementById('seccionAndroidSpecs').style.display = os === 'Android' ? 'block' : 'none';
-  document.getElementById('seccionMovil').style.display = (os === 'iPhone' || os === 'Android') ? 'block' : 'none';
+
+document.getElementById('mobileOS').addEventListener('change', function () {
+  aplicarVisibilidad();
+  renderServicios(tipoActual());
+  snapshot = capturarEstado();
+  btnDeshacer.disabled = true;
 });
+
 document.getElementById('splitProfit').addEventListener('change', function (e) {
   const ic = document.getElementById('itemCompra');
-  if (e.target.checked) { ic.value = '0'; ic.disabled = true; } else { ic.value = ''; ic.disabled = false; }
+  if (e.target.checked) { ic.value = '0'; ic.disabled = true; }
+  else { ic.value = ''; ic.disabled = false; }
 });
+
+btnDeshacer.addEventListener('click', function () {
+  restaurarEstado(snapshot);
+  btnDeshacer.disabled = true;
+  estado('ok', 'Cambios deshechos');
+});
+
+btnCancelar.addEventListener('click', function () {
+  if (!confirm('¿Descartar lo capturado y cerrar el formulario?')) return;
+  cerrarFormulario();
+  estado('ok', 'Formulario cerrado');
+});
+
 searchBox.addEventListener('input', function (e) { displayItems(e.target.value); });
-document.getElementById('btnReload').addEventListener('click', loadInventory);
+
+document.getElementById('btnReload').addEventListener('click', function () { loadInventory(false); });
 
 [adminModal, passModal].forEach(function (overlay) {
   overlay.addEventListener('click', function (ev) {
@@ -594,13 +1580,37 @@ document.getElementById('btnReload').addEventListener('click', loadInventory);
   });
 });
 
+document.addEventListener('keydown', function (ev) {
+  if (ev.key === 'Escape') {
+    if (adminModal.style.display === 'flex') cerrarModal();
+    else if (passModal.style.display === 'flex') cerrarPassModal();
+    else if (priceForm.style.display === 'flex') cerrarFormulario();
+  }
+});
+
+document.addEventListener('visibilitychange', function () {
+  if (!document.hidden) loadInventory(true);
+});
+
+/* ============================================================
+   ARRANQUE
+   ============================================================ */
 function iniciar() {
   window.__ok = true;
+
   try { verificarAdminUI(); } catch (e) { console.error(e); }
   try { mostrarFecha(); } catch (e) { console.error(e); }
+
+  try {
+    actualizarReloj();
+    setInterval(actualizarReloj, 1000);
+  } catch (e) {}
+
+  try { setInterval(mostrarFecha, 30000); } catch (e) {}
+
   try { displayItems(searchBox.value); } catch (e) { console.error(e); }
-  try { loadInventory(); } catch (e) { console.error(e); }
-  try { setInterval(function () { if (!document.hidden) loadInventory(); }, 15000); } catch (e) {}
+  try { loadInventory(false); } catch (e) { console.error(e); }
+  try { setInterval(function () { loadInventory(true); }, 7000); } catch (e) {}
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar);
