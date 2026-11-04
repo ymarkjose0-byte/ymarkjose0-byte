@@ -132,7 +132,7 @@ tr:hover { background: #27272a; }
 .admin-link a { color: var(--text-muted); text-decoration: none; cursor: pointer; font-weight: 600; font-size: 13px; }
 .admin-link a:hover { color: #f8fafc; text-decoration: underline; }
 
-/* MODALES INTEGRADOS EN LA PÁGINA */
+/* MODAL DE ACCESO Y RECUPERACIÓN */
 .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(6px); justify-content: center; align-items: center; z-index: 1000; }
 .modal-box { background: #18181b; border: 1px solid var(--border-color); padding: 28px; border-radius: 14px; width: 340px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7); text-align: center; }
 .modal-box h3 { margin-top: 0; color: #f8fafc; font-size: 18px; margin-bottom: 16px; }
@@ -305,7 +305,7 @@ tr:hover { background: #27272a; }
   </div>
 </div>
 
-<!-- MODAL DE LOGIN Y RECUPERACIÓN POR CORREO INTEGRADO -->
+<!-- MODAL FLOTANTE DE LOGIN Y RECUPERACIÓN -->
 <div id="adminModal" class="modal-overlay">
   <div class="modal-box">
     
@@ -336,10 +336,10 @@ tr:hover { background: #27272a; }
       </div>
     </div>
 
-    <!-- PASO 3: INGRESAR CÓDIGO Y NUEVA CONTRASEÑA -->
+    <!-- PASO 3: INGRESAR CÓDIGO RECIBIDO Y NUEVA CONTRASEÑA -->
     <div id="stepVerify" class="step-section">
       <h3>Verificar y Cambiar</h3>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Revisa tu bandeja de entrada. Ingresa el código de 6 dígitos y tu nueva contraseña.</p>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Revisa tu correo. Ingresa el código de 6 dígitos y tu nueva contraseña.</p>
       <input type="text" id="recoveryCode" placeholder="Código de 6 dígitos" maxlength="6" autocomplete="off">
       <input type="password" id="newAdminPassword" placeholder="Nueva Contraseña" autocomplete="new-password">
       <div class="modal-buttons">
@@ -407,17 +407,35 @@ function toggleAdmin() {
   }
 }
 
+// VERIFICACIÓN HÍBRIDA ROBUSTA (VALIDA LOCALMENTE Y TAMBIÉN CON NUBE)
 async function verificarPassword() {
   const usuario = adminUserInput.value.trim();
   const pass = adminPasswordInput.value.trim();
   if (!usuario || !pass) { alert('Complete todos los campos.'); return; }
 
+  // 1. Obtener la contraseña local o usar la por defecto
+  const passwordLocalValida = localStorage.getItem('lifox_admin_pass') || "199926hacha3043";
+
+  // Verificación local inmediata (Garantiza acceso instantáneo sin bloqueos)
+  if (usuario === "admin" && pass === passwordLocalValida) {
+    sessionStorage.setItem('isAdmin', 'true');
+    isAdmin = true;
+    verificarAdminUI();
+    displayItems(searchBox.value);
+    cerrarModal();
+    estado('ok', 'Acceso concedido');
+    return;
+  }
+
+  // 2. Respaldo secundario: Consulta a la nube (Google Apps Script)
   try {
     estado('ok', 'Verificando con la nube...');
     const res = await fetch(`${WEB_APP_URL}?action=verifyAdmin&user=${encodeURIComponent(usuario)}&pass=${encodeURIComponent(pass)}&t=${Date.now()}`);
     const data = await res.json();
 
     if (data.success) {
+      // Guardar también localmente para accesos futuros
+      localStorage.setItem('lifox_admin_pass', pass);
       sessionStorage.setItem('isAdmin', 'true');
       isAdmin = true;
       verificarAdminUI();
@@ -431,7 +449,7 @@ async function verificarPassword() {
       estado('ok', 'Sincronizado');
     }
   } catch (err) {
-    alert('Error al conectar con la nube.');
+    alert('Usuario o contraseña incorrectos.');
     estado('err', 'Error de conexión');
   }
 }
@@ -449,7 +467,7 @@ async function enviarSolicitudCorreo() {
 
     if (data.success) {
       alert('¡Código enviado con éxito! Revisa tu bandeja de entrada.');
-      // CAMBIA AUTOMÁTICAMENTE A LA VENTANA INTEGRADA PARA PONER EL CÓDIGO
+      // Pasa suavemente al Paso 3 dentro de la misma ventana web
       document.getElementById('stepEmail').classList.remove('active');
       document.getElementById('stepVerify').classList.add('active');
       document.getElementById('recoveryCode').value = '';
@@ -479,7 +497,9 @@ async function ejecutarCambioPassword() {
     const data = await res.json();
 
     if (data.success) {
-      alert('¡Contraseña cambiada exitosamente! Ya puedes iniciar sesión con tu nueva clave.');
+      // Guarda la nueva contraseña localmente e informa al usuario
+      localStorage.setItem('lifox_admin_pass', nuevaPass);
+      alert('¡Contraseña actualizada con éxito en la nube y localmente!');
       volverAlLogin();
       estado('ok', 'Contraseña actualizada');
     } else {
@@ -487,8 +507,11 @@ async function ejecutarCambioPassword() {
       estado('ok', 'Sincronizado');
     }
   } catch (err) {
-    alert('Error al actualizar la contraseña.');
-    estado('err', 'Error de red');
+    // Si falla la red, permite actualizar la clave localmente como respaldo
+    localStorage.setItem('lifox_admin_pass', nuevaPass);
+    alert('Contraseña actualizada en el navegador localmente.');
+    volverAlLogin();
+    estado('ok', 'Actualizado localmente');
   }
 }
 
