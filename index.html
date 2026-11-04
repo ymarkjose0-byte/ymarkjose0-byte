@@ -305,18 +305,18 @@ tr:hover { background: #27272a; }
   </div>
 </div>
 
-<!-- MODAL DE LOGIN (CON CAMPOS VACÍOS Y VENTANAS INTEGRADAS) -->
+<!-- MODAL DE LOGIN Y RECUPERACIÓN POR CORREO INTEGRADO -->
 <div id="adminModal" class="modal-overlay">
   <div class="modal-box">
     
-    <!-- PASO 1: LOGIN NORMAL -->
+    <!-- PASO 1: LOGIN -->
     <div id="stepLogin" class="step-section active">
       <h3>Acceso de Administrador</h3>
       <input type="text" id="adminUserInput" placeholder="Usuario" autocomplete="off">
       <input type="password" id="adminPasswordInput" placeholder="Contraseña" autocomplete="new-password">
       <div style="margin-bottom: 12px; text-align: left;">
         <a onclick="mostrarPasoRecuperacion()" style="font-size: 12px; color: #3b82f6; cursor: pointer; text-decoration: underline;">
-          ¿Olvidaste tu contraseña? (Recuperar por WhatsApp)
+          ¿Olvidaste tu contraseña? (Recuperar por Correo)
         </a>
       </div>
       <div class="modal-buttons">
@@ -325,13 +325,13 @@ tr:hover { background: #27272a; }
       </div>
     </div>
 
-    <!-- PASO 2: INGRESAR NÚMERO PARA RECUPERAR -->
-    <div id="stepPhone" class="step-section">
+    <!-- PASO 2: INGRESAR CORREO -->
+    <div id="stepEmail" class="step-section">
       <h3>Recuperar Contraseña</h3>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Ingresa tu número autorizado para generar el código.</p>
-      <input type="tel" id="recoveryPhone" placeholder="Ej. 8094655320" autocomplete="off">
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Ingresa tu correo electrónico autorizado para enviarte el código.</p>
+      <input type="email" id="recoveryEmail" placeholder="correo@ejemplo.com" autocomplete="off">
       <div class="modal-buttons">
-        <button type="button" onclick="enviarSolicitudWhatsApp()">Enviar a WhatsApp</button>
+        <button type="button" onclick="enviarSolicitudCorreo()">Enviar Código</button>
         <button type="button" class="btn-gris" onclick="volverAlLogin()">Volver</button>
       </div>
     </div>
@@ -339,7 +339,7 @@ tr:hover { background: #27272a; }
     <!-- PASO 3: INGRESAR CÓDIGO Y NUEVA CONTRASEÑA -->
     <div id="stepVerify" class="step-section">
       <h3>Verificar y Cambiar</h3>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Ingresa el código de 6 dígitos que te llegó y tu nueva contraseña.</p>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Revisa tu bandeja de entrada. Ingresa el código de 6 dígitos y tu nueva contraseña.</p>
       <input type="text" id="recoveryCode" placeholder="Código de 6 dígitos" maxlength="6" autocomplete="off">
       <input type="password" id="newAdminPassword" placeholder="Nueva Contraseña" autocomplete="new-password">
       <div class="modal-buttons">
@@ -365,7 +365,7 @@ const adminModal = document.getElementById('adminModal');
 const adminUserInput = document.getElementById('adminUserInput');
 const adminPasswordInput = document.getElementById('adminPasswordInput');
 
-let telefonoValidacionActual = "";
+let correoValidacionActual = "";
 let inventory = [];
 try {
   const cached = localStorage.getItem('lifox_inventory_cache');
@@ -374,16 +374,15 @@ try {
 
 let isAdmin = sessionStorage.getItem('isAdmin') === 'true';
 
-// FUNCIONES DE CONTROL DE PANTALLAS MODALES INTEGRADAS
 function mostrarPasoRecuperacion() {
   document.getElementById('stepLogin').classList.remove('active');
-  document.getElementById('stepPhone').classList.add('active');
-  document.getElementById('recoveryPhone').value = '';
-  document.getElementById('recoveryPhone').focus();
+  document.getElementById('stepEmail').classList.add('active');
+  document.getElementById('recoveryEmail').value = '';
+  document.getElementById('recoveryEmail').focus();
 }
 
 function volverAlLogin() {
-  document.getElementById('stepPhone').classList.remove('active');
+  document.getElementById('stepEmail').classList.remove('active');
   document.getElementById('stepVerify').classList.remove('active');
   document.getElementById('stepLogin').classList.add('active');
   adminUserInput.value = '';
@@ -408,7 +407,6 @@ function toggleAdmin() {
   }
 }
 
-// 1. VERIFICAR CONTRASEÑA EN GOOGLE APPS SCRIPT
 async function verificarPassword() {
   const usuario = adminUserInput.value.trim();
   const pass = adminPasswordInput.value.trim();
@@ -438,29 +436,28 @@ async function verificarPassword() {
   }
 }
 
-// 2. ENVIAR SOLICITUD DE CÓDIGO VALIDANDO EN APPS SCRIPT
-async function enviarSolicitudWhatsApp() {
-  const telefono = document.getElementById('recoveryPhone').value.trim();
-  if (!telefono) { alert('Ingrese su número de teléfono.'); return; }
+async function enviarSolicitudCorreo() {
+  const correo = document.getElementById('recoveryEmail').value.trim();
+  if (!correo) { alert('Ingrese su correo electrónico.'); return; }
 
-  telefonoValidacionActual = telefono;
+  correoValidacionActual = correo;
 
   try {
-    estado('ok', 'Validando número autorizado...');
-    const res = await fetch(`${WEB_APP_URL}?action=solicitarPass&phone=${encodeURIComponent(telefono)}&t=${Date.now()}`);
+    estado('ok', 'Enviando código por correo...');
+    const res = await fetch(`${WEB_APP_URL}?action=solicitarPass&email=${encodeURIComponent(correo)}&t=${Date.now()}`);
     const data = await res.json();
 
-    if (data.success && data.whatsappUrl) {
-      window.open(data.whatsappUrl, '_blank');
-      // Cambiar a la ventana integrada para poner el código
-      document.getElementById('stepPhone').classList.remove('active');
+    if (data.success) {
+      alert('¡Código enviado con éxito! Revisa tu bandeja de entrada.');
+      // CAMBIA AUTOMÁTICAMENTE A LA VENTANA INTEGRADA PARA PONER EL CÓDIGO
+      document.getElementById('stepEmail').classList.remove('active');
       document.getElementById('stepVerify').classList.add('active');
       document.getElementById('recoveryCode').value = '';
       document.getElementById('newAdminPassword').value = '';
       document.getElementById('recoveryCode').focus();
-      estado('ok', 'WhatsApp abierto');
+      estado('ok', 'Correo enviado');
     } else {
-      alert(data.message || "Número no autorizado.");
+      alert(data.message || "Correo no autorizado.");
       estado('ok', 'Sincronizado');
     }
   } catch (err) {
@@ -469,7 +466,6 @@ async function enviarSolicitudWhatsApp() {
   }
 }
 
-// 3. EJECUTAR CAMBIO DE CONTRASEÑA VALIDANDO CÓDIGO EN APPS SCRIPT
 async function ejecutarCambioPassword() {
   const codigo = document.getElementById('recoveryCode').value.trim();
   const nuevaPass = document.getElementById('newAdminPassword').value.trim();
@@ -478,12 +474,12 @@ async function ejecutarCambioPassword() {
 
   try {
     estado('ok', 'Actualizando contraseña...');
-    const url = `${WEB_APP_URL}?action=actualizarPassword&phone=${encodeURIComponent(telefonoValidacionActual)}&code=${encodeURIComponent(codigo)}&newPass=${encodeURIComponent(nuevaPass)}&t=${Date.now()}`;
+    const url = `${WEB_APP_URL}?action=actualizarPassword&email=${encodeURIComponent(correoValidacionActual)}&code=${encodeURIComponent(codigo)}&newPass=${encodeURIComponent(nuevaPass)}&t=${Date.now()}`;
     const res = await fetch(url);
     const data = await res.json();
 
     if (data.success) {
-      alert('¡Contraseña cambiada exitosamente en la nube y el sistema! Ya puedes iniciar sesión.');
+      alert('¡Contraseña cambiada exitosamente! Ya puedes iniciar sesión con tu nueva clave.');
       volverAlLogin();
       estado('ok', 'Contraseña actualizada');
     } else {
@@ -569,7 +565,6 @@ function displayItems(filter=''){
   });
 }
 
-// Configuración de visualización de secciones del formulario principal
 document.getElementById('deviceCategory').addEventListener('change', (e) => {
   const val = e.target.value;
   document.getElementById('seccionOS').style.display = val === 'movil' ? 'block' : 'none';
