@@ -7,149 +7,77 @@
 <style>
 :root {
   --primary: #3b82f6;
-  --primary-hover: #2563eb;
   --success: #10b981;
-  --success-hover: #059669;
   --danger: #ef4444;
-  --danger-hover: #dc2626;
   --bg-main: #09090b;
   --card-bg: #18181b;
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --border-color: #27272a;
 }
-
-body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  margin: 0;
-  padding: 24px;
-  background: var(--bg-main);
-  color: var(--text-main);
-}
-
-.container {
-  max-width: 1250px;
-  margin: 0 auto;
-  background: var(--card-bg);
-  padding: 32px;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-  border: 1px solid var(--border-color);
-}
-
-.marca {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  border-bottom: 2px solid var(--border-color);
-  padding-bottom: 20px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-
-.logo {
-  background: rgba(255, 255, 255, 0.08);
-  padding: 8px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo img {
-  width: 130px;
-  height: auto;
-  object-fit: contain;
-  display: block;
-}
-
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; margin: 0; padding: 24px; background: var(--bg-main); color: var(--text-main); }
+.container { max-width: 1250px; margin: 0 auto; background: var(--card-bg); padding: 32px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,.5); border: 1px solid var(--border-color); }
+.marca { display: flex; align-items: center; gap: 16px; border-bottom: 2px solid var(--border-color); padding-bottom: 20px; margin-bottom: 24px; flex-wrap: wrap; }
+.logo { background: rgba(255,255,255,.08); padding: 8px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; }
+.logo img { width: 130px; height: auto; object-fit: contain; display: block; }
 h1 { margin: 0; font-size: 24px; font-weight: 700; color: #f1f5f9; }
-.lema { margin: 4px 0 0; font-size: 11px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+.lema { margin: 4px 0 0; font-size: 11px; color: #fff; text-transform: uppercase; letter-spacing: .1em; font-weight: 600; }
 .fecha-header { margin-left: auto; font-size: 13px; color: #cbd5e1; font-weight: 600; background: #27272a; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-color); }
-
-form {
-  background: #202024;
-  padding: 24px;
-  border-radius: 12px;
-  margin-bottom: 24px;
-  border: 1px solid var(--border-color);
-  display: none;
-  flex-direction: column;
-  gap: 16px;
-}
+form { background: #202024; padding: 24px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border-color); display: none; flex-direction: column; gap: 16px; }
 .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-input, select, textarea {
-  padding: 12px 14px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: inherit;
-  background: #121214;
-  color: #f8fafc;
-  transition: all 0.2s ease;
-}
-input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+input, select, textarea { padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; font-family: inherit; background: #121214; color: #f8fafc; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,.2); }
 textarea { resize: vertical; height: 70px; }
-
 .seccion-reparaciones { display: none; background: #18181b; padding: 16px; border: 1px solid var(--border-color); border-radius: 8px; }
 .seccion-reparaciones label.titulo-grupo { font-size: 12px; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 10px; text-transform: uppercase; }
 .checkbox-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
 .checkbox-item { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; background: #202024; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); color: #cbd5e1; }
 .checkbox-item input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary); }
-
 .split-option { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #cbd5e1; background: #27272a; padding: 10px 14px; border-radius: 8px; cursor: pointer; }
 .split-option input { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
-
-button { padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: background 0.2s, transform 0.1s; }
-button:active { transform: scale(0.98); }
+button { padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
 #btnSubmit { background: var(--success); color: #fff; font-size: 15px; }
-#btnSubmit:hover { background: var(--success-hover); }
 button.mini { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
 button.rojo { background: var(--danger); color: #fff; }
-button.rojo:hover { background: var(--danger-hover); }
-
 .search-box { width: 100%; padding: 14px 18px; margin-bottom: 16px; box-sizing: border-box; font-size: 15px; border: 2px solid var(--border-color); border-radius: 10px; background: #121214; color: #fff; }
-.search-box:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2); outline: none; }
 .barra { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 13px; color: var(--text-muted); flex-wrap: wrap; }
 .punto { width: 10px; height: 10px; border-radius: 50%; background: #64748b; display: inline-block; }
 .punto.ok { background: var(--success); }
 .punto.err { background: var(--danger); }
-
 .table-responsive { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-color); }
 table { width: 100%; border-collapse: collapse; white-space: nowrap; }
 th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; }
 th { background: #202024; color: #f1f5f9; font-weight: 600; text-transform: uppercase; font-size: 11px; }
 tr:nth-child(even) { background: #121214; }
-tr:hover { background: #27272a; }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
 .ganancia-txt { color: #34d399; font-weight: 700; }
 .vacio { text-align: center; color: var(--text-muted); padding: 32px; font-style: italic; }
-
 .admin-panel { display: none; }
 .admin-footer-area { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; flex-wrap: wrap; gap: 10px; }
 .watermark { font-size: 12px; color: #52525b; font-weight: 500; }
 .admin-link a { color: var(--text-muted); text-decoration: none; cursor: pointer; font-weight: 600; font-size: 13px; }
 .admin-link a:hover { color: #f8fafc; text-decoration: underline; }
-
-/* MODAL DE LOGIN LIMPIO */
-.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(6px); justify-content: center; align-items: center; z-index: 1000; }
-.modal-box { background: #18181b; border: 1px solid var(--border-color); padding: 28px; border-radius: 14px; width: 320px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7); text-align: center; }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.8); justify-content: center; align-items: center; z-index: 1000; }
+.modal-box { background: #18181b; border: 1px solid var(--border-color); padding: 28px; border-radius: 14px; width: 320px; text-align: center; }
 .modal-box h3 { margin-top: 0; color: #f8fafc; font-size: 18px; margin-bottom: 16px; }
 .modal-box input { width: 100%; margin-bottom: 12px; box-sizing: border-box; text-align: center; font-size: 15px; }
 .modal-buttons { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
 .modal-buttons button { padding: 8px 16px; font-size: 13px; width: 100%; }
 .btn-gris { background: #3f3f46; color: #fff; }
-.btn-gris:hover { background: #52525b; }
+
+/* PANEL DE DIAGNÓSTICO (bórralo cuando todo funcione) */
+#debug { max-width: 1250px; margin: 0 auto 16px; background: #2a0d0d; border: 2px solid #ef4444; border-radius: 10px; padding: 14px 18px; font-family: Consolas, monospace; font-size: 12px; color: #fca5a5; white-space: pre-wrap; word-break: break-word; }
+#debug b { color: #fff; }
 </style>
 </head>
 <body>
 
+<div id="debug"><b>DIAGNÓSTICO</b>
+Esperando...</div>
+
 <div class="container">
  <div class="marca">
-  <div class="logo">
-    <img src="logo.png" alt="LIFOX TECH" onerror="this.style.display='none'">
-  </div>
+  <div class="logo"><img src="logo.png" alt="LIFOX TECH" onerror="this.style.display='none'"></div>
   <div>
     <h1>Control de Precios y Reparaciones</h1>
     <p class="lema">Garantía, calidad y confianza</p>
@@ -159,40 +87,36 @@ tr:hover { background: #27272a; }
 
   <form id="priceForm" class="admin-panel" autocomplete="off">
     <div class="form-row">
-      <input type="text" id="clientName" placeholder="Nombre del Cliente" maxlength="80" autocomplete="off" required>
-      <input type="tel" id="clientPhone" placeholder="Teléfono del Cliente (Ej. 809-000-0000)" maxlength="20" autocomplete="off" required>
+      <input type="text" id="clientName" placeholder="Nombre del Cliente" maxlength="80" required>
+      <input type="tel" id="clientPhone" placeholder="Teléfono del Cliente (Ej. 809-000-0000)" maxlength="20" required>
     </div>
-
     <div class="form-row">
       <select id="technicianName" required>
-        <option value="" style="background:#18181b;">🛠️ Seleccione Técnico</option>
-        <option value="YMARK" style="background:#18181b;">YMARK</option>
-        <option value="WINDER" style="background:#18181b;">WINDER</option>
+        <option value="">🛠️ Seleccione Técnico</option>
+        <option value="YMARK">YMARK</option>
+        <option value="WINDER">WINDER</option>
       </select>
     </div>
-
     <div class="form-row">
       <select id="deviceCategory" required>
-        <option value="" style="background:#18181b;">📱 Seleccione Tipo de Dispositivo</option>
-        <option value="movil" style="background:#18181b;">Dispositivo Móvil (iPhone / Android)</option>
-        <option value="pc" style="background:#18181b;">Computadora / Laptop (PC)</option>
+        <option value="">📱 Seleccione Tipo de Dispositivo</option>
+        <option value="movil">Dispositivo Móvil (iPhone / Android)</option>
+        <option value="pc">Computadora / Laptop (PC)</option>
       </select>
     </div>
-
-    <div id="seccionOS" class="seccion-reparaciones" style="display:none;">
+    <div id="seccionOS" class="seccion-reparaciones">
       <label class="titulo-grupo">Sistema Operativo del Móvil:</label>
       <select id="mobileOS">
-        <option value="" style="background:#18181b;">Seleccione plataforma...</option>
-        <option value="iPhone" style="background:#18181b;">iPhone (iOS)</option>
-        <option value="Android" style="background:#18181b;">Android</option>
+        <option value="">Seleccione plataforma...</option>
+        <option value="iPhone">iPhone (iOS)</option>
+        <option value="Android">Android</option>
       </select>
     </div>
-
-    <div id="seccionIphoneSpecs" class="seccion-reparaciones" style="display:none; background:#121214;">
+    <div id="seccionIphoneSpecs" class="seccion-reparaciones" style="background:#121214;">
       <label class="titulo-grupo">Especificaciones del iPhone:</label>
-      <div class="form-row" style="margin-bottom: 10px;">
+      <div class="form-row" style="margin-bottom:10px;">
         <select id="iphoneModel">
-          <option value="" style="background:#18181b;">Seleccione Modelo de iPhone</option>
+          <option value="">Seleccione Modelo de iPhone</option>
           <option value="iPhone 11">iPhone 11</option>
           <option value="iPhone 12">iPhone 12</option>
           <option value="iPhone 13">iPhone 13</option>
@@ -201,38 +125,35 @@ tr:hover { background: #27272a; }
           <option value="iPhone 16">iPhone 16</option>
         </select>
         <select id="iphoneColor">
-          <option value="" style="background:#18181b;">Seleccione Color</option>
+          <option value="">Seleccione Color</option>
           <option value="Negro">Negro</option>
           <option value="Blanco">Blanco</option>
           <option value="Azul">Azul</option>
           <option value="Otro">Otro</option>
         </select>
         <select id="iphoneStorage">
-          <option value="" style="background:#18181b;">Capacidad</option>
+          <option value="">Capacidad</option>
           <option value="64GB">64 GB</option>
           <option value="128GB">128 GB</option>
           <option value="256GB">256 GB</option>
         </select>
       </div>
     </div>
-
-    <div id="seccionAndroidSpecs" class="seccion-reparaciones" style="display:none; background:#121214;">
+    <div id="seccionAndroidSpecs" class="seccion-reparaciones" style="background:#121214;">
       <label class="titulo-grupo">Modelo de Dispositivo Android:</label>
-      <input type="text" id="androidModel" placeholder="Ej. Samsung Galaxy S23..." autocomplete="off">
+      <input type="text" id="androidModel" placeholder="Ej. Samsung Galaxy S23...">
     </div>
-
-    <div id="seccionPCSpecs" class="seccion-reparaciones" style="display:none; background:#121214;">
+    <div id="seccionPCSpecs" class="seccion-reparaciones" style="background:#121214;">
       <label class="titulo-grupo">Especificaciones de la Computadora:</label>
-      <div class="form-row" style="margin-bottom: 10px;">
-        <input type="text" id="pcModel" placeholder="Modelo (Ej. HP Pavilion...)" autocomplete="off">
+      <div class="form-row" style="margin-bottom:10px;">
+        <input type="text" id="pcModel" placeholder="Modelo (Ej. HP Pavilion...)">
         <select id="pcColor">
-          <option value="" style="background:#18181b;">Seleccione Color</option>
+          <option value="">Seleccione Color</option>
           <option value="Negro">Negro</option>
           <option value="Plateado">Plateado</option>
         </select>
       </div>
     </div>
-
     <div id="seccionMovil" class="seccion-reparaciones">
       <label class="titulo-grupo">Servicios para Móviles:</label>
       <div class="checkbox-group">
@@ -241,7 +162,6 @@ tr:hover { background: #27272a; }
         <label class="checkbox-item"><input type="checkbox" name="rep" value="Cambio de software"> Cambio de software</label>
       </div>
     </div>
-
     <div id="seccionPC" class="seccion-reparaciones">
       <label class="titulo-grupo">Servicios para Computadoras:</label>
       <div class="checkbox-group">
@@ -249,24 +169,18 @@ tr:hover { background: #27272a; }
         <label class="checkbox-item"><input type="checkbox" name="rep" value="Mantenimiento"> Mantenimiento</label>
       </div>
     </div>
-
     <div class="form-row">
-      <label class="split-option">
-        <input type="checkbox" id="splitProfit"> Dividir ganancia 50/50 (Servicio de un solo precio)
-      </label>
+      <label class="split-option"><input type="checkbox" id="splitProfit"> Dividir ganancia 50/50 (Servicio de un solo precio)</label>
     </div>
-
     <div class="form-row">
-      <input type="number" id="itemCompra" placeholder="Precio Compra ($)" step="0.01" min="0" autocomplete="off" required>
-      <input type="number" id="itemCliente" placeholder="Precio Cliente ($)" step="0.01" min="0" autocomplete="off" required>
+      <input type="number" id="itemCompra" placeholder="Precio Compra ($)" step="0.01" min="0" required>
+      <input type="number" id="itemCliente" placeholder="Precio Cliente ($)" step="0.01" min="0" required>
     </div>
-
-    <textarea id="itemNote" placeholder="Nota sobre el dispositivo..." autocomplete="off"></textarea>
-
+    <textarea id="itemNote" placeholder="Nota sobre el dispositivo..."></textarea>
     <button type="submit" id="btnSubmit">Registrar en la Nube</button>
   </form>
 
-  <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar por cliente, teléfono, técnico, dispositivo..." autocomplete="off" spellcheck="false">
+  <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar por cliente, teléfono, técnico, dispositivo...">
 
   <div class="barra">
     <span class="punto" id="punto"></span>
@@ -278,17 +192,10 @@ tr:hover { background: #27272a; }
     <table>
       <thead>
         <tr>
-          <th>Cliente</th>
-          <th>Teléfono</th>
-          <th>Técnico</th>
-          <th>Dispositivo</th>
-          <th>Reparaciones / Servicios</th>
-          <th class="num">Compra</th>
-          <th class="num">Cliente</th>
-          <th class="num">Ganancia</th>
-          <th>Nota</th>
-          <th>Fecha / Hora</th>
-          <th class="col-admin admin-panel" style="width: 100px; text-align:center;">Acciones</th>
+          <th>Cliente</th><th>Teléfono</th><th>Técnico</th><th>Dispositivo</th>
+          <th>Reparaciones / Servicios</th><th class="num">Compra</th><th class="num">Cliente</th>
+          <th class="num">Ganancia</th><th>Nota</th><th>Fecha / Hora</th>
+          <th class="col-admin admin-panel" style="width:100px; text-align:center;">Acciones</th>
         </tr>
       </thead>
       <tbody id="inventoryTable"></tbody>
@@ -304,12 +211,11 @@ tr:hover { background: #27272a; }
   </div>
 </div>
 
-<!-- MODAL DE LOGIN (USUARIO VACÍO Y CONTRASEÑA) -->
 <div id="adminModal" class="modal-overlay">
   <div class="modal-box">
     <h3>Acceso de Administrador</h3>
-    <input type="text" id="adminUserInput" placeholder="Usuario" autocomplete="off">
-    <input type="password" id="adminPasswordInput" placeholder="Contraseña" autocomplete="new-password">
+    <input type="text" id="adminUserInput" placeholder="Usuario">
+    <input type="password" id="adminPasswordInput" placeholder="Contraseña">
     <div class="modal-buttons">
       <button type="button" onclick="verificarPassword()">Ingresar</button>
       <button type="button" class="btn-gris" onclick="cerrarModal()">Cancelar</button>
@@ -318,94 +224,97 @@ tr:hover { background: #27272a; }
 </div>
 
 <script>
+var DBG = document.getElementById('debug');
+function dbg(msg) { DBG.innerHTML += '\n' + msg; }
+dbg('Script de diagnostico activo.');
+
+window.addEventListener('error', function (ev) {
+  dbg('!! ERROR: ' + ev.message + ' | linea: ' + ev.lineno + ':' + ev.colno);
+});
+window.addEventListener('unhandledrejection', function (ev) {
+  dbg('!! PROMESA RECHAZADA: ' + (ev.reason && ev.reason.message ? ev.reason.message : ev.reason));
+});
+setTimeout(function () {
+  if (!window.__arrancado) dbg('!! EL SCRIPT PRINCIPAL NO SE EJECUTO (error de sintaxis o archivo en cache).');
+}, 2000);
+</script>
+
+<script>
+window.__arrancado = true;
+"use strict";
+
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbycBCLYcUhsjIQzA6LIQeVjPxUSYbJD4KCYp3DqrvPNSHZtHZABj_Gfl_oqHUu8sCKaqQ/exec";
+
+dbg('1) Script principal en ejecucion.');
+
+const memStore = {};
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return memStore[k] || null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) { memStore[k] = String(v); } },
+  del(k) { try { localStorage.removeItem(k); } catch (e) { delete memStore[k]; } }
+};
+let memSesion = false;
+function sesionLeer() { try { return sessionStorage.getItem('isAdmin') === 'true'; } catch (e) { return memSesion; } }
+function sesionPoner(v) { memSesion = v; try { if (v) sessionStorage.setItem('isAdmin','true'); else sessionStorage.removeItem('isAdmin'); } catch (e) {} }
 
 const priceForm = document.getElementById('priceForm');
 const inventoryTable = document.getElementById('inventoryTable');
 const searchBox = document.getElementById('searchBox');
 const loadingStatus = document.getElementById('loadingStatus');
 const punto = document.getElementById('punto');
-const btnSubmit = document.getElementById('btnSubmit');
 const fechaActual = document.getElementById('fechaActual');
 const adminModal = document.getElementById('adminModal');
 const adminUserInput = document.getElementById('adminUserInput');
 const adminPasswordInput = document.getElementById('adminPasswordInput');
 
+dbg('2) Elementos: tabla=' + !!inventoryTable + ' fecha=' + !!fechaActual + ' modal=' + !!adminModal);
+
 let inventory = [];
 try {
-  const cached = localStorage.getItem('lifox_inventory_cache');
-  if (cached) inventory = JSON.parse(cached);
-} catch(e) {}
+  const cached = store.get('lifox_inventory_cache');
+  if (cached) inventory = JSON.parse(cached) || [];
+} catch (e) { inventory = []; }
 
-let isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+let isAdmin = sesionLeer();
 
-/* ================== LOGIN LOCAL (SIN CORREO, SIN NUBE) ================== */
-const ADMIN_USER = "admin";
-const DEFAULT_PASS = "199926hacha3043";
-const PASS_KEY = "lifox_admin_hash";
-
-async function sha256(txt) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(txt));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
-}
-
-function hashFallback(txt) {
-  let h = 5381;
-  for (let i = 0; i < txt.length; i++) h = ((h * 33) ^ txt.charCodeAt(i)) >>> 0;
-  return "f" + h.toString(16);
-}
-
-async function hashPass(txt) {
-  try {
-    if (window.crypto && crypto.subtle && crypto.subtle.digest) return "s" + await sha256(txt);
-  } catch (e) {}
-  return hashFallback(txt);
-}
-
-async function coincidePass(pass) {
-  let guardado = localStorage.getItem(PASS_KEY);
-  if (!guardado) {
-    guardado = await hashPass(DEFAULT_PASS);
-    localStorage.setItem(PASS_KEY, guardado);
-  }
-  const cands = [hashFallback(pass)];
-  try {
-    if (window.crypto && crypto.subtle && crypto.subtle.digest) cands.push("s" + await sha256(pass));
-  } catch (e) {}
-  return cands.indexOf(guardado) !== -1;
-}
-
+/* ---------- Login contra el servidor (sin credenciales en el HTML) ---------- */
 async function verificarPassword() {
   const usuario = adminUserInput.value.trim();
   const pass = adminPasswordInput.value.trim();
   if (!usuario || !pass) { alert('Complete todos los campos.'); return; }
 
-  if (usuario.toLowerCase() !== ADMIN_USER || !(await coincidePass(pass))) {
-    alert('Usuario o contraseña incorrectos.');
-    adminPasswordInput.value = '';
-    adminPasswordInput.focus();
-    return;
-  }
+  estado('ok', 'Verificando con el servidor...');
+  dbg('3) Enviando credenciales al servidor...');
 
-  sessionStorage.setItem('isAdmin', 'true');
-  isAdmin = true;
-  verificarAdminUI();
-  displayItems(searchBox.value);
-  cerrarModal();
-  estado('ok', 'Acceso concedido');
+  try {
+    const r = await fetchTimeout(WEB_APP_URL + '?action=verifyAdmin&user=' + encodeURIComponent(usuario) + '&pass=' + encodeURIComponent(pass) + '&t=' + Date.now(), 15000);
+    const data = await r.json();
+
+    if (data.success) {
+      dbg('4) Credenciales correctas.');
+      sesionPoner(true);
+      isAdmin = true;
+      verificarAdminUI();
+      displayItems(searchBox.value);
+      cerrarModal();
+      estado('ok', 'Acceso concedido');
+    } else {
+      dbg('4) Credenciales rechazadas.');
+      alert('Usuario o contraseña incorrectos.');
+      adminPasswordInput.value = '';
+      adminPasswordInput.focus();
+      estado('ok', 'Sincronizado');
+    }
+  } catch (e) {
+    dbg('4) FALLO DE RED: ' + e.message);
+    alert('No se pudo verificar con el servidor. Revisa tu conexión.');
+    estado('err', 'Error de conexión');
+  }
 }
 
 async function cambiarPassword() {
-  const actual = prompt('Contraseña actual:\n\n(Deja vacío y acepta para RESTABLECER la contraseña de fábrica en este navegador).');
+  const actual = prompt('Contraseña actual:');
   if (actual === null) return;
-
-  if (actual.trim() === '') {
-    if (!confirm('¿Restablecer la contraseña de administrador a la de fábrica en este navegador?')) return;
-    localStorage.removeItem(PASS_KEY);
-    alert('Contraseña restablecida a la de fábrica.');
-    return;
-  }
-  if (!(await coincidePass(actual.trim()))) { alert('La contraseña actual no es correcta.'); return; }
 
   const nueva = prompt('Nueva contraseña (mínimo 4 caracteres):');
   if (nueva === null) return;
@@ -415,134 +324,142 @@ async function cambiarPassword() {
   if (conf === null) return;
   if (nueva.trim() !== conf.trim()) { alert('Las contraseñas no coinciden.'); return; }
 
-  localStorage.setItem(PASS_KEY, await hashPass(nueva.trim()));
-  alert('Contraseña actualizada en este navegador.');
-}
-/* ======================================================================= */
-
-function cerrarModal() { 
-  adminModal.style.display = 'none'; 
-  adminUserInput.value = '';
-  adminPasswordInput.value = '';
-}
-
-function toggleAdmin() {
-  if (isAdmin) {
-    sessionStorage.removeItem('isAdmin');
-    isAdmin = false;
-    verificarAdminUI();
-    displayItems(searchBox.value);
-  } else {
-    adminModal.style.display = 'flex';
-    adminUserInput.value = '';
-    adminPasswordInput.value = '';
-    adminUserInput.focus();
+  try {
+    const r = await fetchTimeout(WEB_APP_URL + '?action=cambiarPass&actual=' + encodeURIComponent(actual.trim()) + '&nueva=' + encodeURIComponent(nueva.trim()) + '&t=' + Date.now(), 15000);
+    const data = await r.json();
+    alert(data.message || (data.success ? 'Contraseña actualizada.' : 'No se pudo cambiar la contraseña.'));
+  } catch (e) {
+    alert('No se pudo contactar al servidor.');
   }
 }
 
+/* ---------- UI ---------- */
+function cerrarModal() { adminModal.style.display='none'; adminUserInput.value=''; adminPasswordInput.value=''; }
+function toggleAdmin() {
+  if (isAdmin) { sesionPoner(false); isAdmin = false; verificarAdminUI(); displayItems(searchBox.value); }
+  else { adminModal.style.display='flex'; adminUserInput.value=''; adminPasswordInput.value=''; adminUserInput.focus(); }
+}
 function verificarAdminUI() {
-  const elms = document.querySelectorAll('.admin-panel');
-  elms.forEach(el => {
+  document.querySelectorAll('.admin-panel').forEach(function (el) {
     if (el.tagName === 'FORM') el.style.display = isAdmin ? 'flex' : 'none';
     else el.style.display = isAdmin ? 'table-cell' : 'none';
   });
-  const btnLogin = document.getElementById('btnAdminLogin');
-  if (btnLogin) btnLogin.textContent = isAdmin ? '🔓 Cerrar Sesión Admin' : '🔐 Modo Administrador';
-  const btnPass = document.getElementById('btnCambiarPass');
-  if (btnPass) btnPass.style.display = isAdmin ? 'inline' : 'none';
+  const b = document.getElementById('btnAdminLogin');
+  if (b) b.textContent = isAdmin ? '🔓 Cerrar Sesión Admin' : '🔐 Modo Administrador';
+  const p = document.getElementById('btnCambiarPass');
+  if (p) p.style.display = isAdmin ? 'inline' : 'none';
 }
-
 function mostrarFecha() {
   try {
-    if (!fechaActual) return;
-    const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const textoFecha = new Date().toLocaleDateString('es-DO', opciones);
-    fechaActual.textContent = textoFecha.charAt(0).toUpperCase() + textoFecha.slice(1);
-  } catch(e) { fechaActual.textContent = "Fecha actual"; }
+    const o = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+    const t = new Date().toLocaleDateString('es-DO', o);
+    fechaActual.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+  } catch (e) { fechaActual.textContent = 'Fecha actual'; }
+}
+const money = function (n) { return '$' + Number(n||0).toLocaleString('es-DO', { minimumFractionDigits:2, maximumFractionDigits:2 }); };
+const esc = function (s) { return String(s===undefined||s===null?'':s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+function estado(cls, txt) { if (punto) punto.className = 'punto ' + cls; if (loadingStatus) loadingStatus.textContent = txt; }
+
+/* ---------- Datos ---------- */
+async function fetchTimeout(url, ms) {
+  if (!window.AbortController) return fetch(url, { cache:'no-store' });
+  const ctrl = new AbortController();
+  const t = setTimeout(function () { ctrl.abort(); }, ms);
+  try { return await fetch(url, { cache:'no-store', signal: ctrl.signal }); }
+  finally { clearTimeout(t); }
 }
 
-const money = n => '$' + Number(n || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-function estado(cls, txt) { punto.className = 'punto '+cls; loadingStatus.textContent = txt; }
-
 async function loadInventory() {
+  dbg('5) Consultando registros...');
   try {
-    const r = await fetch(WEB_APP_URL+'?t='+Date.now(), {cache:'no-store'});
+    const r = await fetchTimeout(WEB_APP_URL + '?t=' + Date.now(), 12000);
     const data = await r.json();
     if (Array.isArray(data)) {
       inventory = data;
-      try { localStorage.setItem('lifox_inventory_cache', JSON.stringify(inventory)); } catch(e) {}
+      store.set('lifox_inventory_cache', JSON.stringify(inventory));
+      displayItems(searchBox.value);
+      estado('ok', 'Sincronizado · ' + new Date().toLocaleTimeString('es-DO'));
+      dbg('6) Recibidos ' + data.length + ' registros.');
+    } else {
+      displayItems(searchBox.value);
+      estado('err', 'Respuesta inesperada del servidor');
+      dbg('6) Respuesta no valida.');
     }
+  } catch (e) {
     displayItems(searchBox.value);
-    estado('ok','Sincronizado · '+new Date().toLocaleTimeString('es-DO'));
-  } catch(e) {
-    estado('err','Sin conexión con la nube (Mostrando copia local)');
+    estado('err', 'Sin conexion con la nube (mostrando copia local)');
+    dbg('6) FALLO DE RED: ' + e.message);
   }
 }
 
-function displayItems(filter=''){
-  const f = filter.trim().toLowerCase();
-  inventoryTable.innerHTML='';
-  const lista = inventory.filter(it=>!f || String(it.client).toLowerCase().includes(f) || String(it.phone).toLowerCase().includes(f) || String(it.technician).toLowerCase().includes(f) || String(it.name).toLowerCase().includes(f) || String(it.type).toLowerCase().includes(f) || String(it.note).toLowerCase().includes(f));
-  
+function displayItems(filter) {
+  if (filter === undefined) filter = '';
+  const f = String(filter).trim().toLowerCase();
+  inventoryTable.innerHTML = '';
+  const lista = inventory.filter(function (it) {
+    if (!f) return true;
+    return [it.client, it.phone, it.technician, it.name, it.type, it.note].some(function (v) {
+      return String(v || '').toLowerCase().indexOf(f) !== -1;
+    });
+  });
   const totalCols = isAdmin ? 11 : 10;
-  if(!lista.length){
-    inventoryTable.innerHTML='<tr><td colspan="'+totalCols+'" class="vacio">'+(f?'Sin coincidencias.':'Aún no hay registros guardados.')+'</td></tr>';
+  if (!lista.length) {
+    inventoryTable.innerHTML = '<tr><td colspan="' + totalCols + '" class="vacio">' + (f ? 'Sin coincidencias.' : 'Aún no hay registros guardados.') + '</td></tr>';
     return;
   }
-  
-  lista.sort((a,b)=>String(a.client).localeCompare(String(b.client),'es'));
-  lista.forEach(it=>{
-    const tr=document.createElement('tr');
-    let html='<td><strong>'+esc(it.client)+'</strong></td>'+
-      '<td>'+esc(it.phone || '-')+'</td>'+
-      '<td><span style="background:#27272a; padding:4px 8px; border-radius:4px; font-weight:600; color:#38bdf8;">'+esc(it.technician)+'</span></td>'+
-      '<td>'+esc(it.name)+'</td>'+
-      '<td>'+esc(it.type)+'</td>'+
-      '<td class="num">'+money(it.pCompra)+'</td>'+
-      '<td class="num">'+money(it.pCliente)+'</td>'+
-      '<td class="num ganancia-txt">'+money(it.profit)+'</td>'+
-      '<td>'+esc(it.note || '-')+'</td>'+
-      '<td>'+esc(it.date)+' <br><small style="color:#94a3b8">'+esc(it.time)+'</small></td>';
-    
-    if(isAdmin){
-      html+='<td style="white-space:nowrap; text-align:center;">'+
-        '<button class="mini" data-edit="'+esc(it.id)+'" data-compra="'+it.pCompra+'" data-cliente="'+it.pCliente+'" style="background:#3b82f6; color:#fff;">Editar</button> '+
-        '<button class="mini rojo" data-del="'+esc(it.id)+'">Borrar</button></td>';
+  lista.sort(function (a,b) { return String(a.client||'').localeCompare(String(b.client||''), 'es'); });
+  lista.forEach(function (it) {
+    const tr = document.createElement('tr');
+    let html = '<td><strong>' + esc(it.client) + '</strong></td>' +
+      '<td>' + esc(it.phone || '-') + '</td>' +
+      '<td><span style="background:#27272a;padding:4px 8px;border-radius:4px;font-weight:600;color:#38bdf8;">' + esc(it.technician) + '</span></td>' +
+      '<td>' + esc(it.name) + '</td><td>' + esc(it.type) + '</td>' +
+      '<td class="num">' + money(it.pCompra) + '</td>' +
+      '<td class="num">' + money(it.pCliente) + '</td>' +
+      '<td class="num ganancia-txt">' + money(it.profit) + '</td>' +
+      '<td>' + esc(it.note || '-') + '</td>' +
+      '<td>' + esc(it.date) + ' <br><small style="color:#94a3b8">' + esc(it.time) + '</small></td>';
+    if (isAdmin) {
+      html += '<td style="white-space:nowrap;text-align:center;">' +
+        '<button class="mini" style="background:#3b82f6;color:#fff;">Editar</button> ' +
+        '<button class="mini rojo">Borrar</button></td>';
     }
-    tr.innerHTML=html;
+    tr.innerHTML = html;
     inventoryTable.appendChild(tr);
   });
 }
 
-document.getElementById('deviceCategory').addEventListener('change', (e) => {
-  const val = e.target.value;
-  document.getElementById('seccionOS').style.display = val === 'movil' ? 'block' : 'none';
-  document.getElementById('seccionPCSpecs').style.display = val === 'pc' ? 'block' : 'none';
-  document.getElementById('seccionPC').style.display = val === 'pc' ? 'block' : 'none';
+/* ---------- Eventos ---------- */
+document.getElementById('deviceCategory').addEventListener('change', function (e) {
+  const v = e.target.value;
+  document.getElementById('seccionOS').style.display = v === 'movil' ? 'block' : 'none';
+  document.getElementById('seccionPCSpecs').style.display = v === 'pc' ? 'block' : 'none';
+  document.getElementById('seccionPC').style.display = v === 'pc' ? 'block' : 'none';
 });
-
-document.getElementById('mobileOS').addEventListener('change', (e) => {
+document.getElementById('mobileOS').addEventListener('change', function (e) {
   const os = e.target.value;
   document.getElementById('seccionIphoneSpecs').style.display = os === 'iPhone' ? 'block' : 'none';
   document.getElementById('seccionAndroidSpecs').style.display = os === 'Android' ? 'block' : 'none';
   document.getElementById('seccionMovil').style.display = (os === 'iPhone' || os === 'Android') ? 'block' : 'none';
 });
-
-document.getElementById('splitProfit').addEventListener('change', (e) => {
-  const itemCompra = document.getElementById('itemCompra');
-  if (e.target.checked) { itemCompra.value = '0'; itemCompra.disabled = true; }
-  else { itemCompra.value = ''; itemCompra.disabled = false; }
+document.getElementById('splitProfit').addEventListener('change', function (e) {
+  const ic = document.getElementById('itemCompra');
+  if (e.target.checked) { ic.value = '0'; ic.disabled = true; } else { ic.value = ''; ic.disabled = false; }
 });
-
-searchBox.addEventListener('input', e => displayItems(e.target.value));
+searchBox.addEventListener('input', function (e) { displayItems(e.target.value); });
 document.getElementById('btnReload').addEventListener('click', loadInventory);
 
-verificarAdminUI();
-mostrarFecha();
-displayItems(searchBox.value);
-loadInventory();
-setInterval(() => { if(!document.hidden) loadInventory(); }, 15000);
+function iniciar() {
+  dbg('7) Iniciando interfaz...');
+  try { verificarAdminUI(); } catch (e) { dbg('X verificarAdminUI: ' + e.message); }
+  try { mostrarFecha(); } catch (e) { dbg('X mostrarFecha: ' + e.message); }
+  try { displayItems(searchBox.value); } catch (e) { dbg('X displayItems: ' + e.message); }
+  try { loadInventory(); } catch (e) { dbg('X loadInventory: ' + e.message); }
+  try { setInterval(function () { if (!document.hidden) loadInventory(); }, 15000); } catch (e) {}
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar);
+else iniciar();
 </script>
 </body>
 </html>
