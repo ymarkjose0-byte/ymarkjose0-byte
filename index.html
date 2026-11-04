@@ -50,15 +50,24 @@ body {
   flex-wrap: wrap;
 }
 .logo {
-  background: rgba(255, 255, 255, .08);
-  padding: 8px 14px;
+  background: transparent;
+  padding: 6px 10px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, .2);
+  border: 1px solid rgba(255, 255, 255, .1);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 220px;
+  height: 110px;
 }
-.logo img { width: 130px; height: auto; object-fit: contain; display: block; }
+.logo img { 
+  width: 100%; 
+  height: 100%; 
+  object-fit: contain; 
+  display: block;
+  /* Convierte el logo (zorro y letras) completamente en blanco */
+  filter: brightness(0) invert(1);
+}
 h1 { margin: 0; font-size: 24px; font-weight: 700; color: #f1f5f9; }
 .lema {
   margin: 4px 0 0;
@@ -1522,9 +1531,13 @@ priceForm.addEventListener('submit', async function (ev) {
     const data = await r.json().catch(function () { return { success: false }; });
     if (!data || !data.success) throw new Error('servidor rechazo');
 
-    cerrarFormulario();
+    // Mantiene el formulario abierto, resetea los campos y permite seguir cargando trabajos
+    limpiarFormulario();
+    priceForm.style.display = 'flex';
+    document.getElementById('clientName').focus();
+    
     await loadInventory(false);
-    estado('ok', 'Registro guardado');
+    estado('ok', 'Registro guardado (listo para otro)');
   } catch (e) {
     alert('No se pudo guardar el registro. Revisa la conexión e inténtalo otra vez.');
     estado('err', 'Error al guardar');
