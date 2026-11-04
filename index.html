@@ -296,7 +296,6 @@ tr:hover { background: #27272a; }
   gap: 10px;
 }
 
-/* MARCA DE AGUA */
 .watermark {
   font-size: 12px;
   color: #52525b;
@@ -610,7 +609,15 @@ const splitProfitCheckbox = document.getElementById('splitProfit');
 const itemCompraInput = document.getElementById('itemCompra');
 const itemClienteInput = document.getElementById('itemCliente');
 
+// CARGAR MEMORIA CACHÉ LOCAL
 let inventory = [];
+try {
+  const cached = localStorage.getItem('lifox_inventory_cache');
+  if (cached) {
+    inventory = JSON.parse(cached);
+  }
+} catch(e) {}
+
 let isAdmin = sessionStorage.getItem('isAdmin') === 'true';
 
 splitProfitCheckbox.addEventListener('change', () => {
@@ -739,11 +746,16 @@ async function loadInventory() {
   try {
     const r = await fetch(WEB_APP_URL+'?t='+Date.now(),{cache:'no-store'});
     const data = await r.json();
-    inventory = Array.isArray(data)?data:[];
+    if (Array.isArray(data)) {
+      inventory = data;
+      try {
+        localStorage.setItem('lifox_inventory_cache', JSON.stringify(inventory));
+      } catch(e) {}
+    }
     displayItems(searchBox.value);
     estado('ok','Sincronizado · '+new Date().toLocaleTimeString('es-DO'));
   } catch(e) {
-    estado('err','Sin conexión con la nube');
+    estado('err','Sin conexión con la nube (Mostrando copia local)');
   }
 }
 
@@ -868,6 +880,10 @@ priceForm.addEventListener('submit', async e => {
   };
 
   inventory.unshift(nuevoItem);
+  try {
+    localStorage.setItem('lifox_inventory_cache', JSON.stringify(inventory));
+  } catch(e) {}
+  
   displayItems(searchBox.value);
   priceForm.reset();
   splitProfitCheckbox.checked = false;
@@ -934,6 +950,11 @@ document.getElementById('btnReload').addEventListener('click', loadInventory);
 
 verificarAdminUI();
 mostrarFecha();
+
+// MOSTRAR DATOS DE MEMORIA LOCAL INMEDIATAMENTE
+displayItems(searchBox.value);
+
+// LUEGO SINCRONIZAR DE MANERA SILENCIOSA EN SEGUNDO PLANO
 loadInventory();
 
 setInterval(() => { if(!document.hidden) loadInventory(); }, 15000);
