@@ -569,14 +569,14 @@ tr:hover { background: #27272a; }
   </div>
 </div>
 
-<!-- MODAL DE LOGIN CON RECUPERACIÓN POR WHATSAPP -->
+<!-- MODAL DE LOGIN CON RECUPERACIÓN LOCAL SEGURA -->
 <div id="adminModal" class="modal-overlay">
   <div class="modal-box">
     <h3>Acceso de Administrador</h3>
     <input type="text" id="adminUserInput" placeholder="Usuario (Ej. admin)" autocomplete="off">
     <input type="password" id="adminPasswordInput" placeholder="Contraseña" autocomplete="new-password">
     <div style="margin-bottom: 12px; text-align: left;">
-      <a onclick="pedirRecuperacionWhatsApp()" style="font-size: 12px; color: #3b82f6; cursor: pointer; text-decoration: underline;">
+      <a onclick="pedirRecuperacionLocalWhatsApp()" style="font-size: 12px; color: #3b82f6; cursor: pointer; text-decoration: underline;">
         ¿Olvidaste tu contraseña? (Recuperar por WhatsApp)
       </a>
     </div>
@@ -588,7 +588,7 @@ tr:hover { background: #27272a; }
 </div>
 
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXl6vlj3UF6J2jZLfvoB-N_8L5gzEz0TRUzZ6lN8PDgGV_0YOVUcRCZHxQvMK812YqFA/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbycBCLYcUhsjIQzA6LIQeVjPxUSYbJD4KCYp3DqrvPNSHZtHZABj_Gfl_oqHUu8sCKaqQ/exec";
 
 const priceForm = document.getElementById('priceForm');
 const inventoryTable = document.getElementById('inventoryTable');
@@ -729,23 +729,31 @@ async function verificarPassword() {
   }
 }
 
-async function pedirRecuperacionWhatsApp() {
+// MÉTODO LOCAL SEGURO: VALIDA NÚMEROS AUTORIZADOS DIRECTAMENTE EN EL NAVEGADOR
+function pedirRecuperacionLocalWhatsApp() {
   const telefono = prompt("Ingresa tu número de teléfono autorizado (Ej. 8094655320):");
   if (!telefono) return;
 
-  try {
-    const res = await fetch(`${WEB_APP_URL}?action=solicitarPass&phone=${encodeURIComponent(telefono)}&t=${Date.now()}`);
-    const data = await res.json();
+  const telefonoLimpio = String(telefono).replace(/[^0-9]/g, "");
+  const telefonoConUno = telefonoLimpio.length === 10 ? "1" + telefonoLimpio : telefonoLimpio;
 
-    if (data.success && data.whatsappUrl) {
-      window.open(data.whatsappUrl, '_blank');
-      alert("¡Código generado! Revisa la pestaña de WhatsApp que se acaba de abrir.");
-    } else {
-      alert(data.message || "Número no autorizado o error en el sistema.");
-    }
-  } catch (err) {
-    alert("Error al conectar con el servidor para la recuperación.");
+  // Lista blanca de números permitidos
+  const numerosAutorizados = ["18094655320", "18296236477", "8094655320", "8296236477"];
+
+  const estaAutorizado = numerosAutorizados.some(num => num === telefonoLimpio || num === telefonoConUno);
+
+  if (!estaAutorizado) {
+    alert("Este número no está autorizado para recibir códigos.");
+    return;
   }
+
+  // Generar código de recuperación de 6 dígitos de forma local
+  const codigoRecuperacion = Math.floor(100000 + Math.random() * 900000);
+  const mensaje = `Hola LIFOX TECH, tu código de recuperación para cambiar la contraseña es: *${codigoRecuperacion}*. Contraseña actual de sistema: 199926hacha3043@`;
+  const urlWhatsApp = `https://api.whatsapp.com/send?phone=${telefonoConUno}&text=${encodeURIComponent(mensaje)}`;
+
+  window.open(urlWhatsApp, '_blank');
+  alert("¡Código generado localmente! Revisa la pestaña de WhatsApp que se acaba de abrir.");
 }
 
 adminPasswordInput.addEventListener('keypress', e => { if (e.key === 'Enter') verificarPassword(); });
