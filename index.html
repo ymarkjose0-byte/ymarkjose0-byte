@@ -487,4 +487,62 @@ function displayItems(filter=''){
   
   const totalCols = isAdmin ? 11 : 10;
   if(!lista.length){
-    inventoryTable.innerHTML='<tr><td colspan="'+totalCol
+    inventoryTable.innerHTML='<tr><td colspan="'+totalCols+'" class="vacio">'+(f?'Sin coincidencias.':'Aún no hay registros guardados.')+'</td></tr>';
+    return;
+  }
+  
+  lista.sort((a,b)=>String(a.client).localeCompare(String(b.client),'es'));
+  lista.forEach(it=>{
+    const tr=document.createElement('tr');
+    let html='<td><strong>'+esc(it.client)+'</strong></td>'+
+      '<td>'+esc(it.phone || '-')+'</td>'+
+      '<td><span style="background:#27272a; padding:4px 8px; border-radius:4px; font-weight:600; color:#38bdf8;">'+esc(it.technician)+'</span></td>'+
+      '<td>'+esc(it.name)+'</td>'+
+      '<td>'+esc(it.type)+'</td>'+
+      '<td class="num">'+money(it.pCompra)+'</td>'+
+      '<td class="num">'+money(it.pCliente)+'</td>'+
+      '<td class="num ganancia-txt">'+money(it.profit)+'</td>'+
+      '<td>'+esc(it.note || '-')+'</td>'+
+      '<td>'+esc(it.date)+' <br><small style="color:#94a3b8">'+esc(it.time)+'</small></td>';
+    
+    if(isAdmin){
+      html+='<td style="white-space:nowrap; text-align:center;">'+
+        '<button class="mini" data-edit="'+esc(it.id)+'" data-compra="'+it.pCompra+'" data-cliente="'+it.pCliente+'" style="background:#3b82f6; color:#fff;">Editar</button> '+
+        '<button class="mini rojo" data-del="'+esc(it.id)+'">Borrar</button></td>';
+    }
+    tr.innerHTML=html;
+    inventoryTable.appendChild(tr);
+  });
+}
+
+document.getElementById('deviceCategory').addEventListener('change', (e) => {
+  const val = e.target.value;
+  document.getElementById('seccionOS').style.display = val === 'movil' ? 'block' : 'none';
+  document.getElementById('seccionPCSpecs').style.display = val === 'pc' ? 'block' : 'none';
+  document.getElementById('seccionPC').style.display = val === 'pc' ? 'block' : 'none';
+});
+
+document.getElementById('mobileOS').addEventListener('change', (e) => {
+  const os = e.target.value;
+  document.getElementById('seccionIphoneSpecs').style.display = os === 'iPhone' ? 'block' : 'none';
+  document.getElementById('seccionAndroidSpecs').style.display = os === 'Android' ? 'block' : 'none';
+  document.getElementById('seccionMovil').style.display = (os === 'iPhone' || os === 'Android') ? 'block' : 'none';
+});
+
+document.getElementById('splitProfit').addEventListener('change', (e) => {
+  const itemCompra = document.getElementById('itemCompra');
+  if (e.target.checked) { itemCompra.value = '0'; itemCompra.disabled = true; }
+  else { itemCompra.value = ''; itemCompra.disabled = false; }
+});
+
+searchBox.addEventListener('input', e => displayItems(e.target.value));
+document.getElementById('btnReload').addEventListener('click', loadInventory);
+
+verificarAdminUI();
+mostrarFecha();
+displayItems(searchBox.value);
+loadInventory();
+setInterval(() => { if(!document.hidden) loadInventory(); }, 15000);
+</script>
+</body>
+</html>
