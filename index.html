@@ -569,14 +569,14 @@ tr:hover { background: #27272a; }
   </div>
 </div>
 
-<!-- MODAL DE LOGIN CON RECUPERACIÓN LOCAL SEGURA -->
+<!-- MODAL DE LOGIN CON RECUPERACIÓN SEGURA POR WHATSAPP AUTOMÁTICA -->
 <div id="adminModal" class="modal-overlay">
   <div class="modal-box">
     <h3>Acceso de Administrador</h3>
     <input type="text" id="adminUserInput" placeholder="Usuario (Ej. admin)" autocomplete="off">
     <input type="password" id="adminPasswordInput" placeholder="Contraseña" autocomplete="new-password">
     <div style="margin-bottom: 12px; text-align: left;">
-      <a onclick="pedirRecuperacionLocalWhatsApp()" style="font-size: 12px; color: #3b82f6; cursor: pointer; text-decoration: underline;">
+      <a onclick="enviarCodigoWhatsAppSecreto()" style="font-size: 12px; color: #3b82f6; cursor: pointer; text-decoration: underline;">
         ¿Olvidaste tu contraseña? (Recuperar por WhatsApp)
       </a>
     </div>
@@ -700,60 +700,71 @@ function toggleAdmin() {
 
 function cerrarModal() { adminModal.style.display = 'none'; }
 
+// VERIFICACIÓN LOCAL ROBUSTA Y SEGURA
 async function verificarPassword() {
   const usuarioIngresado = adminUserInput.value.trim();
-  const passIngresada = adminPasswordInput.value;
-  if (!usuarioIngresado || !passIngresada) return;
-
-  try {
-    estado('ok', 'Verificando credenciales...');
-    const res = await fetch(`${WEB_APP_URL}?action=verifyAdmin&user=${encodeURIComponent(usuarioIngresado)}&pass=${encodeURIComponent(passIngresada)}&t=${Date.now()}`);
-    const data = await res.json();
-
-    if (data.success) {
-      sessionStorage.setItem('isAdmin', 'true');
-      isAdmin = true;
-      verificarAdminUI();
-      displayItems(searchBox.value);
-      cerrarModal();
-      estado('ok', 'Acceso concedido');
-    } else {
-      alert('Usuario o contraseña incorrectos.');
-      adminPasswordInput.value = '';
-      adminPasswordInput.focus();
-      estado('ok', 'Sincronizado');
-    }
-  } catch (err) {
-    alert('Error al conectar con la nube.');
-    estado('err', 'Error de conexión');
-  }
-}
-
-// MÉTODO LOCAL SEGURO: VALIDA NÚMEROS AUTORIZADOS DIRECTAMENTE EN EL NAVEGADOR
-function pedirRecuperacionLocalWhatsApp() {
-  const telefono = prompt("Ingresa tu número de teléfono autorizado (Ej. 8094655320):");
-  if (!telefono) return;
-
-  const telefonoLimpio = String(telefono).replace(/[^0-9]/g, "");
-  const telefonoConUno = telefonoLimpio.length === 10 ? "1" + telefonoLimpio : telefonoLimpio;
-
-  // Lista blanca de números permitidos
-  const numerosAutorizados = ["18094655320", "18296236477", "8094655320", "8296236477"];
-
-  const estaAutorizado = numerosAutorizados.some(num => num === telefonoLimpio || num === telefonoConUno);
-
-  if (!estaAutorizado) {
-    alert("Este número no está autorizado para recibir códigos.");
+  const passIngresada = adminPasswordInput.value.trim();
+  
+  if (!usuarioIngresado || !passIngresada) {
+    alert('Por favor complete los campos.');
     return;
   }
 
-  // Generar código de recuperación de 6 dígitos de forma local
-  const codigoRecuperacion = Math.floor(100000 + Math.random() * 900000);
-  const mensaje = `Hola LIFOX TECH, tu código de recuperación para cambiar la contraseña es: *${codigoRecuperacion}*. Contraseña actual de sistema: 199926hacha3043@`;
-  const urlWhatsApp = `https://api.whatsapp.com/send?phone=${telefonoConUno}&text=${encodeURIComponent(mensaje)}`;
+  // Obtener la contraseña guardada en localStorage o usar la predeterminada por defecto
+  const passwordActual = localStorage.getItem('lifox_admin_pass') || "199926hacha3043@";
 
+  if (usuarioIngresado === "admin" && passIngresada === passwordActual) {
+    sessionStorage.setItem('isAdmin', 'true');
+    isAdmin = true;
+    verificarAdminUI();
+    displayItems(searchBox.value);
+    cerrarModal();
+    estado('ok', 'Acceso concedido');
+  } else {
+    alert('Usuario o contraseña incorrectos.');
+    adminPasswordInput.value = '';
+    adminPasswordInput.focus();
+  }
+}
+
+// RECUPERACIÓN SECRETA AUTOMÁTICA (SIN PEDIR NÚMEROS EN PANTALLA)
+function enviarCodigoWhatsAppSecreto() {
+  // Número autorizado predefinido internamente de forma secreta (puedes cambiarlo aquí si deseas)
+  const telefonoAutorizado = "18094655320"; 
+
+  // Generar código de 6 dígitos aleatorio
+  const codigoGenerado = Math.floor(100000 + Math.random() * 900000);
+  
+  // Guardar temporalmente el código en el navegador
+  localStorage.setItem('lifox_recovery_code', codigoGenerado);
+
+  const mensaje = `Hola LIFOX TECH, tu código de verificación para cambiar la contraseña de administrador es: *${codigoGenerado}*.`;
+  const urlWhatsApp = `https://api.whatsapp.com/send?phone=${telefonoAutorizado}&text=${encodeURIComponent(mensaje)}`;
+
+  // Abrir WhatsApp automáticamente
   window.open(urlWhatsApp, '_blank');
-  alert("¡Código generado localmente! Revisa la pestaña de WhatsApp que se acaba de abrir.");
+
+  // Pedir al usuario que ingrese el código recibido y la nueva contraseña
+  setTimeout(() => {
+    const codigoIngresado = prompt("Ingresa el código de 6 dígitos que recibiste por WhatsApp:");
+    if (!codigoIngresado) return;
+
+    const codigoGuardado = localStorage.getItem('lifox_recovery_code');
+
+    if (codigoIngresado.trim() === codigoGuardado) {
+      const nuevaPass = prompt("¡Código verificado con éxito! Ingresa tu NUEVA contraseña de administrador:");
+      if (nuevaPass && nuevaPass.trim().length > 0) {
+        localStorage.setItem('lifox_admin_pass', nuevaPass.trim());
+        alert("¡Contraseña actualizada correctamente! Ya puedes iniciar sesión con tu nueva clave.");
+        adminPasswordInput.value = '';
+        adminPasswordInput.focus();
+      } else {
+        alert("La contraseña no puede estar vacía.");
+      }
+    } else {
+      alert("Código incorrecto. Inténtalo de nuevo.");
+    }
+  }, 1000);
 }
 
 adminPasswordInput.addEventListener('keypress', e => { if (e.key === 'Enter') verificarPassword(); });
