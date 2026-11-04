@@ -343,10 +343,10 @@ tr:hover { background: #27272a; }
   <div id="fechaActual" class="fecha-header">Cargando fecha...</div>
 </div>
 
-  <form id="priceForm" class="admin-panel">
+  <form id="priceForm" class="admin-panel" autocomplete="off">
     <div class="form-row">
-      <input type="text" id="clientName" placeholder="Nombre del Cliente" maxlength="80" required>
-      <input type="tel" id="clientPhone" placeholder="Teléfono del Cliente (Ej. 809-000-0000)" maxlength="20" required>
+      <input type="text" id="clientName" placeholder="Nombre del Cliente" maxlength="80" autocomplete="off" required>
+      <input type="tel" id="clientPhone" placeholder="Teléfono del Cliente (Ej. 809-000-0000)" maxlength="20" autocomplete="off" required>
     </div>
 
     <!-- SELECCIÓN DEL TÉCNICO -->
@@ -453,14 +453,14 @@ tr:hover { background: #27272a; }
     <!-- CAMPO PARA MODELO ANDROID -->
     <div id="seccionAndroidSpecs" class="seccion-reparaciones" style="display:none; background:#121214;">
       <label class="titulo-grupo">Modelo de Dispositivo Android:</label>
-      <input type="text" id="androidModel" placeholder="Ej. Samsung Galaxy S23, Xiaomi Redmi Note 12...">
+      <input type="text" id="androidModel" placeholder="Ej. Samsung Galaxy S23, Xiaomi Redmi Note 12..." autocomplete="off">
     </div>
 
     <!-- DETALLES ESPECÍFICOS PARA COMPUTADORAS / LAPTOPS -->
     <div id="seccionPCSpecs" class="seccion-reparaciones" style="display:none; background:#121214;">
       <label class="titulo-grupo">Especificaciones de la Computadora / Laptop:</label>
       <div class="form-row" style="margin-bottom: 10px;">
-        <input type="text" id="pcModel" placeholder="Modelo (Ej. HP Pavilion, Lenovo ThinkPad, iMac...)">
+        <input type="text" id="pcModel" placeholder="Modelo (Ej. HP Pavilion, Lenovo ThinkPad, iMac...)" autocomplete="off">
         <select id="pcColor">
           <option value="" style="background:#18181b;">Seleccione Color</option>
           <option value="Negro">Negro</option>
@@ -509,16 +509,16 @@ tr:hover { background: #27272a; }
     </div>
 
     <div class="form-row">
-      <input type="number" id="itemCompra" placeholder="Precio Compra ($)" step="0.01" min="0" required>
-      <input type="number" id="itemCliente" placeholder="Precio Cliente ($)" step="0.01" min="0" required>
+      <input type="number" id="itemCompra" placeholder="Precio Compra ($)" step="0.01" min="0" autocomplete="off" required>
+      <input type="number" id="itemCliente" placeholder="Precio Cliente ($)" step="0.01" min="0" autocomplete="off" required>
     </div>
 
-    <textarea id="itemNote" placeholder="Nota sobre el dispositivo (Ej. Contraseña, rayones, accesorios incluidos...)"></textarea>
+    <textarea id="itemNote" placeholder="Nota sobre el dispositivo (Ej. Contraseña, rayones, accesorios incluidos...)" autocomplete="off"></textarea>
 
     <button type="submit" id="btnSubmit">Registrar en la Nube</button>
   </form>
 
-  <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar por cliente, teléfono, técnico, dispositivo..." autocomplete="off">
+  <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar por cliente, teléfono, técnico, dispositivo..." autocomplete="off" spellcheck="false">
 
   <div class="barra">
     <span class="punto" id="punto"></span>
@@ -557,7 +557,7 @@ tr:hover { background: #27272a; }
   <div class="modal-box">
     <h3>Acceso de Administrador</h3>
     <input type="text" id="adminUserInput" placeholder="Usuario (Ej. admin)" autocomplete="off">
-    <input type="password" id="adminPasswordInput" placeholder="Contraseña" autocomplete="current-password">
+    <input type="password" id="adminPasswordInput" placeholder="Contraseña" autocomplete="new-password">
     <div class="modal-buttons">
       <button type="button" onclick="verificarPassword()">Ingresar</button>
       <button type="button" class="btn-gris" onclick="cerrarModal()">Cancelar</button>
@@ -870,7 +870,6 @@ priceForm.addEventListener('submit', async e => {
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ client, phone, technician, name: deviceName, type: typeStr, pCompra, pCliente, note })
     });
-    // Reducido a 600ms para que actualice más rápido sin demoras
     setTimeout(loadInventory, 600);
   } catch(err) {
     estado('err', 'Error al sincronizar con la nube');
