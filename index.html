@@ -3,510 +3,448 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Control de Precios y Reparaciones - TecnoServicios</title>
+<title>Control de Precios y Reparaciones - Lifox Tech</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-<!-- ============================================================
-     ESTILOS
-     ============================================================ -->
 <style>
 :root {
-  --primary: #3b82f6;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
   --success: #10b981;
   --danger: #ef4444;
+  --warn: #f59e0b;
   --bg-main: #09090b;
   --card-bg: #18181b;
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --border-color: #27272a;
 }
-
-/* --- Base --- */
 * { box-sizing: border-box; }
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  margin: 0;
-  padding: 24px;
-  background: var(--bg-main);
-  color: var(--text-main);
+  margin: 0; padding: 16px; background: var(--bg-main); color: var(--text-main);
 }
 .container {
-  max-width: 1350px;
-  margin: 0 auto;
-  background: var(--card-bg);
-  padding: 32px;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, .5);
+  max-width: 1450px; margin: 0 auto; background: var(--card-bg); padding: 24px;
+  border-radius: 14px; box-shadow: 0 10px 25px -5px rgba(0,0,0,.5);
   border: 1px solid var(--border-color);
 }
+body:not(.admin) .solo-admin { display: none !important; }
 
-/* --- Encabezado / marca --- */
+/* CABECERA */
 .marca {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 20px;
-  border-bottom: 2px solid var(--border-color);
-  padding-bottom: 20px;
-  margin-bottom: 24px;
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px;
+  border-bottom: 2px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;
 }
-
-/* Columna del logo + eslogan */
-.bloque-logo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
+.bloque-logo { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .logo {
-  background: transparent;
-  padding: 0;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 260px; /* Tamaño mucho más grande y visible */
-  height: 110px; /* Mayor altura para que destaque */
+  background: transparent; padding: 0; border: none; display: flex;
+  align-items: center; justify-content: center; width: 220px; height: 90px;
 }
-.logo img { 
-  width: 100%; 
-  height: 100%; 
-  object-fit: contain; 
-  display: block;
-  /* Filtro de alto contraste + brillo + resplandor blanco intenso */
-  filter: brightness(1.35) contrast(1.25) 
-          drop-shadow(0 0 12px rgba(255, 255, 255, 0.85)) 
-          drop-shadow(0 0 3px rgba(255, 255, 255, 1));
+.logo img {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+  filter: brightness(1.35) contrast(1.25) drop-shadow(0 0 12px rgba(255,255,255,.85));
 }
+.logo-fallback {
+  display: none; flex-direction: column; align-items: center; line-height: .95;
+  font-family: 'Poppins', system-ui, sans-serif; font-weight: 700; font-size: 28px;
+  background: linear-gradient(135deg, #ffffff 0%, #60a5fa 60%, #a78bfa 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.logo-fallback span { font-size: 16px; letter-spacing: .4em; margin-left: .4em; }
 .slogan-logo {
-  font-size: 11.5px;
-  color: #cbd5e1;
-  text-transform: uppercase;
-  letter-spacing: .14em;
-  font-weight: 700;
-  text-align: center;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+  font-size: 10.5px; color: #cbd5e1; text-transform: uppercase; letter-spacing: .12em;
+  font-weight: 700; text-align: center;
 }
-
-/* Columna central del título */
-.titulo-marca {
-  text-align: center;
-}
-h1 { 
-  margin: 0; 
-  font-family: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
-  font-size: 25px; 
-  font-weight: 700; 
-  letter-spacing: -0.02em;
+.titulo-marca { text-align: center; }
+h1 {
+  margin: 0; font-family: 'Poppins', 'Inter', system-ui, sans-serif; font-size: 22px;
+  font-weight: 700; letter-spacing: -0.02em;
   background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
 }
-
-/* Columna derecha de la fecha */
 .fecha-header {
-  font-size: 13px;
-  color: #cbd5e1;
-  font-weight: 600;
-  background: #27272a;
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  white-space: nowrap;
+  font-size: 12px; color: #cbd5e1; font-weight: 600; background: #27272a;
+  padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color); white-space: nowrap;
 }
 
-/* Ajuste responsive para celulares */
-@media (max-width: 768px) {
-  .marca {
-    grid-template-columns: 1fr;
-    justify-items: center;
-    text-align: center;
-  }
+/* MENÚ DE TIPO DE DISPOSITIVO */
+.menu-dispositivo {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  background: #121214; border: 1px solid var(--border-color);
+  border-radius: 10px; padding: 12px;
 }
+.menu-titulo {
+  grid-column: 1 / -1; font-size: 10px; font-weight: 700; color: #94a3b8;
+  text-transform: uppercase; letter-spacing: .08em; margin-bottom: 2px;
+}
+.opcion-dispositivo {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 16px 10px; background: #202024; border: 2px solid var(--border-color);
+  border-radius: 10px; color: #cbd5e1; font-weight: 700; font-size: 12.5px;
+  cursor: pointer; transition: .15s; font-family: inherit;
+}
+.opcion-dispositivo:hover { border-color: #3f3f46; color: #fff; }
+.opcion-dispositivo.activa {
+  border-color: var(--primary); background: #16233a; color: #dbeafe;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+}
+.od-icono {
+  height: 28px; display: flex; align-items: center; justify-content: center;
+  font-size: 22px; line-height: 1;
+}
+.od-svg { width: 24px; height: 28px; display: block; }
+@media (max-width: 520px) { .menu-dispositivo { grid-template-columns: 1fr; } }
 
-/* --- Formulario --- */
+/* BLOQUE IMEI / AUTOCOMPLETADO */
+.tac-status {
+  display: none; margin-top: 8px; font-size: 12px; font-weight: 600;
+  padding: 8px 10px; border-radius: 6px; line-height: 1.4;
+}
+.tac-status.ok { display: block; background: #052e26; color: #6ee7b7; border: 1px solid #0f5132; }
+.tac-status.err { display: block; background: #1c1917; color: #fbbf24; border: 1px solid #422006; }
+.tac-status.buscando { display: block; background: #121214; color: #94a3b8; border: 1px solid var(--border-color); }
+.tac-edit-hint { display:block; margin-top:7px; color:#64748b; font-size:11px; }
+.imei-tools { display:flex; gap:8px; align-items:stretch; }
+.imei-tools #imeiInput { flex:1; }
+#btnScanImei { background:#2563eb; color:#fff; white-space:nowrap; }
+#btnScanImei:hover { background:#1d4ed8; }
+.scan-video { width:100%; max-height:55vh; object-fit:cover; border-radius:8px; background:#000; }
+.scan-help { color:#cbd5e1; font-size:12px; line-height:1.4; margin:10px 0 0; }
+@media (max-width:520px) { .imei-tools { flex-direction:column; } }
+
+/* FORMULARIO DE REPARACIÓN */
 form {
-  background: #202024;
-  padding: 24px;
-  border-radius: 12px;
-  margin-bottom: 24px;
-  border: 1px solid var(--border-color);
-  display: none;
-  flex-direction: column;
-  gap: 16px;
+  background: #202024; padding: 20px; border-radius: 10px; margin-bottom: 20px;
+  border: 1px solid var(--border-color); display: none; flex-direction: column; gap: 14px;
 }
-.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
 input, select, textarea {
-  padding: 12px 14px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: inherit;
-  background: #121214;
-  color: #f8fafc;
+  padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px;
+  font-size: 13px; font-family: inherit; background: #121214; color: #f8fafc; width: 100%;
 }
 input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, .2);
+  outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,.2);
 }
-textarea { resize: vertical; height: 70px; }
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px #e8f0fe inset;
-  -webkit-text-fill-color: #101418;
-  caret-color: #101418;
-  transition: background-color 9999s ease-out;
-}
-
-/* --- Secciones del formulario --- */
+select:disabled { opacity: .55; cursor: not-allowed; }
+textarea { resize: vertical; height: 60px; }
 .seccion-reparaciones {
-  display: none;
-  background: #18181b;
-  padding: 16px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  display: block; background: #18181b; padding: 14px;
+  border: 1px solid var(--border-color); border-radius: 8px;
 }
 .seccion-reparaciones label.titulo-grupo {
-  font-size: 12px;
-  font-weight: 700;
-  color: #94a3b8;
-  display: block;
-  margin-bottom: 10px;
-  text-transform: uppercase;
+  font-size: 11px; font-weight: 700; color: #94a3b8; display: block;
+  margin-bottom: 8px; text-transform: uppercase;
 }
-.checkbox-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 10px; }
+.checkbox-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
 .checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  cursor: pointer;
-  background: #202024;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-  color: #cbd5e1;
-  user-select: none;
+  display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;
+  background: #202024; padding: 6px 10px; border-radius: 6px;
+  border: 1px solid var(--border-color); color: #cbd5e1; user-select: none;
 }
 .checkbox-item:hover { border-color: #3f3f46; }
-.checkbox-item input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary); flex: none; margin: 0; }
+.checkbox-item input { cursor: pointer; width: 15px; height: 15px; accent-color: var(--primary); flex: none; margin: 0; }
 .checkbox-item.marcado { border-color: var(--primary); background: #16233a; color: #dbeafe; }
-
-/* --- Chips de servicios --- */
-.chips-box { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.chips-box { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .chips-box:empty { display: none; }
 .chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 6px 4px 10px;
-  border-radius: 999px;
-  background: #1e3a5f;
-  color: #cfe3ff;
-  font-size: 12px;
-  font-weight: 600;
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 6px 3px 8px;
+  border-radius: 999px; background: #1e3a5f; color: #cfe3ff; font-size: 11.5px; font-weight: 600;
 }
-.chip button { background: none; border: none; color: #9fc4ff; cursor: pointer; font-size: 15px; line-height: 1; padding: 0 3px; }
-
+.chip button { background: none; border: none; color: #9fc4ff; cursor: pointer; font-size: 14px; padding: 0 2px; }
 .split-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #cbd5e1;
-  background: #27272a;
-  padding: 10px 14px;
-  border-radius: 8px;
-  cursor: pointer;
+  display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;
+  color: #cbd5e1; background: #27272a; padding: 8px 12px; border-radius: 6px; cursor: pointer;
 }
-.split-option input { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
-
-/* --- Botones --- */
-button { padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
+.split-option input { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; flex: none; }
+.panel-reparto {
+  display: none; background: linear-gradient(135deg, #132033 0%, #1a1430 100%);
+  border: 1px solid #2c4a72; border-radius: 8px; padding: 12px 14px;
+}
+.panel-reparto.activo { display: block; }
+.pr-titulo {
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: .1em;
+  color: #7dd3fc; font-weight: 700; margin-bottom: 8px;
+}
+.pr-filas { display: flex; flex-direction: column; gap: 6px; }
+.pr-fila {
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(255,255,255,.05); padding: 6px 10px; border-radius: 6px;
+  font-size: 12px; font-weight: 700;
+}
+.pr-nombre { color: #cbd5e1; }
+.pr-monto { color: #34d399; font-variant-numeric: tabular-nums; }
+.pr-monto.proyectado { color: #fbbf24; }
+.pr-nota { font-size: 11px; color: #93a4bd; margin-top: 8px; line-height: 1.3; }
+button { padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
 button:focus { outline: none; }
-button:focus-visible { box-shadow: 0 0 0 3px rgba(59, 130, 246, .35); }
-button:disabled { opacity: .5; cursor: not-allowed; }
-#btnSubmit { background: var(--success); color: #fff; font-size: 15px; }
-button.mini { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
+#btnSubmit { background: var(--success); color: #fff; font-size: 14px; }
+button.mini { padding: 5px 10px; font-size: 11px; border-radius: 5px; }
 button.rojo { background: var(--danger); color: #fff; }
 button.rojo:hover { background: #dc2626; }
 button.gris { background: #3f3f46; color: #fff; }
 button.gris:hover { background: #52525b; }
-.acciones-form { display: flex; gap: 10px; flex-wrap: wrap; }
-
-/* --- Buscador y barra de estado --- */
+button.azul { background: var(--primary); color: #fff; }
+button.azul:hover { background: #2563eb; }
+.acciones-form { display: flex; gap: 8px; flex-wrap: wrap; }
 .search-box {
-  width: 100%;
-  padding: 14px 18px;
-  margin-bottom: 16px;
-  font-size: 15px;
-  border: 2px solid var(--border-color);
-  border-radius: 10px;
-  background: #121214;
-  color: #fff;
+  width: 100%; padding: 12px 16px; margin-bottom: 14px; font-size: 14px;
+  border: 2px solid var(--border-color); border-radius: 8px; background: #121214; color: #fff;
 }
 .barra {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-  font-size: 12.5px;
-  color: var(--text-muted);
-  flex-wrap: wrap;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+  font-size: 12px; color: var(--text-muted); flex-wrap: wrap;
 }
-.punto {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #64748b;
-  display: inline-block;
-  transition: background .25s;
-}
+.punto { width: 8px; height: 8px; border-radius: 50%; background: #64748b; display: inline-block; }
 .punto.ok { background: var(--success); }
 .punto.err { background: var(--danger); }
-#relojVivo {
-  display: none;
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  color: #cbd5e1;
-  letter-spacing: .02em;
-}
+#relojVivo { display: none; font-variant-numeric: tabular-nums; font-weight: 700; color: #cbd5e1; }
 #btnReload {
-  background: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--text-muted);
-  padding: 3px 9px;
-  font-size: 14px;
-  line-height: 1.1;
-  border-radius: 6px;
+  background: transparent; border: 1px solid var(--border-color); color: var(--text-muted);
+  padding: 4px 8px; font-size: 13px; border-radius: 5px;
 }
 #btnReload:hover { color: #fff; border-color: #52525b; }
-#btnNueva { background: var(--success); color: #fff; display: none; align-items: center; margin-left: auto; }
-#btnNueva:hover { background: #0d9668; }
-
-/* --- Tabla Amplia y Completa (Sin recortes) --- */
-.table-responsive { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-color); }
+#btnNueva { background: var(--success); color: #fff; align-items: center; margin-left: auto; }
+#btnExportar { background: #1d4ed8; color: #fff; }
+body.admin #btnNueva { display: inline-flex; }
+body.admin #btnExportar { display: inline-block; }
+.table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
 table { width: 100%; table-layout: auto; border-collapse: collapse; }
 th, td {
-  padding: 14px 12px;
-  text-align: left;
-  border-bottom: 1px solid var(--border-color);
-  font-size: 13.5px;
-  vertical-align: middle;
-  word-break: break-word;
+  padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border-color);
+  font-size: 12px; vertical-align: middle; word-break: break-word;
 }
-th { background: #202024; color: #f1f5f9; font-weight: 600; text-transform: uppercase; font-size: 11px; white-space: nowrap; }
+th { background: #202024; color: #f1f5f9; font-weight: 600; text-transform: uppercase; font-size: 10px; white-space: nowrap; }
 tr:nth-child(even) { background: #121214; }
 .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ganancia-txt { color: #34d399; font-weight: 700; white-space: nowrap; }
-.vacio { text-align: center; color: var(--text-muted); padding: 32px; font-style: italic; }
-
+.pend-txt { color: #f59e0b; font-weight: 700; white-space: nowrap; }
+.vacio { text-align: center; color: var(--text-muted); padding: 24px; font-style: italic; }
 td.celda-acc { white-space: nowrap; }
-.celda-acc .acc-wrap { display: flex; gap: 6px; justify-content: center; }
-.celda-acc button { padding: 5px 10px; font-size: 11.5px; }
-
-/* --- Footer / marca de agua --- */
-.admin-panel { display: none; }
+.celda-acc .acc-wrap { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+tr.fila-fecha td {
+  background: #16202e; font-size: 11px; font-weight: 700; color: #93c5fd;
+  text-transform: uppercase; letter-spacing: .05em; padding: 8px 12px;
+  border-top: 1px solid #2c4a72; border-bottom: 1px solid #2c4a72;
+}
+tr.fila-fecha .ff-meta {
+  color: #64748b; font-weight: 600; text-transform: none; margin-left: 8px; font-size: 10px;
+}
+.hora-txt { color: #94a3b8; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rep-chips { display: flex; flex-direction: column; gap: 2px; }
+.rep-chip {
+  display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 6px;
+  border-radius: 999px; background: #1e3a5f; color: #bfdbfe; white-space: nowrap;
+}
+.rep-none { color: #52525b; }
+select.sel-estado, select.sel-pago {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  padding: 4px 6px; border-radius: 999px; border: 1px solid transparent;
+  cursor: pointer; appearance: none; text-align: center;
+}
+.pag-si { background: #052e26; color: #34d399; }
+.pag-no { background: #422006; color: #fbbf24; }
+.badge {
+  display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 999px; white-space: nowrap;
+}
+.est-recibido { background: #27272a; color: #a1a1aa; }
+.est-en-proceso { background: #422006; color: #fbbf24; }
+.est-listo { background: #172554; color: #93c5fd; }
+.est-entregado { background: #052e26; color: #34d399; }
+.badge.pag-si { background: #052e26; color: #34d399; }
+.badge.pag-no { background: #422006; color: #fbbf24; }
+.totales {
+  display: none; flex-wrap: wrap; gap: 8px; margin-top: 14px;
+  background: #121214; border: 1px solid var(--border-color);
+  border-radius: 8px; padding: 12px 14px;
+}
+.totales.activo { display: flex; }
+.tot-item { display: flex; flex-direction: column; gap: 2px; min-width: 95px; }
+.tot-et { font-size: 9px; text-transform: uppercase; letter-spacing: .1em; color: #64748b; font-weight: 700; }
+.tot-val { font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; color: #e2e8f0; }
+.tot-val.verde { color: #34d399; }
+.tot-val.azul { color: #60a5fa; }
+.tot-val.violeta { color: #c4b5fd; }
+.tot-val.ambar { color: #fbbf24; }
 .admin-footer-area {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 24px;
-  flex-wrap: wrap;
-  gap: 10px;
-  border-top: 1px solid var(--border-color);
-  padding-top: 18px;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 20px; flex-wrap: wrap; gap: 10px;
+  border-top: 1px solid var(--border-color); padding-top: 14px;
 }
-.watermark { display: flex; flex-direction: column; gap: 3px; }
-.wm-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: .18em; color: #5b6270; font-weight: 700; }
+.watermark { display: flex; flex-direction: column; gap: 2px; }
+.wm-label { font-size: 9px; text-transform: uppercase; letter-spacing: .15em; color: #5b6270; font-weight: 700; }
 .wm-nombre {
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: .015em;
+  font-size: 14px; font-weight: 800;
   background: linear-gradient(90deg, #60a5fa 0%, #22d3ee 45%, #a78bfa 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0 10px rgba(59, 130, 246, .35));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
 }
-.wm-linea { height: 2px; width: 46px; border-radius: 2px; margin-top: 6px; background: linear-gradient(90deg, #3b82f6, #a78bfa); }
-.admin-link a { color: var(--text-muted); text-decoration: none; cursor: pointer; font-weight: 600; font-size: 13px; }
+.wm-linea { height: 2px; width: 36px; border-radius: 2px; margin-top: 4px; background: linear-gradient(90deg, #3b82f6, #a78bfa); }
+.wm-build { font-size: 8.5px; letter-spacing: .15em; color: #3f4652; font-weight: 700; text-transform: uppercase; margin-top: 2px; }
+.admin-link a { color: var(--text-muted); text-decoration: none; cursor: pointer; font-weight: 600; font-size: 12px; }
 .admin-link a:hover { color: #f8fafc; text-decoration: underline; }
-
-/* --- Modales --- */
 .modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0, 0, 0, .8);
-  backdrop-filter: blur(6px);
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 20px;
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,.8); backdrop-filter: blur(6px);
+  justify-content: center; align-items: center; z-index: 1000; padding: 16px;
 }
 .modal-box {
-  background: #18181b;
-  border: 1px solid var(--border-color);
-  padding: 28px;
-  border-radius: 14px;
-  width: 340px;
-  max-width: 100%;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, .7);
-  text-align: center;
-  animation: aparecer .16s ease-out;
+  background: #18181b; border: 1px solid var(--border-color); padding: 24px;
+  border-radius: 12px; width: 320px; max-width: 100%; box-shadow: 0 20px 25px -5px rgba(0,0,0,.7); text-align: center;
 }
-@keyframes aparecer {
-  from { opacity: 0; transform: translateY(8px) scale(.98); }
-  to { opacity: 1; transform: none; }
-}
-.modal-box h3 { margin: 0 0 6px; color: #f8fafc; font-size: 18px; }
-.modal-box .sub { margin: 0 0 18px; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
-.modal-box input { width: 100%; margin-bottom: 12px; text-align: center; font-size: 15px; }
-.modal-buttons { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
-.modal-buttons button { padding: 9px 16px; font-size: 13px; width: 100%; }
+.modal-box h3 { margin: 0 0 6px; color: #f8fafc; font-size: 16px; }
+.modal-box .sub { margin: 0 0 14px; font-size: 11.5px; color: var(--text-muted); line-height: 1.3; }
+.modal-box input { width: 100%; margin-bottom: 10px; text-align: center; font-size: 14px; }
+.modal-buttons { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
+.modal-buttons button { padding: 8px 14px; font-size: 12px; width: 100%; }
 .btn-gris { background: #3f3f46; color: #fff; }
-.btn-gris:hover { background: #52525b; }
 .btn-azul { background: var(--primary); color: #fff; }
-.btn-azul:hover { background: #2563eb; }
-.btn-azul:disabled { opacity: .6; cursor: default; }
 .campo-label {
-  display: block;
-  text-align: left;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: #94a3b8;
-  margin-bottom: 6px;
+  display: block; text-align: left; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em; color: #94a3b8; margin-bottom: 4px;
 }
-.campo-grupo { margin-bottom: 14px; }
-.campo-grupo input { margin-bottom: 0; text-align: left; }
+.campo-grupo { margin-bottom: 12px; }
 .msg-modal {
-  display: none;
-  font-size: 12.5px;
-  font-weight: 600;
-  padding: 9px 12px;
-  border-radius: 8px;
-  margin-bottom: 14px;
-  text-align: left;
+  display: none; font-size: 12px; font-weight: 600; padding: 8px 10px;
+  border-radius: 6px; margin-bottom: 12px; text-align: left;
 }
-.msg-modal.error { display: block; background: rgba(239, 68, 68, .12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, .4); }
-.msg-modal.ok { display: block; background: rgba(16, 185, 129, .12); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, .4); }
+.msg-modal.error { display: block; background: rgba(239,68,68,.12); color: #fca5a5; border: 1px solid rgba(239,68,68,.4); }
+.msg-modal.ok { display: block; background: rgba(16,185,129,.12); color: #6ee7b7; border: 1px solid rgba(16,185,129,.4); }
+#recibo { display: none; }
+.rec-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 18px; }
+.rec-marca { font-size: 22px; font-weight: 800; letter-spacing: .04em; }
+.rec-sub { font-size: 10px; text-transform: uppercase; letter-spacing: .18em; }
+.rec-meta { font-size: 11px; text-align: right; line-height: 1.6; }
+.rec-fila { display: flex; justify-content: space-between; gap: 20px; padding: 7px 0; border-bottom: 1px dotted #bbb; font-size: 12.5px; }
+.rec-fila b { font-weight: 700; }
+.rec-total { display: flex; justify-content: space-between; font-size: 17px; font-weight: 800; margin-top: 14px; padding-top: 10px; border-top: 2px solid #000; }
+.rec-sello {
+  margin-top: 12px; padding: 8px 12px; border: 2px solid #000; text-align: center;
+  font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+}
+.rec-firmas { display: flex; gap: 30px; margin-top: 40px; font-size: 11px; }
+.rec-firma { flex: 1; border-top: 1px solid #000; padding-top: 6px; text-align: center; }
+@media print {
+  body { background: #fff; color: #000; padding: 0; font-size: 12px; }
+  .container { background: #fff; border: none; box-shadow: none; padding: 0; max-width: 100%; }
+  .marca, form, .search-box, .barra, .table-responsive, .admin-footer-area, .modal-overlay, .totales { display: none !important; }
+  #recibo { display: block !important; color: #000; }
+}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-  <!-- ============================================================
-       ENCABEZADO
-       ============================================================ -->
+  <!-- CABECERA -->
   <div class="marca">
-    <!-- Bloque de la izquierda: Logo resaltado + Eslogan pegado debajo -->
     <div class="bloque-logo">
-      <div class="logo"><img src="logo.png" alt="LIFOX TECH" onerror="this.style.display='none'"></div>
+      <div class="logo">
+        <img src="logo.png" alt="LIFOX TECH"
+             onerror="this.style.display='none';var f=document.getElementById('logoFallback');if(f)f.style.display='flex';">
+        <span id="logoFallback" class="logo-fallback">LIFOX<span>TECH</span></span>
+      </div>
       <span class="slogan-logo">Garantía, Calidad y Confianza</span>
     </div>
-
-    <!-- Bloque central: Título centrado -->
-    <div class="titulo-marca">
-      <h1>Control de Precios y Reparaciones</h1>
-    </div>
-
-    <!-- Bloque derecho: Fecha -->
+    <div class="titulo-marca"><h1>Control de Precios y Reparaciones</h1></div>
     <div id="fechaActual" class="fecha-header">Cargando fecha...</div>
   </div>
 
-  <!-- ============================================================
-       FORMULARIO
-       ============================================================ -->
-  <form id="priceForm" autocomplete="off">
+  <!-- FORMULARIO DE REPARACIÓN -->
+  <form id="priceForm" autocomplete="off" novalidate>
 
-    <!-- Datos del cliente -->
-    <div class="form-row">
-      <input type="text" id="clientName" name="cli_nombre" placeholder="Nombre del Cliente" maxlength="80"
-             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" required>
-      <input type="tel" id="clientPhone" name="cli_tel" placeholder="Teléfono del Cliente (Ej. 809-000-0000)"
-             maxlength="20" autocomplete="off" autocorrect="off" spellcheck="false" required>
+    <input type="hidden" id="deviceCategory">
+    <input type="hidden" id="mobileOS">
+
+    <!-- 1. TIPO DE DISPOSITIVO -->
+    <div class="menu-dispositivo" id="menuDispositivo">
+      <span class="menu-titulo">1 · ¿Qué equipo entra?</span>
+      <button type="button" class="opcion-dispositivo" data-tipo="iPhone">
+        <span class="od-icono">📱</span><span class="od-txt">Registrar iPhone</span>
+      </button>
+      <button type="button" class="opcion-dispositivo" data-tipo="Android">
+        <span class="od-icono">
+          <svg class="od-svg" viewBox="0 0 100 120" aria-hidden="true">
+            <g fill="#A4C639">
+              <path d="M32 22 L24 10" stroke="#A4C639" stroke-width="4" stroke-linecap="round"/>
+              <path d="M68 22 L76 10" stroke="#A4C639" stroke-width="4" stroke-linecap="round"/>
+              <path d="M50 16c-16 0-28 11-28 25v10h56V41c0-14-12-25-28-25z"/>
+              <rect x="22" y="51" width="56" height="42"/>
+              <rect x="10" y="54" width="10" height="34" rx="5"/>
+              <rect x="80" y="54" width="10" height="34" rx="5"/>
+              <rect x="33" y="93" width="10" height="20" rx="5"/>
+              <rect x="57" y="93" width="10" height="20" rx="5"/>
+            </g>
+            <circle cx="40" cy="34" r="3.6" fill="#ffffff"/>
+            <circle cx="60" cy="34" r="3.6" fill="#ffffff"/>
+          </svg>
+        </span>
+        <span class="od-txt">Registrar Android</span>
+      </button>
+      <button type="button" class="opcion-dispositivo" data-tipo="PC">
+        <span class="od-icono">💻</span><span class="od-txt">Registrar PC</span>
+      </button>
     </div>
 
-    <!-- Técnico -->
-    <div class="form-row">
-      <select id="technicianName" name="tecnico" required>
-        <option value="">🛠️ Seleccione Técnico</option>
-        <option value="YMARK">YMARK</option>
-        <option value="WINDER">WINDER</option>
-      </select>
+    <!-- 2. IMEI -->
+    <div id="seccionIMEI" class="seccion-reparaciones" style="background:#121214; display:none;">
+      <label class="titulo-grupo" for="imeiInput">2 · IMEI del dispositivo — escribe o escanea y se completa solo</label>
+      <div class="imei-tools">
+        <input type="text" id="imeiInput" placeholder="IMEI de 15 dígitos (los primeros 8 identifican marca y modelo)" maxlength="20" inputmode="numeric">
+        <button type="button" id="btnScanImei">📷 Escanear</button>
+      </div>
+      <div id="tacStatus" class="tac-status"></div>
+      <small class="tac-edit-hint">Los datos sugeridos se pueden corregir manualmente antes de guardar.</small>
     </div>
 
-    <!-- Tipo de dispositivo -->
-    <div class="form-row">
-      <select id="deviceCategory" name="categoria" required>
-        <option value="">📱 Seleccione Tipo de Dispositivo</option>
-        <option value="movil">Dispositivo Móvil (iPhone / Android)</option>
-        <option value="pc">Computadora / Laptop (PC)</option>
-      </select>
-    </div>
-
-    <!-- Sistema operativo -->
-    <div id="seccionOS" class="seccion-reparaciones">
-      <label class="titulo-grupo">Sistema Operativo del Móvil:</label>
-      <select id="mobileOS" name="plataforma">
-        <option value="">Seleccione plataforma...</option>
-        <option value="iPhone">iPhone (iOS)</option>
-        <option value="Android">Android</option>
-      </select>
-    </div>
-
-    <!-- Especificaciones iPhone -->
-    <div id="seccionIphoneSpecs" class="seccion-reparaciones" style="background:#121214;">
-      <label class="titulo-grupo">Especificaciones del iPhone:</label>
+    <!-- 3. ESPECIFICACIONES -->
+    <div id="seccionIphoneSpecs" class="seccion-reparaciones" style="background:#121214; display:none;">
+      <label class="titulo-grupo">3 · Especificaciones del iPhone (Editables):</label>
       <div class="form-row" style="margin-bottom:10px;">
-
-        <select id="iphoneModel" name="modelo_iphone">
+        <select id="iphoneModel">
           <option value="">Seleccione Modelo de iPhone</option>
-          <optgroup label="2014 – 2017">
+          <optgroup label="iPhone 6 – 8">
             <option value="iPhone 6">iPhone 6</option>
             <option value="iPhone 6 Plus">iPhone 6 Plus</option>
             <option value="iPhone 6s">iPhone 6s</option>
             <option value="iPhone 6s Plus">iPhone 6s Plus</option>
-            <option value="iPhone SE (1ª gen)">iPhone SE (1ª gen)</option>
             <option value="iPhone 7">iPhone 7</option>
             <option value="iPhone 7 Plus">iPhone 7 Plus</option>
-          </optgroup>
-          <optgroup label="2017 – 2019">
             <option value="iPhone 8">iPhone 8</option>
             <option value="iPhone 8 Plus">iPhone 8 Plus</option>
+          </optgroup>
+          <optgroup label="iPhone X – XR">
             <option value="iPhone X">iPhone X</option>
-            <option value="iPhone XR">iPhone XR</option>
             <option value="iPhone XS">iPhone XS</option>
             <option value="iPhone XS Max">iPhone XS Max</option>
+            <option value="iPhone XR">iPhone XR</option>
           </optgroup>
-          <optgroup label="2019 – 2022">
+          <optgroup label="iPhone 11 – 12">
             <option value="iPhone 11">iPhone 11</option>
             <option value="iPhone 11 Pro">iPhone 11 Pro</option>
             <option value="iPhone 11 Pro Max">iPhone 11 Pro Max</option>
-            <option value="iPhone SE (2ª gen)">iPhone SE (2ª gen)</option>
             <option value="iPhone 12">iPhone 12</option>
             <option value="iPhone 12 mini">iPhone 12 mini</option>
             <option value="iPhone 12 Pro">iPhone 12 Pro</option>
             <option value="iPhone 12 Pro Max">iPhone 12 Pro Max</option>
+          </optgroup>
+          <optgroup label="iPhone 13 – 14">
             <option value="iPhone 13">iPhone 13</option>
             <option value="iPhone 13 mini">iPhone 13 mini</option>
             <option value="iPhone 13 Pro">iPhone 13 Pro</option>
             <option value="iPhone 13 Pro Max">iPhone 13 Pro Max</option>
-            <option value="iPhone SE (3ª gen)">iPhone SE (3ª gen)</option>
-          </optgroup>
-          <optgroup label="2022 – 2025">
             <option value="iPhone 14">iPhone 14</option>
             <option value="iPhone 14 Plus">iPhone 14 Plus</option>
             <option value="iPhone 14 Pro">iPhone 14 Pro</option>
             <option value="iPhone 14 Pro Max">iPhone 14 Pro Max</option>
+          </optgroup>
+          <optgroup label="iPhone SE">
+            <option value="iPhone SE (1.ª gen)">iPhone SE (1.ª gen)</option>
+            <option value="iPhone SE (2.ª gen)">iPhone SE (2.ª gen)</option>
+            <option value="iPhone SE (3.ª gen)">iPhone SE (3.ª gen)</option>
+          </optgroup>
+          <optgroup label="iPhone 15 – 16">
             <option value="iPhone 15">iPhone 15</option>
             <option value="iPhone 15 Plus">iPhone 15 Plus</option>
             <option value="iPhone 15 Pro">iPhone 15 Pro</option>
@@ -517,188 +455,171 @@ td.celda-acc { white-space: nowrap; }
             <option value="iPhone 16 Pro Max">iPhone 16 Pro Max</option>
             <option value="iPhone 16e">iPhone 16e</option>
           </optgroup>
-          <optgroup label="Últimos modelos">
+          <optgroup label="iPhone 17 – 18">
             <option value="iPhone 17">iPhone 17</option>
             <option value="iPhone 17 Air">iPhone 17 Air</option>
             <option value="iPhone 17 Pro">iPhone 17 Pro</option>
             <option value="iPhone 17 Pro Max">iPhone 17 Pro Max</option>
-            <option value="iPhone 18">iPhone 18</option>
+            <option value="iPhone 17e">iPhone 17e</option>
             <option value="iPhone 18 Pro">iPhone 18 Pro</option>
             <option value="iPhone 18 Pro Max">iPhone 18 Pro Max</option>
+            <option value="iPhone Duo">iPhone Duo</option>
           </optgroup>
         </select>
 
-        <select id="iphoneColor" name="color_iphone">
+        <select id="iphoneColor" disabled>
           <option value="">Seleccione Color</option>
-          <option value="Negro">Negro</option>
-          <option value="Blanco">Blanco</option>
-          <option value="Gris">Gris</option>
-          <option value="Gris espacial">Gris espacial</option>
-          <option value="Plata">Plata</option>
-          <option value="Grafito">Grafito</option>
-          <option value="Medianoche">Medianoche</option>
-          <option value="Blanco estrella">Blanco estrella</option>
-          <option value="Azul">Azul</option>
-          <option value="Azul marino">Azul marino</option>
-          <option value="Azul cielo">Azul cielo</option>
-          <option value="Verde">Verde</option>
-          <option value="Verde menta">Verde menta</option>
-          <option value="Verde oliva">Verde oliva</option>
-          <option value="Rojo">Rojo</option>
-          <option value="Rosa">Rosa</option>
-          <option value="Rosa palo">Rosa palo</option>
-          <option value="Morado">Morado</option>
-          <option value="Lila">Lila</option>
-          <option value="Amarillo">Amarillo</option>
-          <option value="Naranja">Naranja</option>
-          <option value="Coral">Coral</option>
-          <option value="Dorado">Dorado</option>
-          <option value="Bronce">Bronce</option>
-          <option value="Titanio natural">Titanio natural</option>
-          <option value="Titanio azul">Titanio azul</option>
-          <option value="Titanio negro">Titanio negro</option>
-          <option value="Titanio blanco">Titanio blanco</option>
-          <option value="Otro">Otro</option>
         </select>
 
-        <select id="iphoneStorage" name="capacidad">
+        <select id="iphoneStorage">
           <option value="">Capacidad</option>
-          <option value="16GB">16 GB</option>
-          <option value="32GB">32 GB</option>
           <option value="64GB">64 GB</option>
           <option value="128GB">128 GB</option>
           <option value="256GB">256 GB</option>
           <option value="512GB">512 GB</option>
           <option value="1TB">1 TB</option>
         </select>
-
       </div>
     </div>
 
-    <!-- Especificaciones Android -->
-    <div id="seccionAndroidSpecs" class="seccion-reparaciones" style="background:#121214;">
-      <label class="titulo-grupo">Especificaciones del Dispositivo Android:</label>
+    <div id="seccionAndroidSpecs" class="seccion-reparaciones" style="background:#121214; display:none;">
+      <label class="titulo-grupo">3 · Especificaciones del Dispositivo Android (Editable):</label>
       <div class="form-row" style="margin-bottom:10px;">
-        <input type="text" id="androidModel" name="modelo_android" placeholder="Ej. Samsung Galaxy S23..."
-               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-        <select id="androidColor" name="color_android">
+        <input type="text" id="androidBrand" list="listaMarcas" placeholder="Marca (Ej. Samsung)">
+        <input type="text" id="androidModel" placeholder="Ej. Samsung Galaxy S23...">
+        <select id="androidColor">
           <option value="">Seleccione Color</option>
           <option value="Negro">Negro</option>
-          <option value="Negro mate">Negro mate</option>
           <option value="Blanco">Blanco</option>
+          <option value="Plata">Plata</option>
           <option value="Gris">Gris</option>
-          <option value="Gris oscuro">Gris oscuro</option>
+          <option value="Gris espacial">Gris espacial</option>
+          <option value="Grafito">Grafito</option>
+          <option value="Medianoche">Medianoche</option>
+          <option value="Azul">Azul</option>
+          <option value="Azul marino">Azul marino</option>
+          <option value="Azul claro">Azul claro</option>
+          <option value="Celeste">Celeste</option>
+          <option value="Turquesa">Turquesa</option>
+          <option value="Verde">Verde</option>
+          <option value="Verde claro">Verde claro</option>
+          <option value="Verde oscuro">Verde oscuro</option>
+          <option value="Morado">Morado</option>
+          <option value="Violeta">Violeta</option>
+          <option value="Lila">Lila</option>
+          <option value="Rojo">Rojo</option>
+          <option value="Rojo oscuro">Rojo oscuro</option>
+          <option value="Rosa">Rosa</option>
+          <option value="Coral">Coral</option>
+          <option value="Naranja">Naranja</option>
+          <option value="Amarillo">Amarillo</option>
+          <option value="Dorado">Dorado</option>
+          <option value="Champán">Champán</option>
+          <option value="Beige">Beige</option>
+          <option value="Crema">Crema</option>
+          <option value="Marrón">Marrón</option>
+          <option value="Cobre">Cobre</option>
+          <option value="Estándar">Estándar</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="seccionPCSpecs" class="seccion-reparaciones" style="background:#121214; display:none;">
+      <label class="titulo-grupo">3 · Especificaciones de la Computadora:</label>
+      <div class="form-row" style="margin-bottom:10px;">
+        <input type="text" id="pcBrand" list="listaMarcas" placeholder="Marca (Ej. HP)">
+        <input type="text" id="pcModel" placeholder="Modelo (Ej. HP Pavilion...)">
+        <select id="pcColor">
+          <option value="">Seleccione Color</option>
+          <option value="Negro">Negro</option>
+          <option value="Gris">Gris</option>
           <option value="Plateado">Plateado</option>
+          <option value="Blanco">Blanco</option>
           <option value="Grafito">Grafito</option>
           <option value="Azul">Azul</option>
           <option value="Azul marino">Azul marino</option>
-          <option value="Azul cielo">Azul cielo</option>
-          <option value="Verde">Verde</option>
-          <option value="Verde menta">Verde menta</option>
-          <option value="Verde oliva">Verde oliva</option>
           <option value="Rojo">Rojo</option>
-          <option value="Rosa">Rosa</option>
-          <option value="Rosa palo">Rosa palo</option>
-          <option value="Morado">Morado</option>
-          <option value="Lila">Lila</option>
-          <option value="Amarillo">Amarillo</option>
-          <option value="Naranja">Naranja</option>
-          <option value="Coral">Coral</option>
+          <option value="Verde">Verde</option>
           <option value="Dorado">Dorado</option>
-          <option value="Bronce">Bronce</option>
-          <option value="Vinotinto">Vinotinto</option>
-          <option value="Turquesa">Turquesa</option>
           <option value="Beige">Beige</option>
-          <option value="Otro">Otro</option>
+          <option value="Marrón">Marrón</option>
         </select>
       </div>
     </div>
 
-    <!-- Especificaciones PC -->
-    <div id="seccionPCSpecs" class="seccion-reparaciones" style="background:#121214;">
-      <label class="titulo-grupo">Especificaciones de la Computadora:</label>
-      <div class="form-row" style="margin-bottom:10px;">
-        <input type="text" id="pcModel" name="modelo_pc" placeholder="Modelo (Ej. HP Pavilion...)"
-               autocomplete="off" autocorrect="off" spellcheck="false">
-        <select id="pcColor" name="color_pc">
-          <option value="">Seleccione Color</option>
-          <option value="Negro">Negro</option>
-          <option value="Negro mate">Negro mate</option>
-          <option value="Gris oscuro">Gris oscuro</option>
-          <option value="Gris">Gris</option>
-          <option value="Gris claro">Gris claro</option>
-          <option value="Plateado">Plateado</option>
-          <option value="Aluminio">Aluminio</option>
-          <option value="Blanco">Blanco</option>
-          <option value="Blanco perla">Blanco perla</option>
-          <option value="Crema">Crema</option>
-          <option value="Beige">Beige</option>
-          <option value="Azul">Azul</option>
-          <option value="Azul marino">Azul marino</option>
-          <option value="Azul metálico">Azul metálico</option>
-          <option value="Verde">Verde</option>
-          <option value="Verde militar">Verde militar</option>
-          <option value="Rojo">Rojo</option>
-          <option value="Vinotinto">Vinotinto</option>
-          <option value="Rosa">Rosa</option>
-          <option value="Morado">Morado</option>
-          <option value="Dorado">Dorado</option>
-          <option value="Bronce">Bronce</option>
-          <option value="Café">Café</option>
-          <option value="Transparente / RGB">Transparente / RGB</option>
-          <option value="Otro">Otro</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Servicios -->
-    <div id="seccionServicios" class="seccion-reparaciones">
-      <label class="titulo-grupo" id="tituloServicios">Servicios</label>
+    <!-- 4. SERVICIOS -->
+    <div id="seccionServicios" class="seccion-reparaciones" style="display:none;">
+      <label class="titulo-grupo" id="tituloServicios">4 · Servicios</label>
       <div class="checkbox-group" id="serviciosBox"></div>
       <div class="chips-box" id="chipsBox"></div>
     </div>
 
-    <!-- Ganancia compartida -->
+    <!-- 5. CLIENTE -->
+    <div class="form-row">
+      <input type="text" id="clientName" placeholder="Nombre del Cliente" maxlength="80" required>
+      <input type="tel" id="clientPhone" placeholder="Teléfono del Cliente (Ej. 809-000-0000)" maxlength="20" required>
+    </div>
+
+    <!-- 6. TÉCNICO -->
+    <div class="form-row">
+      <select id="technicianName" required>
+        <option value="">🛠️ Seleccione Técnico</option>
+        <option value="YMARK">YMARK</option>
+        <option value="WINDER">WINDER</option>
+        <option value="YMARK + WINDER">👥 AMBOS (YMARK + WINDER)</option>
+      </select>
+    </div>
+
+    <div id="panelReparto" class="panel-reparto">
+      <div class="pr-titulo">Reparto de ganancia · 50% Local / 50% Técnicos</div>
+      <div class="pr-filas">
+        <div class="pr-fila"><span class="pr-nombre">YMARK</span><span class="pr-monto proyectado" id="prYmark">$0.00</span></div>
+        <div class="pr-fila"><span class="pr-nombre">WINDER</span><span class="pr-monto proyectado" id="prWinder">$0.00</span></div>
+      </div>
+      <div class="pr-nota" id="prNota">El 50% de la ganancia va al local. El 50% restante se divide en partes iguales entre los dos técnicos.</div>
+    </div>
+
+    <!-- 7. PRECIOS -->
     <div class="form-row">
       <label class="split-option">
-        <input type="checkbox" id="splitProfit"> Dividir ganancia 50/50 (Servicio de un solo precio)
+        <input type="checkbox" id="splitProfit"> Servicio de un solo precio (sin costo de piezas)
       </label>
     </div>
 
-    <!-- Precios -->
     <div class="form-row">
-      <input type="number" id="itemCompra" name="compra" placeholder="Precio Compra ($)" step="0.01" min="0" required>
-      <input type="number" id="itemCliente" name="precio_cliente" placeholder="Precio Cliente ($)" step="0.01" min="0" required>
+      <input type="number" id="itemCompra" placeholder="Precio Compra ($)" step="0.01" min="0" required>
+      <input type="number" id="itemCliente" placeholder="Precio Cliente ($)" step="0.01" min="0" required>
+      <select id="itemEstado">
+        <option value="Recibido">Recibido</option>
+        <option value="En proceso">En proceso</option>
+        <option value="Listo">Listo</option>
+        <option value="Entregado">Entregado</option>
+      </select>
+      <select id="itemPagado">
+        <option value="No">💤 Sin pagar</option>
+        <option value="Sí">✅ Pagado</option>
+      </select>
     </div>
 
-    <textarea id="itemNote" name="nota" placeholder="Nota sobre el dispositivo..."
-              autocomplete="off" spellcheck="false"></textarea>
+    <textarea id="itemNote" placeholder="Nota sobre el dispositivo..."></textarea>
 
     <div class="acciones-form">
       <button type="submit" id="btnSubmit">Registrar en la Nube</button>
-      <button type="button" class="gris" id="btnDeshacer" disabled>Deshacer cambios</button>
       <button type="button" class="gris" id="btnCancelar">Cancelar</button>
     </div>
   </form>
 
-  <!-- ============================================================
-       BUSCADOR + BARRA DE ESTADO
-       ============================================================ -->
-  <input type="text" id="searchBox" class="search-box"
-         placeholder="🔍 Buscar por cliente, teléfono, técnico, dispositivo..."
-         autocomplete="off" autocorrect="off" spellcheck="false">
+  <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar por cliente, teléfono, técnico, dispositivo, IMEI...">
 
   <div class="barra">
     <span class="punto" id="punto"></span>
     <span id="loadingStatus">Cargando registros...</span>
     <span id="relojVivo"></span>
     <button type="button" id="btnReload" title="Actualizar ahora">↻</button>
-    <button type="button" class="mini" id="btnNueva">➕ Nueva reparación</button>
+    <button type="button" class="mini solo-admin" id="btnExportar">⬇ Excel</button>
+    <button type="button" class="mini solo-admin" id="btnNueva">➕ Nueva reparación</button>
   </div>
 
-  <!-- ============================================================
-       TABLA DE REGISTROS
-       ============================================================ -->
   <div class="table-responsive">
     <table id="tabla">
       <thead>
@@ -707,27 +628,39 @@ td.celda-acc { white-space: nowrap; }
           <th>Teléfono</th>
           <th>Técnico</th>
           <th>Dispositivo</th>
+          <th>IMEI</th>
           <th>Reparaciones / Servicios</th>
+          <th>Estado</th>
+          <th>Pago</th>
           <th class="num">Compra</th>
           <th class="num">Cliente</th>
-          <th class="num">Ganancia</th>
+          <th class="num solo-admin">Ganancia</th>
+          <th class="solo-admin">Reparto</th>
           <th>Nota</th>
           <th>Fecha / Hora</th>
-          <th class="col-admin admin-panel" style="text-align:center;">Acciones</th>
+          <th class="solo-admin" style="text-align:center;">Acciones</th>
         </tr>
       </thead>
       <tbody id="inventoryTable"></tbody>
     </table>
   </div>
 
-  <!-- ============================================================
-       PIE
-       ============================================================ -->
+  <div class="totales solo-admin" id="totalesBox">
+    <div class="tot-item"><span class="tot-et">Registros</span><span class="tot-val" id="totCount">0</span></div>
+    <div class="tot-item"><span class="tot-et">Sin pagar</span><span class="tot-val ambar" id="totPendientes">0</span></div>
+    <div class="tot-item"><span class="tot-et">Por cobrar</span><span class="tot-val ambar" id="totPorCobrar">$0.00</span></div>
+    <div class="tot-item"><span class="tot-et">Cobrado</span><span class="tot-val" id="totCobrado">$0.00</span></div>
+    <div class="tot-item"><span class="tot-et">Ganancia neta</span><span class="tot-val verde" id="totGanancia">$0.00</span></div>
+    <div class="tot-item"><span class="tot-et">Parte YMARK</span><span class="tot-val azul" id="totYmark">$0.00</span></div>
+    <div class="tot-item"><span class="tot-et">Parte WINDER</span><span class="tot-val violeta" id="totWinder">$0.00</span></div>
+  </div>
+
   <div class="admin-footer-area">
     <div class="watermark">
       <span class="wm-label">Desarrollado y Gestionado por</span>
       <span class="wm-nombre">Ymark Jose Ramirez Vargas</span>
       <span class="wm-linea"></span>
+      <span class="wm-build">Versión 1.0</span>
     </div>
     <div class="admin-link">
       <a id="btnAdminLogin" onclick="toggleAdmin()">🔐 Modo Administrador</a>
@@ -736,16 +669,27 @@ td.celda-acc { white-space: nowrap; }
   </div>
 </div>
 
-<!-- ============================================================
-     MODAL LOGIN
-     ============================================================ -->
+<datalist id="listaMarcas">
+  <option value="Samsung"></option><option value="Xiaomi"></option><option value="Redmi"></option>
+  <option value="Poco"></option><option value="Motorola"></option><option value="Tecno"></option>
+  <option value="Infinix"></option><option value="itel"></option><option value="Honor"></option>
+  <option value="Huawei"></option><option value="ZTE"></option><option value="Alcatel"></option>
+  <option value="LG"></option><option value="Nokia"></option><option value="OnePlus"></option>
+  <option value="Oppo"></option><option value="vivo"></option><option value="Realme"></option>
+  <option value="Google"></option><option value="Apple"></option><option value="HP"></option>
+  <option value="Dell"></option><option value="Lenovo"></option><option value="Asus"></option>
+  <option value="Acer"></option><option value="Toshiba"></option><option value="Compaq"></option>
+  <option value="MSI"></option>
+</datalist>
+
+<div id="recibo"></div>
+
 <div id="adminModal" class="modal-overlay">
   <div class="modal-box">
     <h3>Acceso de Administrador</h3>
-    <p class="sub">Ingresa tus credenciales para administrar los registros.</p>
-    <input type="text" id="adminUserInput" placeholder="Usuario" autocomplete="new-password"
-           autocorrect="off" autocapitalize="off" spellcheck="false">
-    <input type="password" id="adminPasswordInput" placeholder="Contraseña" autocomplete="new-password">
+    <p class="sub">Ingresa tus credenciales.</p>
+    <input type="text" id="adminUserInput" placeholder="Usuario">
+    <input type="password" id="adminPasswordInput" placeholder="Contraseña">
     <div class="modal-buttons">
       <button type="button" class="btn-azul" onclick="verificarPassword()">Ingresar</button>
       <button type="button" class="btn-gris" onclick="cerrarModal()">Cancelar</button>
@@ -753,25 +697,34 @@ td.celda-acc { white-space: nowrap; }
   </div>
 </div>
 
-<!-- ============================================================
-     MODAL CAMBIAR CONTRASEÑA
-     ============================================================ -->
+<div id="scanModal" class="modal-overlay">
+  <div class="modal-box" style="width:520px;">
+    <h3>Escanear IMEI</h3>
+    <p class="sub">Apunta la cámara al código de barras del IMEI.</p>
+    <video id="scanVideo" class="scan-video" autoplay muted playsinline></video>
+    <p id="scanHelp" class="scan-help">Solicitando acceso a la cámara…</p>
+    <div class="modal-buttons">
+      <button type="button" class="btn-gris" id="btnCerrarScan">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <div id="passModal" class="modal-overlay">
   <div class="modal-box" style="width:380px;">
     <h3>Cambiar contraseña</h3>
-    <p class="sub">La nueva contraseña se guarda en el servidor y aplica en todos los dispositivos.</p>
+    <p class="sub">Actualiza tu clave de acceso.</p>
     <div id="passMsg" class="msg-modal"></div>
     <div class="campo-grupo">
-      <label class="campo-label" for="passActual">Contraseña actual</label>
-      <input type="password" id="passActual" autocomplete="new-password">
+      <label class="campo-label" for="passActual">Actual</label>
+      <input type="password" id="passActual">
     </div>
     <div class="campo-grupo">
-      <label class="campo-label" for="passNueva">Nueva contraseña</label>
-      <input type="password" id="passNueva" autocomplete="new-password">
+      <label class="campo-label" for="passNueva">Nueva</label>
+      <input type="password" id="passNueva">
     </div>
     <div class="campo-grupo">
-      <label class="campo-label" for="passConfirmar">Repetir nueva contraseña</label>
-      <input type="password" id="passConfirmar" autocomplete="new-password">
+      <label class="campo-label" for="passConfirmar">Confirmar</label>
+      <input type="password" id="passConfirmar">
     </div>
     <div class="modal-buttons">
       <button type="button" class="btn-azul" id="btnGuardarPass" onclick="guardarNuevaPassword()">Guardar</button>
@@ -780,26 +733,225 @@ td.celda-acc { white-space: nowrap; }
   </div>
 </div>
 
-<!-- ============================================================
-     APLICACIÓN
-     ============================================================ -->
 <script>
 "use strict";
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXl6vlj3UF6J2jZLfvoB-N_8L5gzEz0TRUzZ6lN8PDgGV_0YOVUcRCZHxQvMK812YqFA/exec";
-
+const SESION_HORAS = 12;
 const memStore = {};
 const store = {
   get(k) { try { return localStorage.getItem(k); } catch (e) { return memStore[k] || null; } },
   set(k, v) { try { localStorage.setItem(k, v); } catch (e) { memStore[k] = String(v); } },
   del(k) { try { localStorage.removeItem(k); } catch (e) { delete memStore[k]; } }
 };
+
+/* ===== COLORES POR MODELO DE IPHONE ===== */
+
+const COLORES_IPHONE = {
+  "iPhone 6": ["Gris espacial", "Plata", "Oro"],
+  "iPhone 6 Plus": ["Gris espacial", "Plata", "Oro"],
+  "iPhone 6s": ["Gris espacial", "Plata", "Oro", "Oro rosa"],
+  "iPhone 6s Plus": ["Gris espacial", "Plata", "Oro", "Oro rosa"],
+  "iPhone 7": ["Negro mate", "Jet Black (Negro brillante)", "Plata", "Oro", "Oro rosa", "Rojo ((PRODUCT)RED)"],
+  "iPhone 7 Plus": ["Negro mate", "Jet Black (Negro brillante)", "Plata", "Oro", "Oro rosa", "Rojo ((PRODUCT)RED)"],
+  "iPhone 8": ["Gris espacial", "Plata", "Oro", "Rojo ((PRODUCT)RED)"],
+  "iPhone 8 Plus": ["Gris espacial", "Plata", "Oro", "Rojo ((PRODUCT)RED)"],
+  "iPhone X": ["Gris espacial", "Plata"],
+  "iPhone XS": ["Gris espacial", "Plata", "Oro"],
+  "iPhone XS Max": ["Gris espacial", "Plata", "Oro"],
+  "iPhone XR": ["Negro", "Blanco", "Azul", "Amarillo", "Coral", "Rojo ((PRODUCT)RED)"],
+  "iPhone 11": ["Negro", "Verde", "Amarillo", "Morado", "Blanco", "Rojo ((PRODUCT)RED)"],
+  "iPhone 11 Pro": ["Gris espacial", "Plata", "Oro", "Verde noche"],
+  "iPhone 11 Pro Max": ["Gris espacial", "Plata", "Oro", "Verde noche"],
+  "iPhone 12": ["Negro", "Blanco", "Azul", "Verde", "Rojo ((PRODUCT)RED)", "Púrpura"],
+  "iPhone 12 mini": ["Negro", "Blanco", "Azul", "Verde", "Rojo ((PRODUCT)RED)", "Púrpura"],
+  "iPhone 12 Pro": ["Grafito", "Plata", "Oro", "Azul pacífico"],
+  "iPhone 12 Pro Max": ["Grafito", "Plata", "Oro", "Azul pacífico"],
+  "iPhone 13": ["Medianoche", "Blanco estelar", "Azul", "Rosa", "Rojo ((PRODUCT)RED)", "Verde"],
+  "iPhone 13 mini": ["Medianoche", "Blanco estelar", "Azul", "Rosa", "Rojo ((PRODUCT)RED)", "Verde"],
+  "iPhone 13 Pro": ["Grafito", "Plata", "Oro", "Azul alpino", "Verde alpino"],
+  "iPhone 13 Pro Max": ["Grafito", "Plata", "Oro", "Azul alpino", "Verde alpino"],
+  "iPhone SE (1.ª gen)": ["Gris espacial", "Plata", "Oro", "Oro rosa"],
+  "iPhone SE (2.ª gen)": ["Negro", "Blanco", "Rojo ((PRODUCT)RED)"],
+  "iPhone SE (3.ª gen)": ["Medianoche", "Blanco estelar", "Rojo ((PRODUCT)RED)"],
+  "iPhone 14": ["Medianoche", "Blanco estelar", "Azul", "Púrpura", "Rojo ((PRODUCT)RED)", "Amarillo"],
+  "iPhone 14 Plus": ["Medianoche", "Blanco estelar", "Azul", "Púrpura", "Rojo ((PRODUCT)RED)", "Amarillo"],
+  "iPhone 14 Pro": ["Negro espacial", "Plata", "Oro", "Morado oscuro"],
+  "iPhone 14 Pro Max": ["Negro espacial", "Plata", "Oro", "Morado oscuro"],
+  "iPhone 15": ["Negro", "Azul", "Verde", "Amarillo", "Rosa"],
+  "iPhone 15 Plus": ["Negro", "Azul", "Verde", "Amarillo", "Rosa"],
+  "iPhone 15 Pro": ["Titanio negro", "Titanio blanco", "Titanio azul", "Titanio natural"],
+  "iPhone 15 Pro Max": ["Titanio negro", "Titanio blanco", "Titanio azul", "Titanio natural"],
+  "iPhone 16": ["Negro", "Blanco", "Rosa", "Verde azulado", "Azul ultramar"],
+  "iPhone 16 Plus": ["Negro", "Blanco", "Rosa", "Verde azulado", "Azul ultramar"],
+  "iPhone 16 Pro": ["Titanio negro", "Titanio blanco", "Titanio natural", "Titanio desierto"],
+  "iPhone 16 Pro Max": ["Titanio negro", "Titanio blanco", "Titanio natural", "Titanio desierto"],
+  "iPhone 16e": ["Negro", "Blanco"],
+  "iPhone 17": ["Negro", "Blanco", "Verde salvia", "Azul neblina", "Lavanda"],
+  "iPhone 17 Air": ["Negro espacial", "Blanco nube", "Oro claro", "Azul cielo"],
+  "iPhone 17 Pro": ["Plata", "Azul oscuro", "Naranja cósmico"],
+  "iPhone 17 Pro Max": ["Plata", "Azul oscuro", "Naranja cósmico"],
+  "iPhone 17e": ["Negro", "Blanco", "Rosa pálido"],
+  "iPhone 18 Pro": ["Negro", "Plata", "Glaciar", "Burdeos"],
+  "iPhone 18 Pro Max": ["Negro", "Plata", "Glaciar", "Burdeos"],
+  "iPhone Duo": ["Blanco estelar", "Cielo nocturno"]
+};
+
+const COLORES_IPHONE_GENERICO = [
+  "Negro", "Blanco", "Plata", "Gris espacial", "Grafito", "Medianoche",
+  "Azul", "Verde", "Morado", "Rojo ((PRODUCT)RED)", "Rosa", "Amarillo",
+  "Titanio natural", "Titanio negro", "Titanio blanco", "Estándar"
+];
+
+function refrescarColoresIphone() {
+  const modelo = document.getElementById('iphoneModel').value;
+  const sel = document.getElementById('iphoneColor');
+  const colores = COLORES_IPHONE[modelo] || (modelo ? COLORES_IPHONE_GENERICO : []);
+  sel.innerHTML = '<option value="">Seleccione Color</option>';
+  colores.forEach(function (c) {
+    const o = document.createElement('option');
+    o.value = c;
+    o.textContent = c;
+    sel.appendChild(o);
+  });
+  sel.value = '';
+  sel.disabled = colores.length === 0;
+}
+
+document.getElementById('iphoneModel').addEventListener('change', refrescarColoresIphone);
+
+function validarLuhn(imeiStr) {
+  const clean = imeiStr.replace(/\D/g, '');
+  if (clean.length !== 15) return false;
+  let sum = 0;
+  for (let i = 0; i < 15; i++) {
+    let digit = parseInt(clean.charAt(i), 10);
+    if (i % 2 === 1) { digit *= 2; if (digit > 9) digit -= 9; }
+    sum += digit;
+  }
+  return sum % 10 === 0;
+}
+
+/* ===== AUTOCOMPLETADO POR TAC ===== */
+
+let tacTimer = null;
+let tacConsultado = '';
+
+function limpiarEstadoTac() {
+  const st = document.getElementById('tacStatus');
+  if (!st) return;
+  st.className = 'tac-status';
+  st.textContent = '';
+  tacConsultado = '';
+}
+
+function escribirEstadoTac(clase, texto) {
+  const st = document.getElementById('tacStatus');
+  if (!st) return;
+  st.className = 'tac-status ' + clase;
+  st.textContent = texto;
+}
+
+function asegurarOpcion(selId, valor) {
+  if (!valor) return;
+  const sel = document.getElementById(selId);
+  if (!sel) return;
+  const existe = Array.prototype.some.call(sel.options, function (o) { return o.value === valor; });
+  if (existe) return;
+  const opt = document.createElement('option');
+  opt.value = valor;
+  opt.textContent = valor;
+  const grupo = sel.querySelector('optgroup') || sel;
+  grupo.insertBefore(opt, grupo.firstChild);
+}
+
+function aplicarDatosTac(d) {
+  const os = (d.os === 'iPhone') ? 'iPhone' : 'Android';
+  seleccionarTipo(os);
+
+  if (os === 'iPhone') {
+    asegurarOpcion('iphoneModel', d.model);
+    document.getElementById('iphoneModel').value = d.model || '';
+    refrescarColoresIphone();
+    if (d.storage) { asegurarOpcion('iphoneStorage', d.storage); document.getElementById('iphoneStorage').value = d.storage; }
+  } else {
+    document.getElementById('androidBrand').value = d.brand || '';
+    document.getElementById('androidModel').value = d.model || '';
+    if (d.color) { asegurarOpcion('androidColor', d.color); document.getElementById('androidColor').value = d.color; }
+  }
+}
+
+async function autocompletarPorImei(raw) {
+  const imei = String(raw || '').replace(/\D/g, '');
+  if (imei.length < 8) { limpiarEstadoTac(); return; }
+
+  const tac = imei.substring(0, 8);
+  if (tac === tacConsultado) return;
+  tacConsultado = tac;
+
+  escribirEstadoTac('buscando', 'Consultando TAC ' + tac + '…');
+  try {
+    const r = await fetchTimeout(WEB_APP_URL + '?action=buscarImei&imei=' + imei + '&t=' + Date.now(), 15000);
+    const res = await r.json();
+
+    if (!res || !res.found) {
+      escribirEstadoTac('err', 'TAC ' + tac + ' no está en la base. Escribe marca, modelo y color a mano.');
+      return;
+    }
+
+    aplicarDatosTac(res);
+
+    let texto = '✔ ' + (res.brand || '') + ' ' + (res.model || '') + ' · TAC ' + tac + ' · según base TAC';
+    if (res.detalle) texto += ' · ' + res.detalle;
+    if (res.os !== 'iPhone' && res.color) texto += ' · color sugerido: ' + res.color;
+    if (res.os === 'iPhone') texto += ' · elige el color';
+    if (imei.length === 15 && !validarLuhn(imei)) texto += ' · revisa el dígito verificador';
+    escribirEstadoTac('ok', texto);
+  } catch (e) {
+    escribirEstadoTac('err', 'No se pudo consultar la base TAC. Escribe los datos a mano.');
+  }
+}
+
+const imeiInput = document.getElementById('imeiInput');
+imeiInput.addEventListener('input', function (e) {
+  const valor = e.target.value;
+  clearTimeout(tacTimer);
+  tacTimer = setTimeout(function () { autocompletarPorImei(valor); }, valor.replace(/\D/g, '').length === 8 ? 80 : 300);
+});
+// Muchos lectores envían Enter al terminar. No permitimos que eso envíe el formulario.
+imeiInput.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    autocompletarPorImei(e.target.value);
+  }
+});
+
+/* ===== SESIÓN ===== */
+
 let memSesion = false;
-function sesionLeer() { try { return sessionStorage.getItem('isAdmin') === 'true'; } catch (e) { return memSesion; } }
+function sesionLeer() {
+  try {
+    if (sessionStorage.getItem('isAdmin') !== 'true') return false;
+    const ts = Number(sessionStorage.getItem('adminTs') || 0);
+    if (!ts || (Date.now() - ts) > SESION_HORAS * 3600000) { sesionPoner(false); return false; }
+    return true;
+  } catch (e) { return memSesion; }
+}
 function sesionPoner(v) {
   memSesion = v;
-  try { if (v) sessionStorage.setItem('isAdmin', 'true'); else sessionStorage.removeItem('isAdmin'); } catch (e) {}
+  try {
+    if (v) {
+      sessionStorage.setItem('isAdmin', 'true');
+      sessionStorage.setItem('adminTs', String(Date.now()));
+    } else {
+      sessionStorage.removeItem('isAdmin');
+      sessionStorage.removeItem('adminTs');
+      sessionStorage.removeItem('adminToken');
+    }
+  } catch (e) {}
 }
+function tokenLeer() { try { return sessionStorage.getItem('adminToken') || ''; } catch (e) { return ''; } }
+function tokenPoner(t) { try { sessionStorage.setItem('adminToken', t || ''); } catch (e) {} }
 
 const priceForm = document.getElementById('priceForm');
 const inventoryTable = document.getElementById('inventoryTable');
@@ -812,46 +964,67 @@ const adminModal = document.getElementById('adminModal');
 const adminUserInput = document.getElementById('adminUserInput');
 const adminPasswordInput = document.getElementById('adminPasswordInput');
 const passModal = document.getElementById('passModal');
+const scanModal = document.getElementById('scanModal');
+const scanVideo = document.getElementById('scanVideo');
+const scanHelp = document.getElementById('scanHelp');
+const btnScanImei = document.getElementById('btnScanImei');
+const btnCerrarScan = document.getElementById('btnCerrarScan');
 const passActual = document.getElementById('passActual');
 const passNueva = document.getElementById('passNueva');
 const passConfirmar = document.getElementById('passConfirmar');
 const passMsg = document.getElementById('passMsg');
-const btnGuardarPass = document.getElementById('btnGuardarPass');
-const btnDeshacer = document.getElementById('btnDeshacer');
 const btnCancelar = document.getElementById('btnCancelar');
 const btnNueva = document.getElementById('btnNueva');
+const btnExportar = document.getElementById('btnExportar');
+const panelReparto = document.getElementById('panelReparto');
+const totalesBox = document.getElementById('totalesBox');
 
 const SERVICIOS = {
-  iPhone: [
-    'Cambio de pantalla', 'Cambio de batería', 'Cambio de flex', 'Cambio de tapa trasera',
-    'Cambio de cámara', 'Cambio de puerto de carga', 'Desbloqueo de red',
-    'Desbloqueo de cuenta iCloud', 'Microsoldadura', 'Cambio de carcasa', 'Reparación de placa'
-  ],
-  Android: [
-    'Cambio de pantalla', 'Cambio de batería', 'Cambio de flex', 'Cambio de tapa trasera',
-    'Cambio de cámara', 'Cambio de puerto de carga', 'Desbloqueo de red',
-    'Desbloqueo de cuenta Google (FRP)', 'Microsoldadura', 'Cambio de software / flasheo',
-    'Reparación de placa'
-  ],
-  PC: [
-    'Instalación de Windows', 'Instalación de paquetes de Office', 'Mantenimiento y limpieza',
-    'Aplicación de pasta térmica', 'Cambio de pasta térmica', 'Ampliación de RAM',
-    'Cambio de SSD / HDD', 'Eliminación de virus y malware', 'Respaldo de datos',
-    'Reparación de bisagras', 'Cambio de teclado', 'Cambio de pantalla',
-    'Reparación de fuente de poder'
-  ]
+  iPhone: ['Cambio de pantalla','Cambio de batería','Cambio de flex','Cambio de tapa trasera','Cambio de cámara','Cambio de puerto de carga','Desbloqueo de red','Desbloqueo de cuenta iCloud','Microsoldadura','Cambio de carcasa','Reparación de placa'],
+  Android: ['Cambio de pantalla','Cambio de batería','Cambio de flex','Cambio de tapa trasera','Cambio de cámara','Cambio de puerto de carga','Desbloqueo de red','Desbloqueo de cuenta Google (FRP)','Microsoldadura','Cambio de software / flasheo','Reparación de placa'],
+  PC: ['Instalación de Windows','Instalación de Office','Mantenimiento y limpieza','Aplicación de pasta térmica','Ampliación de RAM','Cambio de SSD / HDD','Eliminación de virus','Respaldo de datos','Reparación de bisagras','Cambio de teclado','Cambio de pantalla']
 };
-const TITULOS = {
-  iPhone: 'Servicios para Móviles (iOS)',
-  Android: 'Servicios para Móviles (Android)',
-  PC: 'Servicios para Computadoras'
-};
+const TITULOS = { iPhone: '4 · Servicios iOS', Android: '4 · Servicios Android', PC: '4 · Servicios PC' };
+const ESTADOS = ['Recibido', 'En proceso', 'Listo', 'Entregado'];
+const PAGOS = ['No', 'Sí'];
+const AMBOS = 'YMARK + WINDER';
 
 let seleccionados = new Set();
-let snapshot = null;
 let editandoId = null;
 let isAdmin = sesionLeer();
 let validando = false;
+let desfaseServidor = 0;
+
+function ahoraMs() { return Date.now() + desfaseServidor; }
+function ahoraDate() { return new Date(ahoraMs()); }
+
+async function sincronizarHora() {
+  try {
+    const r = await fetchTimeout(WEB_APP_URL + '?action=now&t=' + Date.now(), 8000);
+    const d = await r.json();
+    if (d && d.now) {
+      const ida = (d.now - Date.now()) / 2;
+      desfaseServidor = (d.now + ida) - Date.now();
+      mostrarFecha();
+      actualizarReloj();
+    }
+  } catch (e) { desfaseServidor = 0; }
+}
+
+function slugEstado(e) { return 'est-' + String(e || '').toLowerCase().replace(/\s+/g, '-'); }
+function parseNota(nota) {
+  const s = String(nota || '');
+  const m = /^\[\[EST:([^\]]+)\]\]\s*/.exec(s);
+  if (m && ESTADOS.indexOf(m[1]) !== -1) return { estado: m[1], nota: s.slice(m[0].length) };
+  return { estado: '', nota: s };
+}
+function estadoDe(it) { return it.estado || parseNota(it.note).estado || 'Recibido'; }
+function notaDe(it) { return parseNota(it.note).nota; }
+function estaPagado(it) {
+  const v = String(it.pagado || '').toLowerCase().trim();
+  return v === 'sí' || v === 'si' || v === '1' || v === 'true' || v === 'pagado' || v === 'x';
+}
+function gananciaDe(it) { return estaPagado(it) ? Number(it.profit || 0) : 0; }
 
 function renderServicios(tipo) {
   const box = document.getElementById('serviciosBox');
@@ -859,38 +1032,23 @@ function renderServicios(tipo) {
   box.innerHTML = '';
   seleccionados.clear();
   renderChips();
-
-  if (!tipo) {
-    seccion.style.display = 'none';
-    document.getElementById('tituloServicios').textContent = 'Servicios';
-    return;
-  }
-
+  if (!tipo) { seccion.style.display = 'none'; return; }
   seccion.style.display = 'block';
   document.getElementById('tituloServicios').textContent = TITULOS[tipo] || 'Servicios';
 
   (SERVICIOS[tipo] || []).forEach(function (nombre) {
     const label = document.createElement('label');
     label.className = 'checkbox-item';
-
     const chk = document.createElement('input');
-    chk.type = 'checkbox';
-    chk.name = 'rep';
-    chk.value = nombre;
-
+    chk.type = 'checkbox'; chk.value = nombre;
     const span = document.createElement('span');
     span.textContent = nombre;
-
-    label.appendChild(chk);
-    label.appendChild(span);
-
+    label.appendChild(chk); label.appendChild(span);
     chk.addEventListener('change', function () {
-      if (chk.checked) seleccionados.add(nombre);
-      else seleccionados.delete(nombre);
+      if (chk.checked) seleccionados.add(nombre); else seleccionados.delete(nombre);
       label.classList.toggle('marcado', chk.checked);
       renderChips();
     });
-
     box.appendChild(label);
   });
 }
@@ -898,100 +1056,132 @@ function renderServicios(tipo) {
 function renderChips() {
   const box = document.getElementById('chipsBox');
   box.innerHTML = '';
-
   seleccionados.forEach(function (nombre) {
     const chip = document.createElement('span');
     chip.className = 'chip';
     chip.appendChild(document.createTextNode(nombre + ' '));
-
     const x = document.createElement('button');
-    x.type = 'button';
-    x.textContent = '×';
-    x.title = 'Quitar';
+    x.type = 'button'; x.textContent = '×';
     x.addEventListener('click', function () {
       seleccionados.delete(nombre);
       Array.prototype.forEach.call(document.querySelectorAll('#serviciosBox input'), function (i) {
-        if (i.value === nombre) {
-          i.checked = false;
-          i.parentElement.classList.remove('marcado');
-        }
+        if (i.value === nombre) { i.checked = false; i.parentElement.classList.remove('marcado'); }
       });
       renderChips();
     });
-
     chip.appendChild(x);
     box.appendChild(chip);
   });
 }
 
-function capturarEstado() {
-  const campos = ['clientName', 'clientPhone', 'technicianName', 'deviceCategory', 'mobileOS',
-                  'iphoneModel', 'iphoneColor', 'iphoneStorage', 'androidModel', 'androidColor',
-                  'pcModel', 'pcColor', 'itemCompra', 'itemCliente', 'itemNote'];
-  const datos = {};
-  campos.forEach(function (id) {
-    const el = document.getElementById(id);
-    if (el) datos[id] = el.value;
-  });
-  return {
-    datos: datos,
-    servicios: Array.from(seleccionados),
-    split: document.getElementById('splitProfit').checked
-  };
+function esAmbos() { return document.getElementById('technicianName').value === AMBOS; }
+
+function actualizarPanelReparto() {
+  const activo = esAmbos();
+  panelReparto.classList.toggle('activo', activo);
+  if (!activo) return;
+  const compra = Number(document.getElementById('itemCompra').value || 0);
+  const cliente = Number(document.getElementById('itemCliente').value || 0);
+  const gananciaNeta = Math.max(0, cliente - compra);
+  const parteCadaTecnico = (gananciaNeta / 2) / 2;
+
+  document.getElementById('prYmark').textContent = money(parteCadaTecnico);
+  document.getElementById('prWinder').textContent = money(parteCadaTecnico);
+
+  const pagado = document.getElementById('itemPagado').value === 'Sí';
+  document.getElementById('prNota').textContent = pagado
+    ? 'El 50% de la ganancia va al local. El 50% restante se divide en partes iguales entre los dos técnicos.'
+    : 'Cifra proyectada.';
 }
 
-function restaurarEstado(snap) {
-  if (!snap) return;
+function partesDe(it) {
+  if (!estaPagado(it)) return {};
+  const g = Number(it.profit || 0);
+  const t = String(it.technician || '');
+  const r = {};
+  if (t.indexOf('YMARK') !== -1 && t.indexOf('WINDER') !== -1) {
+    const fondoTecnicos = g / 2;
+    r.YMARK = fondoTecnicos / 2;
+    r.WINDER = fondoTecnicos / 2;
+  } else if (t === 'YMARK' || t === 'WINDER') {
+    r[t] = g / 2;
+  }
+  return r;
+}
 
-  Object.keys(snap.datos).forEach(function (id) {
-    const el = document.getElementById(id);
-    if (el) el.value = snap.datos[id];
-  });
+function dispositivoTexto() {
+  const cat = document.getElementById('deviceCategory').value;
+  if (cat === 'pc') {
+    const b = document.getElementById('pcBrand').value.trim();
+    const m = document.getElementById('pcModel').value.trim();
+    const c = document.getElementById('pcColor').value;
+    return ('PC ' + (b ? b + ' ' : '') + m + ' / ' + c).trim();
+  }
+  const os = document.getElementById('mobileOS').value;
+  if (os === 'iPhone') {
+    const m = document.getElementById('iphoneModel').value;
+    const c = document.getElementById('iphoneColor').value;
+    const s = document.getElementById('iphoneStorage').value;
+    return (m + (c ? ' / ' + c : '') + (s ? ' / ' + s : '')).trim();
+  }
+  const b = document.getElementById('androidBrand').value.trim();
+  const m = document.getElementById('androidModel').value.trim();
+  const c = document.getElementById('androidColor').value;
+  return ('Android ' + (b ? b + ' ' : '') + m + ' / ' + c).trim();
+}
 
-  document.getElementById('splitProfit').checked = snap.split;
-  const ic = document.getElementById('itemCompra');
-  ic.disabled = !!snap.split;
-  if (snap.split) ic.value = '0';
+function rehidratarDispositivo(nombre) {
+  const n = String(nombre || '');
+  const cat = document.getElementById('deviceCategory');
+  const os = document.getElementById('mobileOS');
+  cat.value = '';
+  os.value = '';
 
+  if (n.indexOf('PC ') === 0) {
+    cat.value = 'pc';
+    const p = n.slice(3).split(' / ');
+    const trozos = String(p[0] || '').split(' ');
+    document.getElementById('pcBrand').value = trozos.length > 1 ? trozos.shift() : '';
+    document.getElementById('pcModel').value = trozos.join(' ');
+    asegurarOpcion('pcColor', p[1] || '');
+    document.getElementById('pcColor').value = p[1] || '';
+  } else if (n.indexOf('Android ') === 0) {
+    cat.value = 'movil'; os.value = 'Android';
+    const p = n.slice(8).split(' / ');
+    const trozos = String(p[0] || '').split(' ');
+    document.getElementById('androidBrand').value = trozos.length > 1 ? trozos.shift() : '';
+    document.getElementById('androidModel').value = trozos.join(' ');
+    asegurarOpcion('androidColor', p[1] || '');
+    document.getElementById('androidColor').value = p[1] || '';
+  } else if (n) {
+    cat.value = 'movil'; os.value = 'iPhone';
+    const p = n.split(' / ');
+    asegurarOpcion('iphoneModel', p[0] || '');
+    document.getElementById('iphoneModel').value = p[0] || '';
+    refrescarColoresIphone();
+    asegurarOpcion('iphoneColor', p[1] || '');
+    document.getElementById('iphoneColor').value = p[1] || '';
+    asegurarOpcion('iphoneStorage', p[2] || '');
+    document.getElementById('iphoneStorage').value = p[2] || '';
+  }
   aplicarVisibilidad();
   renderServicios(tipoActual());
-
-  seleccionados = new Set(snap.servicios);
-  Array.prototype.forEach.call(document.querySelectorAll('#serviciosBox input'), function (i) {
-    i.checked = seleccionados.has(i.value);
-    i.parentElement.classList.toggle('marcado', i.checked);
-  });
-  renderChips();
-}
-
-function limpiarFormulario() {
-  priceForm.reset();
-  document.getElementById('splitProfit').checked = false;
-  document.getElementById('itemCompra').disabled = false;
-  seleccionados.clear();
-  document.getElementById('seccionOS').style.display = 'none';
-  document.getElementById('seccionIphoneSpecs').style.display = 'none';
-  document.getElementById('seccionAndroidSpecs').style.display = 'none';
-  document.getElementById('seccionPCSpecs').style.display = 'none';
-  renderServicios(null);
-  editandoId = null;
-  document.getElementById('btnSubmit').textContent = 'Registrar en la Nube';
-  snapshot = capturarEstado();
-  btnDeshacer.disabled = true;
 }
 
 function abrirFormulario() {
   if (!isAdmin) { adminModal.style.display = 'flex'; adminUserInput.focus(); return; }
-  limpiarFormulario();
+  priceForm.reset();
+  limpiarEstadoTac();
+  document.getElementById('deviceCategory').value = '';
+  document.getElementById('mobileOS').value = '';
+  refrescarColoresIphone();
+  renderServicios(null);
+  aplicarVisibilidad();
   priceForm.style.display = 'flex';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-  setTimeout(function () { document.getElementById('clientName').focus(); }, 120);
+  window.scrollTo({ top: 400, behavior: 'smooth' });
 }
 
-function cerrarFormulario() {
-  priceForm.style.display = 'none';
-  limpiarFormulario();
-}
+function cerrarFormulario() { priceForm.style.display = 'none'; }
 
 function tipoActual() {
   const cat = document.getElementById('deviceCategory').value;
@@ -1004,190 +1194,146 @@ function tipoActual() {
   return null;
 }
 
+function seleccionarTipo(tipo) {
+  const cat = document.getElementById('deviceCategory');
+  const os = document.getElementById('mobileOS');
+  if (tipo === 'PC') { cat.value = 'pc'; os.value = ''; }
+  else { cat.value = 'movil'; os.value = tipo; }
+  aplicarVisibilidad();
+  renderServicios(tipoActual());
+  if (tipo !== 'PC') document.getElementById('imeiInput').focus();
+}
+
 function aplicarVisibilidad() {
   const cat = document.getElementById('deviceCategory').value;
   const os = document.getElementById('mobileOS').value;
+  const tipo = cat === 'pc' ? 'PC' : (cat === 'movil' ? os : '');
 
-  document.getElementById('seccionOS').style.display = cat === 'movil' ? 'block' : 'none';
+  Array.prototype.forEach.call(document.querySelectorAll('.opcion-dispositivo'), function (b) {
+    b.classList.toggle('activa', b.getAttribute('data-tipo') === tipo);
+  });
+
+  document.getElementById('seccionIMEI').style.display = cat === 'movil' ? 'block' : 'none';
   document.getElementById('seccionPCSpecs').style.display = cat === 'pc' ? 'block' : 'none';
   document.getElementById('seccionIphoneSpecs').style.display = (cat === 'movil' && os === 'iPhone') ? 'block' : 'none';
   document.getElementById('seccionAndroidSpecs').style.display = (cat === 'movil' && os === 'Android') ? 'block' : 'none';
 }
 
+Array.prototype.forEach.call(document.querySelectorAll('.opcion-dispositivo'), function (b) {
+  b.addEventListener('click', function () { seleccionarTipo(b.getAttribute('data-tipo')); });
+});
+
 async function verificarPassword() {
   if (validando) return;
-
   const usuario = adminUserInput.value.trim();
   const pass = adminPasswordInput.value.trim();
-
-  if (!usuario || !pass) {
-    if (!usuario) adminUserInput.focus(); else adminPasswordInput.focus();
-    alert('Complete todos los campos.');
-    return;
-  }
+  if (!usuario || !pass) { alert('Complete todos los campos.'); return; }
 
   validando = true;
-  estado('ok', 'Verificando con el servidor...');
-
   try {
-    const r = await fetchTimeout(WEB_APP_URL + '?action=verifyAdmin&user=' + encodeURIComponent(usuario) +
-                                 '&pass=' + encodeURIComponent(pass) + '&t=' + Date.now(), 15000);
+    const r = await fetchTimeout(WEB_APP_URL + '?action=verifyAdmin&t=' + Date.now(), 15000, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'verifyAdmin', user: usuario, pass: pass })
+    });
     const data = await r.json();
-
-    if (data.success) {
+    if (data && data.success) {
       sesionPoner(true);
+      tokenPoner(data.token || '');
       isAdmin = true;
       verificarAdminUI();
       displayItems(searchBox.value);
       cerrarModal();
-      estado('ok', 'Acceso concedido');
     } else {
-      alert('Usuario o contraseña incorrectos.');
-      adminPasswordInput.value = '';
-      adminPasswordInput.focus();
-      estado('ok', 'Sincronizado · ');
+      alert('Credenciales incorrectas.');
     }
   } catch (e) {
-    alert('No se pudo verificar con el servidor. Revisa tu conexión.');
-    estado('err', 'Error de conexión');
-  } finally {
-    validando = false;
-  }
+    alert('Error de conexión.');
+  } finally { validando = false; }
 }
-
-[adminUserInput, adminPasswordInput].forEach(function (campo) {
-  campo.addEventListener('keydown', function (ev) {
-    if (ev.key === 'Enter') {
-      ev.preventDefault();
-      if (campo === adminUserInput && !adminPasswordInput.value.trim()) { adminPasswordInput.focus(); return; }
-      verificarPassword();
-    }
-  });
-});
 
 function abrirCambiarPassword() {
-  passActual.value = '';
-  passNueva.value = '';
-  passConfirmar.value = '';
-  passMsg.className = 'msg-modal';
-  passMsg.textContent = '';
-  btnGuardarPass.disabled = false;
-  btnGuardarPass.textContent = 'Guardar';
+  passActual.value = ''; passNueva.value = ''; passConfirmar.value = '';
+  passMsg.className = 'msg-modal'; passMsg.textContent = '';
   passModal.style.display = 'flex';
-  setTimeout(function () { passActual.focus(); }, 50);
 }
-
-function cerrarPassModal() {
-  passModal.style.display = 'none';
-  passActual.value = '';
-  passNueva.value = '';
-  passConfirmar.value = '';
-}
-
-function mostrarMsgPass(tipo, texto) {
-  passMsg.className = 'msg-modal ' + tipo;
-  passMsg.textContent = texto;
-}
+function cerrarPassModal() { passModal.style.display = 'none'; }
+function mostrarMsgPass(tipo, texto) { passMsg.className = 'msg-modal ' + tipo; passMsg.textContent = texto; }
 
 async function guardarNuevaPassword() {
   const actual = passActual.value.trim();
   const nueva = passNueva.value.trim();
   const conf = passConfirmar.value.trim();
-
-  if (!actual) { mostrarMsgPass('error', 'Escribe tu contraseña actual.'); passActual.focus(); return; }
-  if (nueva.length < 4) { mostrarMsgPass('error', 'La nueva contraseña debe tener al menos 4 caracteres.'); passNueva.focus(); return; }
-  if (nueva !== conf) { mostrarMsgPass('error', 'Las contraseñas nuevas no coinciden.'); passConfirmar.focus(); return; }
-
-  btnGuardarPass.disabled = true;
-  btnGuardarPass.textContent = 'Guardando...';
-  mostrarMsgPass('ok', 'Contactando al servidor...');
+  if (!actual || nueva.length < 4 || nueva !== conf) { mostrarMsgPass('error', 'Verifica los datos.'); return; }
 
   try {
     const r = await fetchTimeout(WEB_APP_URL + '?action=cambiarPass&actual=' + encodeURIComponent(actual) +
-                                 '&nueva=' + encodeURIComponent(nueva) + '&t=' + Date.now(), 15000);
+                                 '&nueva=' + encodeURIComponent(nueva) + '&token=' + encodeURIComponent(tokenLeer()) + '&t=' + Date.now(), 15000);
     const data = await r.json();
-
     if (data.success) {
-      mostrarMsgPass('ok', 'Contraseña actualizada correctamente.');
-      passActual.value = '';
-      passNueva.value = '';
-      passConfirmar.value = '';
-      btnGuardarPass.textContent = 'Listo';
-      setTimeout(cerrarPassModal, 1400);
+      mostrarMsgPass('ok', 'Contraseña actualizada.');
+      setTimeout(cerrarPassModal, 1200);
     } else {
-      mostrarMsgPass('error', data.message || 'No se pudo cambiar la contraseña.');
-      btnGuardarPass.disabled = false;
-      btnGuardarPass.textContent = 'Guardar';
+      mostrarMsgPass('error', data.message || 'Error al cambiar.');
     }
   } catch (e) {
-    mostrarMsgPass('error', 'No se pudo contactar al servidor.');
-    btnGuardarPass.disabled = false;
-    btnGuardarPass.textContent = 'Guardar';
+    mostrarMsgPass('error', 'Error de red.');
   }
 }
 
-[passActual, passNueva, passConfirmar].forEach(function (campo) {
-  campo.addEventListener('keydown', function (ev) {
-    if (ev.key === 'Enter') { ev.preventDefault(); guardarNuevaPassword(); }
-  });
-});
-
-function cerrarModal() {
-  adminModal.style.display = 'none';
-  adminUserInput.value = '';
-  adminPasswordInput.value = '';
-}
-
+function cerrarModal() { adminModal.style.display = 'none'; }
 function toggleAdmin() {
   if (isAdmin) {
-    sesionPoner(false);
-    isAdmin = false;
-    cerrarFormulario();
-    verificarAdminUI();
-    displayItems(searchBox.value);
+    sesionPoner(false); isAdmin = false; cerrarFormulario();
+    verificarAdminUI(); displayItems(searchBox.value);
   } else {
     adminModal.style.display = 'flex';
-    adminUserInput.value = '';
-    adminPasswordInput.value = '';
-    adminUserInput.focus();
+    adminUserInput.value = ''; adminPasswordInput.value = '';
   }
 }
 
 function verificarAdminUI() {
-  document.querySelectorAll('.admin-panel').forEach(function (el) {
-    el.style.display = isAdmin ? 'table-cell' : 'none';
-  });
-
+  document.body.classList.toggle('admin', isAdmin);
   const b = document.getElementById('btnAdminLogin');
   if (b) b.textContent = isAdmin ? '🔓 Cerrar Sesión Admin' : '🔐 Modo Administrador';
-
   const p = document.getElementById('btnCambiarPass');
   if (p) p.style.display = isAdmin ? 'inline' : 'none';
-
-  btnNueva.style.display = isAdmin ? 'inline-flex' : 'none';
 }
 
 function mostrarFecha() {
   try {
     const o = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const t = new Date().toLocaleDateString('es-DO', o);
-    fechaActual.textContent = t.charAt(0).toUpperCase() + t.slice(1);
-  } catch (e) {
-    fechaActual.textContent = 'Fecha actual';
-  }
+    fechaActual.textContent = ahoraDate().toLocaleDateString('es-DO', o);
+  } catch (e) { fechaActual.textContent = 'Fecha actual'; }
 }
 
 function actualizarReloj() {
   if (!relojVivo) return;
-  try { relojVivo.textContent = new Date().toLocaleTimeString('es-DO'); }
-  catch (e) { relojVivo.textContent = new Date().toLocaleTimeString(); }
+  try { relojVivo.textContent = ahoraDate().toLocaleTimeString('es-DO'); } catch (e) {}
 }
 
-const money = function (n) {
-  return '$' + Number(n || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
-const esc = function (s) {
-  return String(s === undefined || s === null ? '' : s).replace(/[&<>"']/g, function (c) {
+function parseFecha(s) {
+  const str = String(s || '');
+  let m = /^(\d{4})-(\d{2})-(\d{2})/.exec(str);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+  return null;
+}
+function claveFecha(s) {
+  const d = parseFecha(s);
+  if (!d) return '0000-sin-fecha';
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function fmtFechaLarga(k) {
+  const d = parseFecha(k);
+  if (!d) return 'Sin fecha';
+  try {
+    return d.toLocaleDateString('es-DO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  } catch (e) { return k; }
+}
+
+const money = function(n) { return '$' + Number(n || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+const esc = function(s) {
+  return String(s === undefined || s === null ? '' : s).replace(/[&<>"']/g, function(c) {
     return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
   });
 };
@@ -1195,17 +1341,14 @@ const esc = function (s) {
 function estado(cls, txt) {
   if (punto) punto.className = 'punto ' + cls;
   if (loadingStatus) loadingStatus.textContent = txt;
-
-  const conReloj = /^Sincronizado/i.test(String(txt));
-  if (relojVivo) relojVivo.style.display = conReloj ? 'inline' : 'none';
-  if (conReloj) actualizarReloj();
 }
 
-async function fetchTimeout(url, ms) {
-  if (!window.AbortController) return fetch(url, { cache: 'no-store' });
+async function fetchTimeout(url, ms, opts) {
+  const opciones = Object.assign({ cache: 'no-store' }, opts || {});
+  if (!window.AbortController) return fetch(url, opciones);
   const ctrl = new AbortController();
-  const t = setTimeout(function () { ctrl.abort(); }, ms);
-  try { return await fetch(url, { cache: 'no-store', signal: ctrl.signal }); }
+  const t = setTimeout(function() { ctrl.abort(); }, ms);
+  try { return await fetch(url, Object.assign({}, opciones, { signal: ctrl.signal })); }
   finally { clearTimeout(t); }
 }
 
@@ -1217,344 +1360,370 @@ try {
 
 const pendientesBorrar = new Set();
 let firmaTabla = '';
-let fallosSeguidos = 0;
 let cargando = false;
 
-const claveRegistro = function (it) {
+const claveRegistro = function(it) {
   if (it.id !== undefined && it.id !== null) return String(it.id);
-  if (it.row !== undefined && it.row !== null) return String(it.row);
-  if (it.ID !== undefined && it.ID !== null) return String(it.ID);
-  return String(it.client || '') + '|' + String(it.date || '') + '|' + String(it.time || '');
+  return String(it.client || '') + '|' + String(it.date || '');
 };
 
 async function loadInventory(silent) {
   if (cargando || document.hidden) return;
-  if (adminModal.style.display === 'flex' || passModal.style.display === 'flex') return;
   cargando = true;
-
   try {
     const r = await fetchTimeout(WEB_APP_URL + '?t=' + Date.now(), 9000);
     const data = await r.json();
-    if (!Array.isArray(data)) throw new Error('respuesta invalida');
-
-    inventory = data.filter(function (it) { return !pendientesBorrar.has(claveRegistro(it)); });
+    if (!Array.isArray(data)) throw new Error('invalido');
+    inventory = data.filter(function(it) { return !pendientesBorrar.has(claveRegistro(it)); });
     store.set('lifox_inventory_cache', JSON.stringify(inventory));
-    fallosSeguidos = 0;
     displayItems(searchBox.value);
     estado('ok', 'Sincronizado · ');
   } catch (e) {
-    fallosSeguidos++;
-    if (!silent || fallosSeguidos >= 2) {
-      displayItems(searchBox.value);
-      estado('err', 'Sin conexión (copia local)');
-    }
-  } finally {
-    cargando = false;
-  }
+    if (!silent) { displayItems(searchBox.value); estado('err', 'Sin conexión (local)'); }
+  } finally { cargando = false; }
 }
 
-function displayItems(filter) {
-  if (filter === undefined) filter = '';
-  const f = String(filter).trim().toLowerCase();
-
-  const lista = inventory.filter(function (it) {
+function listaFiltrada() {
+  const f = String(searchBox.value || '').trim().toLowerCase();
+  const lista = inventory.filter(function(it) {
     if (!f) return true;
-    return [it.client, it.phone, it.technician, it.name, it.type, it.note].some(function (v) {
+    return [it.client, it.phone, it.technician, it.name, it.imei, it.type, it.note].some(function(v) {
       return String(v || '').toLowerCase().indexOf(f) !== -1;
     });
   });
+  lista.sort(function(a, b) {
+    const fa = claveFecha(a.date), fb = claveFecha(b.date);
+    if (fa !== fb) return fa < fb ? 1 : -1;
+    const ta = String(a.time || ''), tb = String(b.time || '');
+    if (ta !== tb) return ta < tb ? 1 : -1;
+    return 0;
+  });
+  return lista;
+}
 
-  lista.sort(function (a, b) {
-    return String(a.client || '').localeCompare(String(b.client || ''), 'es');
+function pintarTotales(lista) {
+  let pendientes = 0, porCobrar = 0, cobrado = 0, ganancia = 0, ymark = 0, winder = 0;
+  lista.forEach(function(it) {
+    if (estaPagado(it)) {
+      cobrado += Number(it.pCliente || 0);
+      ganancia += Number(it.profit || 0);
+      const p = partesDe(it);
+      ymark += Number(p.YMARK || 0);
+      winder += Number(p.WINDER || 0);
+    } else {
+      pendientes++;
+      porCobrar += Number(it.pCliente || 0);
+    }
   });
 
+  document.getElementById('totCount').textContent = lista.length;
+  document.getElementById('totPendientes').textContent = pendientes;
+  document.getElementById('totPorCobrar').textContent = money(porCobrar);
+  document.getElementById('totCobrado').textContent = money(cobrado);
+  document.getElementById('totGanancia').textContent = money(ganancia);
+  document.getElementById('totYmark').textContent = money(ymark);
+  document.getElementById('totWinder').textContent = money(winder);
+  totalesBox.classList.toggle('activo', lista.length > 0);
+}
+
+function displayItems(filter) {
+  const lista = listaFiltrada();
+  const f = String(filter || '').trim().toLowerCase();
   const firma = JSON.stringify(lista) + '|' + isAdmin + '|' + f;
   if (firma === firmaTabla) return;
   firmaTabla = firma;
 
-  const totalCols = isAdmin ? 11 : 10;
+  const totalCols = isAdmin ? 15 : 13;
   inventoryTable.innerHTML = '';
+  pintarTotales(lista);
 
   if (!lista.length) {
-    inventoryTable.innerHTML = '<tr><td colspan="' + totalCols + '" class="vacio">' +
-      (f ? 'Sin coincidencias.' : 'Aún no hay registros guardados.') + '</td></tr>';
+    inventoryTable.innerHTML = '<tr><td colspan="' + totalCols + '" class="vacio">Sin registros.</td></tr>';
     return;
   }
 
-  lista.forEach(function (it) {
-    const tr = document.createElement('tr');
-
-    let html =
-      '<td><strong>' + esc(it.client) + '</strong></td>' +
-      '<td>' + esc(it.phone || '-') + '</td>' +
-      '<td><span style="background:#27272a;padding:4px 8px;border-radius:4px;font-weight:600;color:#38bdf8;">' + esc(it.technician) + '</span></td>' +
-      '<td>' + esc(it.name) + '</td>' +
-      '<td>' + esc(it.type) + '</td>' +
-      '<td class="num">' + money(it.pCompra) + '</td>' +
-      '<td class="num">' + money(it.pCliente) + '</td>' +
-      '<td class="num ganancia-txt">' + money(it.profit) + '</td>' +
-      '<td>' + esc(it.note || '-') + '</td>' +
-      '<td>' + esc(it.date) + ' <br><small style="color:#94a3b8">' + esc(it.time) + '</small></td>';
-
-    if (isAdmin) {
-      html += '<td class="celda-acc"><div class="acc-wrap">' +
-        '<button type="button" class="mini" data-accion="editar" style="background:#3b82f6;color:#fff;">Editar</button>' +
-        '<button type="button" class="mini rojo" data-accion="borrar">Borrar</button>' +
-        '</div></td>';
-    }
-
-    tr.innerHTML = html;
-
-    if (isAdmin) {
-      tr.querySelector('[data-accion="editar"]').addEventListener('click', function () { editarRegistro(it); });
-      tr.querySelector('[data-accion="borrar"]').addEventListener('click', function () { borrarRegistro(it); });
-    }
-
-    inventoryTable.appendChild(tr);
+  const grupos = new Map();
+  lista.forEach(function(it) {
+    const k = claveFecha(it.date);
+    if (!grupos.has(k)) grupos.set(k, []);
+    grupos.get(k).push(it);
   });
-}
 
-function dispositivoTexto() {
-  const cat = document.getElementById('deviceCategory').value;
+  Array.from(grupos.keys()).sort().reverse().forEach(function(clave) {
+    const items = grupos.get(clave);
+    const totalDia = items.reduce(function(a, x) { return a + gananciaDe(x); }, 0);
 
-  if (cat === 'pc') {
-    const m = document.getElementById('pcModel').value.trim();
-    const c = document.getElementById('pcColor').value;
-    return ('PC ' + m + (c ? ' / ' + c : '')).trim();
-  }
+    const trF = document.createElement('tr');
+    trF.className = 'fila-fecha';
+    trF.innerHTML = '<td colspan="' + totalCols + '">📅 ' + esc(fmtFechaLarga(clave)) +
+      '<span class="ff-meta">' + items.length + ' registro(s)' + (isAdmin ? ' · Cobrado ' + money(totalDia) : '') + '</span></td>';
+    inventoryTable.appendChild(trF);
 
-  const os = document.getElementById('mobileOS').value;
+    items.forEach(function(it) {
+      const tr = document.createElement('tr');
+      const est = estadoDe(it);
+      const nota = notaDe(it);
+      const pagado = estaPagado(it);
+      const partes = partesDe(it);
+      const claves = Object.keys(partes);
+      const esDoble = claves.length === 2;
 
-  if (os === 'iPhone') {
-    const m = document.getElementById('iphoneModel').value;
-    const c = document.getElementById('iphoneColor').value;
-    const s = document.getElementById('iphoneStorage').value;
-    const mod = /^iPhone/i.test(m) ? m : ('iPhone ' + m);
-    return (mod + (c ? ' / ' + c : '') + (s ? ' / ' + s : '')).trim();
-  }
+      let repartoHtml = '<span class="rep-none">—</span>';
+      if (esDoble) {
+        repartoHtml = '<div class="rep-chips"><span class="rep-chip">YMARK ' + money(partes.YMARK) + '</span><span class="rep-chip">WINDER ' + money(partes.WINDER) + '</span></div>';
+      } else if (claves.length === 1) {
+        repartoHtml = '<span class="rep-chip">' + esc(claves[0]) + ' ' + money(partes[claves[0]]) + '</span>';
+      }
 
-  const mAndroid = document.getElementById('androidModel').value.trim();
-  const cAndroid = document.getElementById('androidColor').value;
-  return ('Android ' + mAndroid + (cAndroid ? ' / ' + cAndroid : '')).trim();
+      const estadoHtml = isAdmin
+        ? '<select class="sel-estado ' + slugEstado(est) + '" data-estado>' + ESTADOS.map(function(e) { return '<option value="' + esc(e) + '"' + (e === est ? ' selected' : '') + '>' + esc(e) + '</option>'; }).join('') + '</select>'
+        : '<span class="badge ' + slugEstado(est) + '">' + esc(est) + '</span>';
+
+      const pagoHtml = isAdmin
+        ? '<select class="sel-pago ' + (pagado ? 'pag-si' : 'pag-no') + '" data-pago>' + PAGOS.map(function(p) { return '<option value="' + p + '"' + (p === (pagado ? 'Sí' : 'No') ? ' selected' : '') + '>' + (p === 'Sí' ? 'Pagado' : 'Sin pagar') + '</option>'; }).join('') + '</select>'
+        : '<span class="badge ' + (pagado ? 'pag-si' : 'pag-no') + '">' + (pagado ? 'Pagado' : 'Sin pagar') + '</span>';
+
+      tr.innerHTML =
+        '<td data-label="Cliente"><strong>' + esc(it.client) + '</strong></td>' +
+        '<td data-label="Teléfono">' + esc(it.phone || '-') + '</td>' +
+        '<td data-label="Técnico">' + esc(it.technician) + '</td>' +
+        '<td data-label="Dispositivo">' + esc(it.name) + '</td>' +
+        '<td data-label="IMEI">' + (it.imei ? '<code>' + esc(it.imei) + '</code>' : '-') + '</td>' +
+        '<td data-label="Servicios">' + esc(it.type) + '</td>' +
+        '<td data-label="Estado">' + estadoHtml + '</td>' +
+        '<td data-label="Pago">' + pagoHtml + '</td>' +
+        '<td class="num" data-label="Compra">' + money(it.pCompra) + '</td>' +
+        '<td class="num" data-label="Cliente">' + money(it.pCliente) + '</td>' +
+        '<td class="num solo-admin" data-label="Ganancia">' + (pagado ? '<span class="ganancia-txt">' + money(it.profit) + '</span>' : '<span class="pend-txt">—</span>') + '</td>' +
+        '<td class="solo-admin" data-label="Reparto">' + repartoHtml + '</td>' +
+        '<td data-label="Nota">' + esc(nota || '-') + '</td>' +
+        '<td data-label="Fecha">' + esc(it.date) + (it.time ? ' <span class="hora-txt">' + esc(it.time) + '</span>' : '') + '</td>' +
+        (isAdmin ? '<td class="celda-acc solo-admin"><div class="acc-wrap"><button type="button" class="mini azul" data-accion="editar">Editar</button><button type="button" class="mini gris" data-accion="recibo">Recibo</button><button type="button" class="mini rojo" data-accion="borrar">Borrar</button></div></td>' : '');
+
+      if (isAdmin) {
+        tr.querySelector('[data-accion="editar"]').addEventListener('click', function() { editarRegistro(it); });
+        tr.querySelector('[data-accion="recibo"]').addEventListener('click', function() { imprimirRecibo(it); });
+        tr.querySelector('[data-accion="borrar"]').addEventListener('click', function() { borrarRegistro(it); });
+        tr.querySelector('[data-estado]').addEventListener('change', function(ev) { cambiarEstado(it, ev.target); });
+        tr.querySelector('[data-pago]').addEventListener('change', function(ev) { cambiarPago(it, ev.target); });
+      }
+      inventoryTable.appendChild(tr);
+    });
+  });
 }
 
 function editarRegistro(it) {
   if (!isAdmin) return;
   abrirFormulario();
-
   document.getElementById('clientName').value = it.client || '';
   document.getElementById('clientPhone').value = it.phone || '';
   document.getElementById('technicianName').value = it.technician || '';
-
-  const nombre = String(it.name || '');
-  const partes = nombre.split('/').map(function (p) { return p.trim(); });
-
-  if (/^PC/i.test(nombre)) {
-    document.getElementById('deviceCategory').value = 'pc';
-    document.getElementById('pcModel').value = partes[0].replace(/^PC\s*/i, '');
-    document.getElementById('pcColor').value = partes[1] || '';
-  } else if (/^iPhone/i.test(nombre)) {
-    document.getElementById('deviceCategory').value = 'movil';
-    document.getElementById('mobileOS').value = 'iPhone';
-
-    const sel = document.getElementById('iphoneModel');
-    const modeloVal = partes[0];
-    const existe = Array.prototype.some.call(sel.options, function (o) { return o.value === modeloVal; });
-    sel.value = existe ? modeloVal : modeloVal.replace(/^iPhone\s*/i, '');
-
-    document.getElementById('iphoneColor').value = partes[1] || '';
-    document.getElementById('iphoneStorage').value = partes[2] || '';
-  } else if (/^Android/i.test(nombre)) {
-    document.getElementById('deviceCategory').value = 'movil';
-    document.getElementById('mobileOS').value = 'Android';
-    document.getElementById('androidModel').value = partes[0].replace(/^Android\s*/i, '');
-    document.getElementById('androidColor').value = partes[1] || '';
-  }
-
-  aplicarVisibilidad();
-  renderServicios(tipoActual());
-
-  const servicios = String(it.type || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
-  seleccionados = new Set(servicios);
-  Array.prototype.forEach.call(document.querySelectorAll('#serviciosBox input'), function (i) {
-    i.checked = seleccionados.has(i.value);
-    i.parentElement.classList.toggle('marcado', i.checked);
-  });
-  renderChips();
-
+  document.getElementById('imeiInput').value = it.imei || '';
+  tacConsultado = '';
+  if (it.imei) autocompletarPorImei(it.imei);
   document.getElementById('itemCompra').value = it.pCompra || 0;
   document.getElementById('itemCliente').value = it.pCliente || 0;
-  document.getElementById('itemNote').value = it.note || '';
-
+  document.getElementById('itemNote').value = notaDe(it);
+  document.getElementById('itemEstado').value = estadoDe(it);
+  document.getElementById('itemPagado').value = estaPagado(it) ? 'Sí' : 'No';
+  rehidratarDispositivo(it.name);
   editandoId = claveRegistro(it);
   document.getElementById('btnSubmit').textContent = 'Guardar cambios';
-  snapshot = capturarEstado();
-  btnDeshacer.disabled = true;
+}
+
+function payloadDe(it, extra) {
+  return Object.assign({
+    client: it.client, phone: it.phone, technician: it.technician, name: it.name,
+    imei: it.imei || '', type: it.type, estado: estadoDe(it), pagado: estaPagado(it) ? 'Sí' : 'No',
+    pCompra: Number(it.pCompra || 0), pCliente: Number(it.pCliente || 0), note: notaDe(it)
+  }, extra || {});
+}
+
+async function enviarCambio(it, payload) {
+  await fetchTimeout(WEB_APP_URL + '?action=update&id=' + encodeURIComponent(claveRegistro(it)) + '&token=' + encodeURIComponent(tokenLeer()) + '&t=' + Date.now(), 15000, {
+    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload)
+  });
+}
+
+async function cambiarEstado(it, sel) {
+  const nuevo = sel.value;
+  const previo = estadoDe(it);
+  it.estado = nuevo;
+  firmaTabla = '';
+  try { await enviarCambio(it, payloadDe(it, { estado: nuevo })); } catch (e) { it.estado = previo; }
+}
+
+async function cambiarPago(it, sel) {
+  const pagado = sel.value === 'Sí';
+  const previoPagado = estaPagado(it);
+  it.pagado = pagado ? 'Sí' : 'No';
+  it.profit = pagado ? (Number(it.pCliente || 0) - Number(it.pCompra || 0)) : '';
+  firmaTabla = '';
+  displayItems(searchBox.value);
+  try { await enviarCambio(it, payloadDe(it, { pagado: pagado ? 'Sí' : 'No' })); } catch (e) { it.pagado = previoPagado ? 'Sí' : 'No'; }
 }
 
 async function borrarRegistro(it) {
-  const etiqueta = it.client || 'sin nombre';
-  if (!confirm('¿Borrar el registro de "' + etiqueta + '"?\n\nEsta acción no se puede deshacer.')) return;
-
+  if (!confirm('¿Borrar este registro?')) return;
   const id = claveRegistro(it);
-  pendientesBorrar.add(id);
-  inventory = inventory.filter(function (x) { return x !== it; });
-  displayItems(searchBox.value);
 
-  if (editandoId !== null && String(editandoId) === String(id)) cerrarFormulario();
+  pendientesBorrar.add(id);
+  inventory = inventory.filter(function(x) { return x !== it; });
+  firmaTabla = '';
+  displayItems(searchBox.value);
+  if (editandoId === id) cerrarFormulario();
 
   try {
-    const r = await fetchTimeout(WEB_APP_URL + '?action=delete&id=' + encodeURIComponent(id) + '&t=' + Date.now(), 15000);
-    const data = await r.json();
-    if (!data || !data.success) throw new Error('sin confirmacion');
-
+    await fetchTimeout(WEB_APP_URL + '?action=delete&id=' + encodeURIComponent(id) + '&token=' + encodeURIComponent(tokenLeer()) + '&t=' + Date.now(), 15000);
     pendientesBorrar.delete(id);
     store.set('lifox_inventory_cache', JSON.stringify(inventory));
-    estado('ok', 'Registro borrado');
-    loadInventory(true);
   } catch (e) {
-    estado('err', 'Borrado en este equipo (el servidor no confirmó)');
+    console.warn('Sincronización de borrado pendiente.');
   }
 }
 
-priceForm.addEventListener('submit', async function (ev) {
-  ev.preventDefault();
+function imprimirRecibo(it) {
+  document.getElementById('recibo').innerHTML = '<div class="rec-head"><div><div class="rec-marca">LIFOX TECH</div></div></div>' +
+    '<div class="rec-fila"><span>Cliente</span><b>' + esc(it.client) + '</b></div>' +
+    '<div class="rec-total"><span>TOTAL</span><span>' + money(it.pCliente) + '</span></div>';
+  setTimeout(function() { window.print(); }, 120);
+}
 
+function exportarExcel() {
+  if (!isAdmin) return;
+  const lista = listaFiltrada();
+  const cab = ['ID','Cliente','Teléfono','Técnico','Dispositivo','IMEI','Servicios','Estado','Pagado','Compra','Precio Cliente','Ganancia','Nota','Fecha','Hora'];
+  const filas = lista.map(function(it) {
+    return [claveRegistro(it), it.client, it.phone, it.technician, it.name, it.imei || '', it.type, estadoDe(it), estaPagado(it) ? 'Sí' : 'No', it.pCompra, it.pCliente, it.profit, it.note, it.date, it.time];
+  });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([cab].concat(filas)), 'Registros');
+  XLSX.writeFile(wb, 'lifox_registros.xlsx');
+}
+
+priceForm.addEventListener('submit', async function(ev) {
+  ev.preventDefault();
+  const categoria = document.getElementById('deviceCategory').value;
   const cliente = document.getElementById('clientName').value.trim();
   const telefono = document.getElementById('clientPhone').value.trim();
   const tecnico = document.getElementById('technicianName').value;
-  const categoria = document.getElementById('deviceCategory').value;
 
-  if (!cliente || !telefono || !tecnico || !categoria) {
-    alert('Complete cliente, teléfono, técnico y tipo de dispositivo.');
-    return;
-  }
-  if (categoria === 'movil' && !document.getElementById('mobileOS').value) {
-    alert('Seleccione la plataforma del móvil (iPhone o Android).');
-    return;
-  }
-
-  const servicios = Array.from(seleccionados);
-  if (!servicios.length) { alert('Marque al menos un servicio.'); return; }
+  if (!categoria) { alert('Primero elige el tipo de dispositivo.'); return; }
+  if (!cliente || !telefono || !tecnico) { alert('Faltan datos obligatorios.'); return; }
 
   const payload = {
-    client: cliente,
-    phone: telefono,
-    technician: tecnico,
-    name: dispositivoTexto(),
-    type: servicios.join(', '),
+    client: cliente, phone: telefono, technician: tecnico, name: dispositivoTexto(),
+    imei: document.getElementById('imeiInput').value.replace(/\s/g, ''),
+    type: Array.from(seleccionados).join(', '),
+    estado: document.getElementById('itemEstado').value,
+    pagado: document.getElementById('itemPagado').value,
     pCompra: Number(document.getElementById('itemCompra').value || 0),
     pCliente: Number(document.getElementById('itemCliente').value || 0),
     note: document.getElementById('itemNote').value.trim()
   };
 
-  if (isNaN(payload.pCliente) || payload.pCliente <= 0) { alert('Indique el precio al cliente.'); return; }
-
-  const idEdit = editandoId;
-  estado('ok', idEdit !== null ? 'Guardando cambios...' : 'Guardando...');
-
   try {
-    const url = idEdit !== null
-      ? WEB_APP_URL + '?action=update&id=' + encodeURIComponent(idEdit)
-      : WEB_APP_URL;
+    const url = editandoId !== null
+      ? WEB_APP_URL + '?action=update&id=' + encodeURIComponent(editandoId) + '&token=' + encodeURIComponent(tokenLeer())
+      : WEB_APP_URL + '?action=create&token=' + encodeURIComponent(tokenLeer());
 
-    const r = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await r.json().catch(function () { return { success: false }; });
-    if (!data || !data.success) throw new Error('servidor rechazo');
-
-    limpiarFormulario();
-    priceForm.style.display = 'flex';
-    document.getElementById('clientName').focus();
-    
-    await loadInventory(false);
-    estado('ok', 'Registro guardado (listo para otro)');
+    await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+    cerrarFormulario();
+    limpiarEstadoTac();
+    loadInventory(false);
   } catch (e) {
-    alert('No se pudo guardar el registro. Revisa la conexión e inténtalo otra vez.');
-    estado('err', 'Error al guardar');
+    alert('Error al guardar.');
   }
 });
 
-btnNueva.addEventListener('click', abrirFormulario);
+let scanStream = null;
+let scanFrame = null;
+let detectorCodigo = null;
 
-document.getElementById('deviceCategory').addEventListener('change', function () {
-  aplicarVisibilidad();
-  renderServicios(tipoActual());
-  snapshot = capturarEstado();
-  btnDeshacer.disabled = true;
-});
-
-document.getElementById('mobileOS').addEventListener('change', function () {
-  aplicarVisibilidad();
-  renderServicios(tipoActual());
-  snapshot = capturarEstado();
-  btnDeshacer.disabled = true;
-});
-
-document.getElementById('splitProfit').addEventListener('change', function (e) {
-  const ic = document.getElementById('itemCompra');
-  if (e.target.checked) { ic.value = '0'; ic.disabled = true; }
-  else { ic.value = ''; ic.disabled = false; }
-});
-
-btnDeshacer.addEventListener('click', function () {
-  restaurarEstado(snapshot);
-  btnDeshacer.disabled = true;
-  estado('ok', 'Cambios deshechos');
-});
-
-btnCancelar.addEventListener('click', function () {
-  if (!confirm('¿Descartar lo capturado y cerrar el formulario?')) return;
-  cerrarFormulario();
-  estado('ok', 'Formulario cerrado');
-});
-
-searchBox.addEventListener('input', function (e) { displayItems(e.target.value); });
-
-document.getElementById('btnReload').addEventListener('click', function () { loadInventory(false); });
-
-[adminModal, passModal].forEach(function (overlay) {
-  overlay.addEventListener('click', function (ev) {
-    if (ev.target === overlay) {
-      if (overlay === adminModal) cerrarModal(); else cerrarPassModal();
-    }
-  });
-});
-
-document.addEventListener('keydown', function (ev) {
-  if (ev.key === 'Escape') {
-    if (adminModal.style.display === 'flex') cerrarModal();
-    else if (passModal.style.display === 'flex') cerrarPassModal();
-    else if (priceForm.style.display === 'flex') cerrarFormulario();
+function cerrarEscaner() {
+  if (scanFrame) { cancelAnimationFrame(scanFrame); scanFrame = null; }
+  if (scanStream) {
+    scanStream.getTracks().forEach(function (track) { track.stop(); });
+    scanStream = null;
   }
-});
-
-document.addEventListener('visibilitychange', function () {
-  if (!document.hidden) loadInventory(true);
-});
-
-function iniciar() {
-  window.__ok = true;
-
-  try { verificarAdminUI(); } catch (e) {}
-  try { mostrarFecha(); } catch (e) {}
-
-  try {
-    actualizarReloj();
-    setInterval(actualizarReloj, 1000);
-  } catch (e) {}
-
-  try { setInterval(mostrarFecha, 30000); } catch (e) {}
-
-  try { displayItems(searchBox.value); } catch (e) {}
-  try { loadInventory(false); } catch (e) {}
-  try { setInterval(function () { loadInventory(true); }, 7000); } catch (e) {}
+  scanVideo.pause();
+  scanVideo.srcObject = null;
+  scanModal.style.display = 'none';
 }
 
+async function escanearImeiConCamara() {
+  if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert('La cámara necesita una página segura HTTPS y un navegador compatible.');
+    return;
+  }
+  if (!('BarcodeDetector' in window)) {
+    alert('Este navegador no permite leer códigos desde la cámara. Usa Google Lens o pega el IMEI manualmente.');
+    return;
+  }
+
+  try {
+    const formatos = await BarcodeDetector.getSupportedFormats();
+    const permitidos = ['code_128', 'code_39', 'itf', 'ean_13', 'qr_code', 'data_matrix', 'pdf417'].filter(function (f) {
+      return formatos.indexOf(f) !== -1;
+    });
+    if (!permitidos.length) throw new Error('sin-formatos');
+
+    detectorCodigo = new BarcodeDetector({ formats: permitidos });
+    scanModal.style.display = 'flex';
+    scanHelp.textContent = 'Apunta al código de barras del IMEI. La cámara no guarda imágenes.';
+    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+    scanVideo.srcObject = scanStream;
+    await scanVideo.play();
+
+    const revisar = async function () {
+      if (!scanStream || scanModal.style.display === 'none') return;
+      try {
+        const codigos = await detectorCodigo.detect(scanVideo);
+        const encontrado = codigos.find(function (c) { return /\\d{8,20}/.test(String(c.rawValue || '')); });
+        if (encontrado) {
+          const imei = String(encontrado.rawValue).replace(/\\D/g, '').slice(0, 15);
+          if (imei.length >= 8) {
+            imeiInput.value = imei;
+            cerrarEscaner();
+            autocompletarPorImei(imei);
+            imeiInput.focus();
+            return;
+          }
+        }
+      } catch (e) {}
+      scanFrame = requestAnimationFrame(revisar);
+    };
+    scanFrame = requestAnimationFrame(revisar);
+  } catch (e) {
+    cerrarEscaner();
+    alert('No se pudo iniciar la cámara. Revisa el permiso del navegador.');
+  }
+}
+
+btnScanImei.addEventListener('click', escanearImeiConCamara);
+btnCerrarScan.addEventListener('click', cerrarEscaner);
+scanModal.addEventListener('click', function (e) { if (e.target === scanModal) cerrarEscaner(); });
+window.addEventListener('pagehide', cerrarEscaner);
+
+document.getElementById('technicianName').addEventListener('change', actualizarPanelReparto);
+document.getElementById('itemPagado').addEventListener('change', actualizarPanelReparto);
+['itemCompra', 'itemCliente'].forEach(function(id) { document.getElementById(id).addEventListener('input', actualizarPanelReparto); });
+
+searchBox.addEventListener('input', function(e) { displayItems(e.target.value); });
+document.getElementById('btnReload').addEventListener('click', function() { loadInventory(false); });
+btnExportar.addEventListener('click', exportarExcel);
+btnNueva.addEventListener('click', abrirFormulario);
+btnCancelar.addEventListener('click', function() { cerrarFormulario(); limpiarEstadoTac(); });
+
+function iniciar() {
+  verificarAdminUI();
+  mostrarFecha();
+  sincronizarHora();
+  refrescarColoresIphone();
+  aplicarVisibilidad();
+  displayItems(searchBox.value);
+  loadInventory(false);
+}
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar);
 else iniciar();
 </script>
