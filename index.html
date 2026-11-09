@@ -2,6 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#121214">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Control de Precios y Reparaciones - Lifox Tech</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -391,7 +393,7 @@ select.sel-estado, select.sel-pago {
 
     <!-- 1. TIPO DE DISPOSITIVO -->
     <div class="menu-dispositivo" id="menuDispositivo">
-      <span class="menu-titulo">1 · ¿Qué equipo entra?</span>
+      <span class="menu-titulo">1 · Tipo de equipo (opcional: se detecta con el IMEI)</span>
       <button type="button" class="opcion-dispositivo" data-tipo="iPhone">
         <span class="od-icono">📱</span><span class="od-txt">Registrar iPhone</span>
       </button>
@@ -765,6 +767,7 @@ select.sel-estado, select.sel-pago {
   </div>
 </div>
 
+<script src="./tac-os-index.js"></script>
 <script>
 "use strict";
 
@@ -921,13 +924,28 @@ async function autocompletarPorImei(raw) {
   if (tac === tacConsultado) return;
   tacConsultado = tac;
 
-  escribirEstadoTac('buscando', 'Consultando TAC ' + tac + '…');
+  // El índice ligero permite detectar iPhone/Android incluso sin Internet.
+  const tipoOffline = window.LIFOX_TAC_OS && window.LIFOX_TAC_OS[tac];
+  if (tipoOffline) {
+    seleccionarTipo(tipoOffline === 'i' ? 'iPhone' : 'Android');
+    escribirEstadoTac('buscando', 'Tipo detectado; buscando modelo…');
+  } else {
+    escribirEstadoTac('buscando', 'Consultando TAC ' + tac + '…');
+  }
+  if (!navigator.onLine) {
+    escribirEstadoTac(tipoOffline ? 'warn' : 'err', tipoOffline ? 'Tipo detectado sin conexión. Completa marca y modelo manualmente.' : 'Sin conexión. Elige el tipo y completa los datos manualmente.');
+    return;
+  }
   try {
     const r = await fetchTimeout(WEB_APP_URL + '?action=buscarImei&imei=' + imei + '&t=' + Date.now(), 15000);
     const res = await r.json();
 
     if (!res || !res.found) {
-      escribirEstadoTac('err', 'TAC ' + tac + ' no está en la base. Escribe marca, modelo y color a mano.');
+      if (tipoOffline) {
+        escribirEstadoTac('warn', 'Tipo detectado sin conexión. Completa marca y modelo manualmente.');
+      } else {
+        escribirEstadoTac('err', 'TAC ' + tac + ' no está en la base. Escribe tipo, marca y modelo a mano.');
+      }
       return;
     }
 
@@ -940,7 +958,8 @@ async function autocompletarPorImei(raw) {
     if (imei.length === 15 && !validarLuhn(imei)) texto += ' · revisa el dígito verificador';
     escribirEstadoTac('ok', texto);
   } catch (e) {
-    escribirEstadoTac('err', 'No se pudo consultar la base TAC. Escribe los datos a mano.');
+    if (tipoOffline) escribirEstadoTac('warn', 'Tipo detectado sin conexión. Completa marca y modelo manualmente.');
+    else escribirEstadoTac('err', 'No se pudo consultar la base TAC. Escribe tipo, marca y modelo a mano.');
   }
 }
 
@@ -1204,7 +1223,8 @@ function abrirFormulario() {
   if (!isAdmin) { adminModal.style.display = 'flex'; adminUserInput.focus(); return; }
   priceForm.reset();
   limpiarEstadoTac();
-  document.getElementById('deviceCategory').value = '';
+  // El formulario móvil queda listo para recibir el IMEI; el botón manual de PC sigue disponible.
+  document.getElementById('deviceCategory').value = 'movil';
   document.getElementById('mobileOS').value = '';
   refrescarColoresIphone();
   renderServicios(null);
@@ -1399,6 +1419,46 @@ const claveRegistro = function(it) {
   return String(it.client || '') + '|' + String(it.date || '');
 };
 
+function pendientesLeer() {
+  try { return JSON.parse(store.get('lifox_pending_sync') || '[]') || []; } catch (e) { return []; }
+}
+function pendientesGuardar(lista) { store.set('lifox_pending_sync', JSON.stringify(lista)); }
+function guardarOperacionOffline(payload, id) {
+  const ahora = new Date();
+  const localId = id || ('LOCAL-' + Date.now());
+  const actual = Object.assign({ id: localId, date: ahora.toISOString().slice(0, 10), time: ahora.toTimeString().slice(0, 8), profit: '', _offline: true }, payload);
+  const pos = inventory.findIndex(function (x) { return claveRegistro(x) === String(localId); });
+  if (pos >= 0) inventory[pos] = actual; else inventory.unshift(actual);
+  store.set('lifox_inventory_cache', JSON.stringify(inventory));
+  const cola = pendientesLeer();
+  const existente = cola.findIndex(function (x) { return String(x.id || '') === String(localId); });
+  const op = { id: localId, action: id ? 'update' : 'create', payload: payload, record: actual };
+  if (existente >= 0) cola[existente] = op; else cola.push(op);
+  pendientesGuardar(cola);
+  displayItems(searchBox.value);
+}
+async function sincronizarPendientes() {
+  const cola = pendientesLeer();
+  if (!cola.length || !navigator.onLine || !tokenLeer()) return;
+  const restantes = [];
+  for (const op of cola) {
+    try {
+      const esCrear = op.action === 'create' || String(op.id).indexOf('LOCAL-') === 0;
+      const url = WEB_APP_URL + '?action=' + (esCrear ? 'create' : 'update') + (esCrear ? '' : '&id=' + encodeURIComponent(op.id)) + '&token=' + encodeURIComponent(tokenLeer()) + '&t=' + Date.now();
+      const r = await fetchTimeout(url, 12000, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(op.payload) });
+      const data = await r.json().catch(function () { return {}; });
+      if (!r.ok || data.success === false) throw new Error('sync');
+      if (esCrear && data.id) {
+        const n = inventory.findIndex(function (x) { return String(x.id) === String(op.id); });
+        if (n >= 0) inventory[n].id = data.id;
+      }
+    } catch (e) { restantes.push(op); }
+  }
+  pendientesGuardar(restantes);
+  store.set('lifox_inventory_cache', JSON.stringify(inventory));
+  displayItems(searchBox.value);
+  if (!restantes.length) estado('ok', 'Sincronizado · '); else estado('warn', restantes.length + ' pendiente(s) por sincronizar');
+}
 async function loadInventory(silent) {
   if (cargando || document.hidden) return;
   cargando = true;
@@ -1406,14 +1466,19 @@ async function loadInventory(silent) {
     const r = await fetchTimeout(WEB_APP_URL + '?t=' + Date.now(), 9000);
     const data = await r.json();
     if (!Array.isArray(data)) throw new Error('invalido');
+    const locales = inventory.filter(function (it) { return it._offline; });
     inventory = data.filter(function(it) { return !pendientesBorrar.has(claveRegistro(it)); });
+    locales.forEach(function (local) { if (!inventory.some(function (x) { return String(x.id) === String(local.id); })) inventory.push(local); });
     store.set('lifox_inventory_cache', JSON.stringify(inventory));
     displayItems(searchBox.value);
+    await sincronizarPendientes();
     estado('ok', 'Sincronizado · ');
   } catch (e) {
-    if (!silent) { displayItems(searchBox.value); estado('err', 'Sin conexión (local)'); }
+    displayItems(searchBox.value);
+    estado('err', 'Sin conexión · datos locales');
   } finally { cargando = false; }
 }
+window.addEventListener('online', function () { sincronizarPendientes().then(function () { loadInventory(true); }); });
 
 function listaFiltrada() {
   const f = String(searchBox.value || '').trim().toLowerCase();
@@ -1640,7 +1705,10 @@ priceForm.addEventListener('submit', async function(ev) {
   const telefono = document.getElementById('clientPhone').value.trim();
   const tecnico = document.getElementById('technicianName').value;
 
-  if (!categoria) { alert('Primero elige el tipo de dispositivo.'); return; }
+  if (!categoria) { alert('Introduce un IMEI para detectar el equipo o elige el tipo manualmente.'); return; }
+  if (categoria === 'movil' && !document.getElementById('mobileOS').value) {
+    alert('No se pudo detectar el tipo. Elige iPhone o Android manualmente.'); return;
+  }
   if (!cliente || !telefono || !tecnico) { alert('Faltan datos obligatorios.'); return; }
 
   const payload = {
@@ -1659,12 +1727,19 @@ priceForm.addEventListener('submit', async function(ev) {
       ? WEB_APP_URL + '?action=update&id=' + encodeURIComponent(editandoId) + '&token=' + encodeURIComponent(tokenLeer())
       : WEB_APP_URL + '?action=create&token=' + encodeURIComponent(tokenLeer());
 
-    await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+    const respuesta = await fetchTimeout(url, 12000, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+    if (!respuesta.ok) throw new Error('servidor');
+    const resultado = await respuesta.json().catch(function () { return {}; });
+    if (resultado.success === false) throw new Error(resultado.message || 'rechazado');
     cerrarFormulario();
     limpiarEstadoTac();
-    loadInventory(false);
+    await loadInventory(false);
   } catch (e) {
-    alert('Error al guardar.');
+    guardarOperacionOffline(payload, editandoId);
+    cerrarFormulario();
+    limpiarEstadoTac();
+    estado('warn', 'Guardado en este dispositivo · pendiente de sincronizar');
+    alert('Sin conexión: el registro quedó guardado en este dispositivo y se sincronizará cuando vuelva Internet.');
   }
 });
 
@@ -1729,6 +1804,7 @@ scanModal.addEventListener('click', function (e) { if (e.target === scanModal) c
 window.addEventListener('pagehide', cerrarEscaner);
 
 document.getElementById('technicianName').addEventListener('change', actualizarPanelReparto);
+if ('serviceWorker' in navigator) window.addEventListener('load', function () { navigator.serviceWorker.register('./lifox-sw.js').catch(function () {}); });
 document.getElementById('itemPagado').addEventListener('change', actualizarPanelReparto);
 ['itemCompra', 'itemCliente'].forEach(function(id) { document.getElementById(id).addEventListener('input', actualizarPanelReparto); });
 
