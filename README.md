@@ -1,16 +1,78 @@
-## Pagina web del negocio👋
+# 📱 LIFOX TECH
 
-<!--
-**ymarkjose0-byte/ymarkjose0-byte** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+## Control de precios y reparaciones
 
-Here are some ideas to get you started:
+Aplicación web para gestionar reparaciones, dispositivos, clientes, servicios y pagos de **Lifox Tech**.
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+---
+
+## ✨ Funciones principales
+
+- 📋 Registro de clientes y reparaciones
+- 📱 Gestión de iPhone y dispositivos Android
+- 💻 Registro de computadoras
+- 🔎 Búsqueda por cliente, teléfono, técnico, dispositivo o IMEI
+- 📷 Lectura del IMEI mediante la cámara del teléfono
+- ⚡ Autocompletado de marca y modelo mediante TAC
+- ✏️ Datos editables manualmente
+- 💰 Control de precios, pagos y ganancias
+- 🧾 Generación de recibos
+- 📊 Exportación de registros a Excel
+- 📱 Diseño adaptable para teléfonos
+- 🌐 Funcionamiento online con Google Apps Script
+- 📴 Soporte offline con sincronización posterior
+
+---
+
+## ⚙️ Configuración online
+
+La página utiliza Google Apps Script para guardar y consultar los registros.
+
+1. Abre `appscript.gs` en Google Apps Script.
+2. Configura la hoja de inventario y la hoja `TAC`.
+3. Ejecuta `configurarTac()` una vez.
+4. Implementa el proyecto como aplicación web.
+5. Mantén actualizada la constante `WEB_APP_URL` en `index.html`.
+
+---
+
+## 📴 Modo offline
+
+Después de abrir la página al menos una vez con Internet:
+
+- Los registros pueden consultarse desde el almacenamiento local.
+- Las reparaciones nuevas pueden guardarse sin conexión.
+- Los cambios pendientes se sincronizan cuando vuelve Internet.
+- La aplicación puede instalarse en el teléfono como una app.
+
+---
+
+## 🔐 Acceso administrativo
+
+El modo administrador permite:
+
+- Crear reparaciones
+- Editar registros
+- Cambiar estados y pagos
+- Consultar ganancias
+- Exportar información
+- Cambiar la contraseña
+
+---
+
+## 🛠️ Tecnologías
+
+- HTML
+- CSS
+- JavaScript
+- Google Apps Script
+- Google Sheets
+- GitHub Pages
+- Service Worker
+
+---
+
+## 👨‍💻 Desarrollado para
+
+**LifoxTech**  
+Garantía, Calidad y Confianza
