@@ -423,13 +423,11 @@ select.sel-estado, select.sel-pago {
 
     <!-- 2. IMEI -->
     <div id="seccionIMEI" class="seccion-reparaciones" style="background:#121214; display:none;">
-      <label class="titulo-grupo" for="imeiInput">2 · IMEI del dispositivo — escribe o escanea y se completa solo</label>
+      <label class="titulo-grupo" for="imeiInput">2 · IMEI del dispositivo</label>
       <div class="imei-tools">
         <input type="text" id="imeiInput" placeholder="IMEI de 15 dígitos (los primeros 8 identifican marca y modelo)" maxlength="20" inputmode="numeric">
         <button type="button" id="btnScanImei">📷 Escanear</button>
       </div>
-      <div id="tacStatus" class="tac-status"></div>
-      <small class="tac-edit-hint">Los datos sugeridos se pueden corregir manualmente antes de guardar.</small>
     </div>
 
     <!-- 3. ESPECIFICACIONES -->
@@ -643,7 +641,7 @@ select.sel-estado, select.sel-pago {
     </div>
   </form>
 
-  <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar por cliente, teléfono, técnico, dispositivo, IMEI...">
+  <input type="search" id="searchBox" class="search-box" placeholder="🔍 Buscar por cliente, teléfono, técnico, dispositivo, IMEI..." autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true">
 
   <div class="barra">
     <span class="punto" id="punto"></span>
@@ -722,8 +720,8 @@ select.sel-estado, select.sel-pago {
   <div class="modal-box">
     <h3>Acceso de Administrador</h3>
     <p class="sub">Ingresa tus credenciales.</p>
-    <input type="text" id="adminUserInput" placeholder="Usuario">
-    <input type="password" id="adminPasswordInput" placeholder="Contraseña">
+    <input type="text" id="adminUserInput" placeholder="Usuario" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-1p-ignore="true">
+    <input type="password" id="adminPasswordInput" placeholder="Contraseña" autocomplete="new-password" data-lpignore="true" data-1p-ignore="true">
     <div class="modal-buttons">
       <button type="button" class="btn-azul" onclick="verificarPassword()">Ingresar</button>
       <button type="button" class="btn-gris" onclick="cerrarModal()">Cancelar</button>
@@ -750,15 +748,15 @@ select.sel-estado, select.sel-pago {
     <div id="passMsg" class="msg-modal"></div>
     <div class="campo-grupo">
       <label class="campo-label" for="passActual">Actual</label>
-      <input type="password" id="passActual">
+      <input type="password" id="passActual" autocomplete="new-password">
     </div>
     <div class="campo-grupo">
       <label class="campo-label" for="passNueva">Nueva</label>
-      <input type="password" id="passNueva">
+      <input type="password" id="passNueva" autocomplete="new-password">
     </div>
     <div class="campo-grupo">
       <label class="campo-label" for="passConfirmar">Confirmar</label>
-      <input type="password" id="passConfirmar">
+      <input type="password" id="passConfirmar" autocomplete="new-password">
     </div>
     <div class="modal-buttons">
       <button type="button" class="btn-azul" id="btnGuardarPass" onclick="guardarNuevaPassword()">Guardar</button>
@@ -767,7 +765,6 @@ select.sel-estado, select.sel-pago {
   </div>
 </div>
 
-<script src="./tac-os-index.js"></script>
 <script>
 "use strict";
 
@@ -964,17 +961,9 @@ async function autocompletarPorImei(raw) {
 }
 
 const imeiInput = document.getElementById('imeiInput');
-imeiInput.addEventListener('input', function (e) {
-  const valor = e.target.value;
-  clearTimeout(tacTimer);
-  tacTimer = setTimeout(function () { autocompletarPorImei(valor); }, valor.replace(/\D/g, '').length === 8 ? 80 : 300);
-});
 // Muchos lectores envían Enter al terminar. No permitimos que eso envíe el formulario.
 imeiInput.addEventListener('keydown', function (e) {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    autocompletarPorImei(e.target.value);
-  }
+  if (e.key === 'Enter') e.preventDefault();
 });
 
 /* ===== SESIÓN ===== */
@@ -1616,8 +1605,6 @@ function editarRegistro(it) {
   document.getElementById('clientPhone').value = it.phone || '';
   document.getElementById('technicianName').value = it.technician || '';
   document.getElementById('imeiInput').value = it.imei || '';
-  tacConsultado = '';
-  if (it.imei) autocompletarPorImei(it.imei);
   document.getElementById('itemCompra').value = it.pCompra || 0;
   document.getElementById('itemCliente').value = it.pCliente || 0;
   document.getElementById('itemNote').value = notaDe(it);
@@ -1786,7 +1773,6 @@ async function escanearImeiConCamara() {
         if (imei.length >= 8) {
           imeiInput.value = imei;
           await cerrarEscaner();
-          autocompletarPorImei(imei);
           imeiInput.focus();
         }
       },
