@@ -6,6 +6,7 @@
 <title>Control de Precios y Reparaciones - Lifox Tech</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <style>
 :root {
@@ -111,6 +112,8 @@ h1 {
 #btnScanImei { background:#2563eb; color:#fff; white-space:nowrap; }
 #btnScanImei:hover { background:#1d4ed8; }
 .scan-video { width:100%; max-height:55vh; object-fit:cover; border-radius:8px; background:#000; }
+#scanReader { width:100%; overflow:hidden; border-radius:8px; background:#000; }
+#scanReader video { width:100% !important; height:auto !important; border-radius:8px; }
 .scan-help { color:#cbd5e1; font-size:12px; line-height:1.4; margin:10px 0 0; }
 @media (max-width:520px) { .imei-tools { flex-direction:column; } }
 
@@ -325,6 +328,35 @@ select.sel-estado, select.sel-pago {
 }
 .rec-firmas { display: flex; gap: 30px; margin-top: 40px; font-size: 11px; }
 .rec-firma { flex: 1; border-top: 1px solid #000; padding-top: 6px; text-align: center; }
+@media (max-width: 700px) {
+  body { padding: 8px; }
+  .container { padding: 12px; border-radius: 10px; }
+  .marca { grid-template-columns: 1fr; gap: 10px; padding-bottom: 12px; margin-bottom: 14px; }
+  .logo { width: 180px; height: 70px; }
+  .titulo-marca { order: 1; }
+  .bloque-logo { order: 2; }
+  .fecha-header { order: 3; justify-self: center; font-size: 11px; }
+  h1 { font-size: 18px; }
+  form { padding: 12px; gap: 11px; }
+  .form-row { grid-template-columns: 1fr; gap: 9px; }
+  .menu-dispositivo { grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 8px; }
+  .opcion-dispositivo { padding: 11px 5px; font-size: 11px; }
+  .od-icono { font-size: 19px; }
+  .seccion-reparaciones { padding: 10px; }
+  .checkbox-group { grid-template-columns: 1fr; }
+  .acciones-form { flex-direction: column; }
+  .acciones-form button { width: 100%; }
+  .barra { align-items: stretch; }
+  #btnReload { margin-left: auto; }
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 980px; }
+  th, td { padding: 8px 7px; font-size: 11px; }
+  .totales { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-footer-area { align-items: flex-start; flex-direction: column; }
+  .admin-link { width: 100%; }
+  .modal-box { padding: 16px; }
+}
+
 @media print {
   body { background: #fff; color: #000; padding: 0; font-size: 12px; }
   .container { background: #fff; border: none; box-shadow: none; padding: 0; max-width: 100%; }
@@ -701,7 +733,7 @@ select.sel-estado, select.sel-pago {
   <div class="modal-box" style="width:520px;">
     <h3>Escanear IMEI</h3>
     <p class="sub">Apunta la cámara al código de barras del IMEI.</p>
-    <video id="scanVideo" class="scan-video" autoplay muted playsinline></video>
+    <div id="scanReader"></div>
     <p id="scanHelp" class="scan-help">Solicitando acceso a la cámara…</p>
     <div class="modal-buttons">
       <button type="button" class="btn-gris" id="btnCerrarScan">Cancelar</button>
@@ -965,7 +997,7 @@ const adminUserInput = document.getElementById('adminUserInput');
 const adminPasswordInput = document.getElementById('adminPasswordInput');
 const passModal = document.getElementById('passModal');
 const scanModal = document.getElementById('scanModal');
-const scanVideo = document.getElementById('scanVideo');
+const scanReader = document.getElementById('scanReader');
 const scanHelp = document.getElementById('scanHelp');
 const btnScanImei = document.getElementById('btnScanImei');
 const btnCerrarScan = document.getElementById('btnCerrarScan');
@@ -1636,66 +1668,57 @@ priceForm.addEventListener('submit', async function(ev) {
   }
 });
 
-let scanStream = null;
-let scanFrame = null;
-let detectorCodigo = null;
+let lectorImei = null;
 
-function cerrarEscaner() {
-  if (scanFrame) { cancelAnimationFrame(scanFrame); scanFrame = null; }
-  if (scanStream) {
-    scanStream.getTracks().forEach(function (track) { track.stop(); });
-    scanStream = null;
+async function cerrarEscaner() {
+  if (lectorImei) {
+    try { await lectorImei.stop(); } catch (e) {}
+    try { lectorImei.clear(); } catch (e) {}
+    lectorImei = null;
   }
-  scanVideo.pause();
-  scanVideo.srcObject = null;
+  scanReader.innerHTML = '';
   scanModal.style.display = 'none';
 }
 
 async function escanearImeiConCamara() {
   if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    alert('La cámara necesita una página segura HTTPS y un navegador compatible.');
+    alert('La cámara necesita una página segura HTTPS.');
     return;
   }
-  if (!('BarcodeDetector' in window)) {
-    alert('Este navegador no permite leer códigos desde la cámara. Usa Google Lens o pega el IMEI manualmente.');
+  if (typeof Html5Qrcode === 'undefined') {
+    alert('No se cargó el lector de cámara. Revisa la conexión a Internet o pega el IMEI manualmente.');
     return;
   }
 
   try {
-    const formatos = await BarcodeDetector.getSupportedFormats();
-    const permitidos = ['code_128', 'code_39', 'itf', 'ean_13', 'qr_code', 'data_matrix', 'pdf417'].filter(function (f) {
-      return formatos.indexOf(f) !== -1;
-    });
-    if (!permitidos.length) throw new Error('sin-formatos');
-
-    detectorCodigo = new BarcodeDetector({ formats: permitidos });
     scanModal.style.display = 'flex';
-    scanHelp.textContent = 'Apunta al código de barras del IMEI. La cámara no guarda imágenes.';
-    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
-    scanVideo.srcObject = scanStream;
-    await scanVideo.play();
-
-    const revisar = async function () {
-      if (!scanStream || scanModal.style.display === 'none') return;
-      try {
-        const codigos = await detectorCodigo.detect(scanVideo);
-        const encontrado = codigos.find(function (c) { return /\\d{8,20}/.test(String(c.rawValue || '')); });
-        if (encontrado) {
-          const imei = String(encontrado.rawValue).replace(/\\D/g, '').slice(0, 15);
-          if (imei.length >= 8) {
-            imeiInput.value = imei;
-            cerrarEscaner();
-            autocompletarPorImei(imei);
-            imeiInput.focus();
-            return;
-          }
+    scanHelp.textContent = 'Apunta al código de barras del IMEI. También admite QR.';
+    lectorImei = new Html5Qrcode('scanReader');
+    const formatos = [
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39,
+      Html5QrcodeSupportedFormats.ITF,
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.QR_CODE,
+      Html5QrcodeSupportedFormats.DATA_MATRIX,
+      Html5QrcodeSupportedFormats.PDF_417
+    ];
+    await lectorImei.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 280, height: 140 }, formatsToSupport: formatos },
+      async function (texto) {
+        const imei = String(texto || '').replace(/\\D/g, '').slice(0, 15);
+        if (imei.length >= 8) {
+          imeiInput.value = imei;
+          await cerrarEscaner();
+          autocompletarPorImei(imei);
+          imeiInput.focus();
         }
-      } catch (e) {}
-      scanFrame = requestAnimationFrame(revisar);
-    };
-    scanFrame = requestAnimationFrame(revisar);
+      },
+      function () {}
+    );
   } catch (e) {
-    cerrarEscaner();
+    await cerrarEscaner();
     alert('No se pudo iniciar la cámara. Revisa el permiso del navegador.');
   }
 }
