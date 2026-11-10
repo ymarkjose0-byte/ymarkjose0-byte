@@ -1910,6 +1910,15 @@ function iniciar() {
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar);
 else iniciar();
+
+  <script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    const searchInput = document.getElementById('searchBox');
+    if (searchInput) {
+      searchInput.value = ''; // Limpia el valor autocompletado por el navegador
+    }
+  });
+</script>
 </script>
 </body>
 </html>
