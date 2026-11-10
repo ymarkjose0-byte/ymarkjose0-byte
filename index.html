@@ -1762,7 +1762,9 @@ priceForm.addEventListener('submit', async function(ev) {
     if (resultado.success === false) throw new Error(resultado.message || 'rechazado');
     cerrarFormulario();
     limpiarEstadoTac();
-    await loadInventory(false);
+    // No bloqueamos la interfaz esperando que vuelva a descargar toda la hoja.
+    loadInventory(true);
+    estado('ok', 'Guardado · sincronizando en segundo plano');
   } catch (e) {
     guardarOperacionOffline(payload, editandoId);
     cerrarFormulario();
