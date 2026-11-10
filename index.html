@@ -100,7 +100,7 @@ h1 {
 .od-svg { width: 24px; height: 28px; display: block; }
 @media (max-width: 520px) { .menu-dispositivo { grid-template-columns: 1fr; } }
 
-/* BLOQUE IMEI / AUTOCOMPLETADO */
+/* BLOQUE  / AUTOCOMPLETADO */
 .tac-status {
   display: none; margin-top: 8px; font-size: 12px; font-weight: 600;
   padding: 8px 10px; border-radius: 6px; line-height: 1.4;
@@ -109,15 +109,15 @@ h1 {
 .tac-status.err { display: block; background: #1c1917; color: #fbbf24; border: 1px solid #422006; }
 .tac-status.buscando { display: block; background: #121214; color: #94a3b8; border: 1px solid var(--border-color); }
 .tac-edit-hint { display:block; margin-top:7px; color:#64748b; font-size:11px; }
-.imei-tools { display:flex; gap:8px; align-items:stretch; }
-.imei-tools #imeiInput { flex:1; }
-#btnScanImei { background:#2563eb; color:#fff; white-space:nowrap; }
-#btnScanImei:hover { background:#1d4ed8; }
+.-tools { display:flex; gap:8px; align-items:stretch; }
+.-tools #Input { flex:1; }
+#btnScan { background:#2563eb; color:#fff; white-space:nowrap; }
+#btnScan:hover { background:#1d4ed8; }
 .scan-video { width:100%; max-height:55vh; object-fit:cover; border-radius:8px; background:#000; }
 #scanReader { width:100%; overflow:hidden; border-radius:8px; background:#000; }
 #scanReader video { width:100% !important; height:auto !important; border-radius:8px; }
 .scan-help { color:#cbd5e1; font-size:12px; line-height:1.4; margin:10px 0 0; }
-@media (max-width:520px) { .imei-tools { flex-direction:column; } }
+@media (max-width:520px) { .-tools { flex-direction:column; } }
 
 /* FORMULARIO DE REPARACIÓN */
 form {
@@ -365,7 +365,7 @@ select.sel-estado, select.sel-pago {
 #tabla tbody td { padding: 9px 9px; line-height: 1.25; vertical-align: middle; }
 #tabla tbody tr:not(.fila-fecha):hover { background: rgba(37,99,235,.06); }
 #tabla td[data-label="Dispositivo"] { min-width: 170px; max-width: 230px; font-weight: 600; color: #e2e8f0; }
-#tabla td[data-label="IMEI"] code { font-size: 11px; letter-spacing: .02em; }
+#tabla td[data-label=""] code { font-size: 11px; letter-spacing: .02em; }
 #tabla td[data-label="Color"] { color: #cbd5e1; white-space: nowrap; }
 #tabla td[data-label="Servicios"] { min-width: 150px; max-width: 230px; }
 .badge, .sel-pago, .sel-estado { font-size: 10px; padding: 5px 8px; border-radius: 999px; }
@@ -405,7 +405,7 @@ select.sel-estado, select.sel-pago {
 
     <!-- 1. TIPO DE DISPOSITIVO -->
     <div class="menu-dispositivo" id="menuDispositivo">
-      <span class="menu-titulo">1 · Tipo de equipo (opcional: se detecta con el IMEI)</span>
+      <span class="menu-titulo">1 · Tipo de equipo (opcional: se detecta con el )</span>
       <button type="button" class="opcion-dispositivo" data-tipo="iPhone">
         <span class="od-icono">📱</span><span class="od-txt">Registrar iPhone</span>
       </button>
@@ -433,11 +433,11 @@ select.sel-estado, select.sel-pago {
       </button>
     </div>
 
-    <!-- 2. IMEI -->
-    <div id="seccionIMEI" class="seccion-reparaciones" style="background:#121214; display:none;">
-      <label class="titulo-grupo" for="imeiInput">2 · IMEI del dispositivo — escribe o escanea y se completa solo</label>
-      <div class="imei-tools">
-        <input type="text" id="imeiInput" placeholder="IMEI de 15 dígitos (los primeros 8 identifican marca y modelo)" maxlength="20" inputmode="numeric">
+    <!-- 2.  -->
+    <div id="seccion" class="seccion-reparaciones" style="background:#121214; display:none;">
+      <label class="titulo-grupo" for="Input">2 ·  del dispositivo — escribe o escanea y se completa solo</label>
+      <div class="-tools">
+        <input type="text" id="Input" placeholder="IMEI de 15 dígitos (los primeros 8 identifican marca y modelo)" maxlength="20" inputmode="numeric">
         <button type="button" id="btnScanImei">📷 Escanear</button>
       </div>
       <div id="tacStatus" class="tac-status"></div>
@@ -655,8 +655,7 @@ select.sel-estado, select.sel-pago {
     </div>
   </form>
 
-<input type="search" id="searchBox" name="consulta-registros-lifox" class="search-box" placeholder="🔍 Buscar por cliente, teléfono, técnico, dispositivo, IMEI..." autocomplete="chrome-off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other">
-  <div class="barra">
+<input type="text" id="searchBox" name="filtro-unico-dinamico" class="search-box" placeholder="🔍 Buscar por cliente, teléfono, técnico, dispositivo, IMEI..." autocomplete="off" role="presentation" autocomplete="new-password">  <div class="barra">
     <span class="punto" id="punto"></span>
     <span id="loadingStatus">Cargando registros...</span>
     <span id="relojVivo"></span>
