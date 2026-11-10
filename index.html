@@ -314,10 +314,9 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
         <button type="button" class="azul" id="btnEscanear">📷 Escanear código de barras</button>
       </div>
       <div id="scannerContainer">
-        <div id="qrReader" aria-label="Lector de código de barras"></div>
+        <div id="qrReader" aria-label="Lector de códigos de barras para iPhone y Android"></div>
         <div id="scannerHint" style="font-size:11px;color:var(--text-muted);padding:8px;text-align:center;">Apunta al código de barras del IMEI</div>
         <button type="button" class="mini azul" id="btnAbrirCamara" style="width:100%; margin-top:5px;">📷 Abrir cámara</button>
-        <button type="button" class="mini azul" id="btnLeerFoto" style="width:100%; margin-top:5px;">📁 Leer foto del IMEI</button>
         <button type="button" class="mini rojo" id="btnCerrarCamara" style="width:100%; margin-top:5px;">Cerrar Cámara</button>
       </div>
       <div id="tacReparacionStatus" style="font-size: 10px; color: var(--text-muted); margin-top: 4px; min-height: 14px;">Los datos sugeridos se pueden corregir manualmente antes de guardar.</div>
@@ -377,6 +376,7 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
             <option value="iPhone 16 Pro Max">iPhone 16 Pro Max</option>
           </optgroup>
           <optgroup label="2025/2026"><option value="iPhone 17">iPhone 17</option><option value="iPhone 17 Air">iPhone 17 Air</option><option value="iPhone 17 Pro">iPhone 17 Pro</option><option value="iPhone 17 Pro Max">iPhone 17 Pro Max</option></optgroup>
+          <optgroup label="2026"><option value="iPhone 18 Pro">iPhone 18 Pro</option><option value="iPhone 18 Pro Max">iPhone 18 Pro Max</option></optgroup>
         </select>
         <select id="iphoneColor" disabled><option value="">Seleccione Color</option></select>
         <select id="iphoneStorage">
@@ -514,13 +514,11 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
         <select id="saleCapacity"><option value="">Capacidad</option><option>16 GB</option><option>32 GB</option><option>64 GB</option><option>128 GB</option><option>256 GB</option><option>512 GB</option><option>1 TB</option><option>2 TB</option></select>
       </div>
       <div id="scannerContainerVenta" style="display:none;margin:10px 0;border-radius:8px;overflow:hidden;border:1px solid var(--border-color);max-width:350px;position:relative">
-        <div id="qrReaderVenta" aria-label="Lector de código de barras para ventas"></div>
+        <div id="qrReaderVenta" aria-label="Lector de códigos de barras para iPhone y Android para ventas"></div>
         <div style="font-size:11px;color:var(--text-muted);padding:8px;text-align:center">Apunta al código de barras del IMEI</div>
         <button type="button" class="mini azul" id="btnAbrirCamaraVenta" style="width:100%;margin-top:5px">📷 Abrir cámara</button>
-        <button type="button" class="mini azul" id="btnLeerFotoVenta" style="width:100%;margin-top:5px">📁 Leer foto del IMEI</button>
         <button type="button" class="mini rojo" id="btnCerrarCamaraVenta" style="width:100%;margin-top:5px">Cerrar Cámara</button>
       </div>
-      <input type="file" id="qrImageInput" accept="image/*" style="display:none">
       <div class="form-row">
         <select id="saleSeller" required>
           <option value="Claris">Vendedora: Claris</option>
@@ -687,7 +685,9 @@ const COLORES_IPHONE = {
   "iPhone 16": ["Negro", "Blanco", "Rosa", "Teal", "Ultramarino"],
   "iPhone 16 Plus": ["Negro", "Blanco", "Rosa", "Teal", "Ultramarino"],
   "iPhone 16 Pro": ["Titanio negro", "Titanio blanco", "Titanio natural", "Titanio desierto"],
-  "iPhone 16 Pro Max": ["Titanio negro", "Titanio blanco", "Titanio natural", "Titanio desierto"]
+  "iPhone 16 Pro Max": ["Titanio negro", "Titanio blanco", "Titanio natural", "Titanio desierto"],
+  "iPhone 18 Pro": ["Negro", "Plata", "Glaciar", "Borgoña"],
+  "iPhone 18 Pro Max": ["Negro", "Plata", "Glaciar", "Borgoña"]
 };
 
 const TAC_DB = {
@@ -734,7 +734,8 @@ const CAPACIDADES_IPHONE = {
   'iPhone 15 Pro':['128 GB','256 GB','512 GB','1 TB'], 'iPhone 15 Pro Max':['256 GB','512 GB','1 TB'],
   'iPhone 16':['128 GB','256 GB','512 GB'], 'iPhone 16 Plus':['128 GB','256 GB','512 GB'],
   'iPhone 16 Pro':['256 GB','512 GB','1 TB'], 'iPhone 16 Pro Max':['256 GB','512 GB','1 TB'],
-  'iPhone 17':['256 GB','512 GB','1 TB'], 'iPhone 17 Air':['256 GB','512 GB','1 TB'], 'iPhone 17 Pro':['256 GB','512 GB','1 TB'], 'iPhone 17 Pro Max':['256 GB','512 GB','1 TB','2 TB']
+  'iPhone 17':['256 GB','512 GB','1 TB'], 'iPhone 17 Air':['256 GB','512 GB','1 TB'], 'iPhone 17 Pro':['256 GB','512 GB','1 TB'], 'iPhone 17 Pro Max':['256 GB','512 GB','1 TB','2 TB'],
+  'iPhone 18 Pro':['256 GB','512 GB','1 TB','2 TB'], 'iPhone 18 Pro Max':['256 GB','512 GB','1 TB','2 TB']
 };
 function actualizarCapacidadesIphone(){
   const modelo=document.getElementById('iphoneModel')?.value, sel=document.getElementById('iphoneStorage'); if(!sel)return;
@@ -764,8 +765,10 @@ document.getElementById('imeiInput').addEventListener('input', function(e) {
 let qrScanner = null;
 let scannerTargetInput = 'imeiInput';
 let scannerFileTarget = 'imeiInput';
+let codigoDetectado = false;
 
 function aplicarCodigoEscaneado(decodedText) {
+  if (codigoDetectado) return false;
   const texto = String(decodedText || '').trim();
   const encontrado = texto.match(/(?:^|\D)(\d{15})(?!\d)/);
   const digitos = encontrado ? encontrado[1] : texto.replace(/\D/g, '');
@@ -776,53 +779,18 @@ function aplicarCodigoEscaneado(decodedText) {
   input.value = codigo;
   input.dispatchEvent(new Event('input', { bubbles: true }));
   if (scannerTargetInput === 'saleImei') detectarModeloVentaPorTac(codigo);
-  detenerEscaner();
+  codigoDetectado = true;
+  detenerEscaner().finally(() => { codigoDetectado = false; });
   return true;
 }
 
 function obtenerFormatosEscaner() {
-  const nombres = ['CODE_128','CODE_39','CODE_93','CODABAR','EAN_13','EAN_8','UPC_A','UPC_E','ITF'];
+  const nombres = ['CODE_128','CODE_39','CODE_93','CODABAR','EAN_13','EAN_8','UPC_A','UPC_E','ITF','RSS_14','RSS_EXPANDED','PDF_417','AZTEC','MAXICODE'];
   return window.Html5QrcodeSupportedFormats
     ? nombres.map(n => window.Html5QrcodeSupportedFormats[n]).filter(Boolean)
     : [];
 }
 
-function abrirSelectorFoto(targetId) {
-  scannerFileTarget = targetId;
-  scannerTargetInput = targetId;
-  const input = document.getElementById('qrImageInput');
-  if (!input) return;
-  input.value = '';
-  input.click();
-}
-
-async function leerFotoIMEI(file) {
-  if (!file || !window.Html5Qrcode) {
-    alert('No se pudo cargar el lector. Escribe el IMEI manualmente.');
-    return;
-  }
-  const isVenta = scannerFileTarget === 'saleImei';
-  const container = document.getElementById(isVenta ? 'scannerContainerVenta' : 'scannerContainer');
-  const readerId = isVenta ? 'qrReaderVenta' : 'qrReader';
-  scannerTargetInput = scannerFileTarget;
-  container.style.display = 'block';
-  let lectorFoto = null;
-  try {
-    const formatos = obtenerFormatosEscaner();
-    const opcionesLector = formatos.length ? { formatsToSupport: formatos } : undefined;
-    const visor = document.getElementById(readerId);
-    if (visor) visor.innerHTML = '';
-    lectorFoto = new Html5Qrcode(readerId, opcionesLector);
-    const texto = await lectorFoto.scanFile(file, false);
-    aplicarCodigoEscaneado(texto);
-  } catch (err) {
-    alert('No se pudo leer el código de barras del IMEI. Usa una foto nítida y completa.');
-  } finally {
-    try { if (lectorFoto) await lectorFoto.clear(); } catch (e) {}
-    const visor = document.getElementById(readerId);
-    if (visor) visor.innerHTML = '';
-  }
-}
 
 function mostrarOpcionesEscaner(targetId = 'imeiInput') {
   scannerTargetInput = targetId;
@@ -832,13 +800,14 @@ function mostrarOpcionesEscaner(targetId = 'imeiInput') {
 }
 
 async function iniciarEscaner(targetId = 'imeiInput') {
+  codigoDetectado = false;
   scannerTargetInput = targetId;
   const isVenta = targetId === 'saleImei';
   const container = document.getElementById(isVenta ? 'scannerContainerVenta' : 'scannerContainer');
   const readerId = isVenta ? 'qrReaderVenta' : 'qrReader';
   container.style.display = 'block';
   if (!window.Html5Qrcode) {
-    alert('No se pudo cargar el lector de códigos de barras. Usa “Leer foto del IMEI” o escribe el IMEI manualmente.');
+    alert('No se pudo cargar el lector de códigos de barras. Escribe el IMEI manualmente o abre la cámara.');
     container.style.display = 'none';
     return;
   }
@@ -871,26 +840,25 @@ async function iniciarEscaner(targetId = 'imeiInput') {
     }
   } catch (err) {
     await detenerEscaner();
-    alert('No se pudo acceder a la cámara. Usa “Leer foto del IMEI” o escribe el IMEI manualmente.');
+    alert('No se pudo acceder a la cámara. Escribe el IMEI manualmente o abre la cámara.');
   }
 }
 
 async function detenerEscaner() {
-  if (qrScanner) {
-    try { await qrScanner.stop(); } catch (e) {}
-    try { qrScanner.clear(); } catch (e) {}
-    qrScanner = null;
-  }
-  document.getElementById('scannerContainer').style.display = 'none';
+  const reparacion = document.getElementById('scannerContainer');
   const venta = document.getElementById('scannerContainerVenta');
+  if (reparacion) reparacion.style.display = 'none';
   if (venta) venta.style.display = 'none';
+  if (qrScanner) {
+    const lectorActivo = qrScanner;
+    qrScanner = null;
+    try { await lectorActivo.stop(); } catch (e) {}
+    try { lectorActivo.clear(); } catch (e) {}
+  }
 }
 document.getElementById('btnEscanear').addEventListener('click', () => mostrarOpcionesEscaner('imeiInput'));
 document.getElementById('btnAbrirCamara').addEventListener('click', () => iniciarEscaner('imeiInput'));
 document.getElementById('btnCerrarCamara').addEventListener('click', detenerEscaner);
-document.getElementById('btnLeerFoto').addEventListener('click', () => abrirSelectorFoto('imeiInput'));
-document.getElementById('btnLeerFotoVenta').addEventListener('click', () => abrirSelectorFoto('saleImei'));
-document.getElementById('qrImageInput').addEventListener('change', e => leerFotoIMEI(e.target.files && e.target.files[0]));
 
 let inventory = [];
 try { inventory = JSON.parse(localStorage.getItem('lifox_inventory_cache') || '[]'); } catch(e){}
@@ -1257,6 +1225,7 @@ document.getElementById('priceForm').addEventListener('submit', async (e) => {
     });
     const res = await r.json();
     if (res.success) {
+      borrarBorrador('priceForm');
       document.getElementById('priceForm').reset();
       document.getElementById('editId').value = '';
       document.getElementById('priceForm').style.display = 'none';
@@ -1342,6 +1311,7 @@ document.getElementById('btnNueva').addEventListener('click', () => {
   document.getElementById('priceForm').style.display = 'flex';
 });
 document.getElementById('btnCancelar').addEventListener('click', () => { 
+  borrarBorrador('priceForm');
   document.getElementById('priceForm').reset();
   document.getElementById('editId').value = '';
   document.getElementById('priceForm').style.display = 'none'; 
@@ -1616,6 +1586,7 @@ function editarVenta(index) {
 }
 
 function limpiarFormularioVenta() {
+  borrarBorrador('salesForm');
   editSaleIndex = null;
   document.getElementById('salesForm').reset();
   document.getElementById('saleSeller').value = 'Claris';
@@ -1715,10 +1686,11 @@ document.querySelectorAll('.sales-type-option').forEach(btn=>btn.addEventListene
 
 const BORRADORES_KEY='lifox_borradores_formulario';
 function leerBorradores(){try{return JSON.parse(localStorage.getItem(BORRADORES_KEY)||'{}')}catch(e){return {}}}
-function guardarBorrador(id){const f=document.getElementById(id);if(!f)return;const data={};f.querySelectorAll('input,select,textarea').forEach(x=>{if(x.type!=='file'&&x.type!=='password')data[x.id]=x.value});const all=leerBorradores();all[id]=data;localStorage.setItem(BORRADORES_KEY,JSON.stringify(all));}
-function restaurarBorrador(id){const f=document.getElementById(id),all=leerBorradores(),data=all[id];if(!f||!data)return;Object.keys(data).forEach(k=>{const x=document.getElementById(k);if(x&&data[k]!==undefined)x.value=data[k]});}
+function guardarBorrador(id){const f=document.getElementById(id);if(!f)return;const data={};f.querySelectorAll('input,select,textarea').forEach(x=>{if(x.type!=='file'&&x.type!=='password')data[x.id]=x.value});if(id==='priceForm'){data.servicios=Array.from(seleccionados||[]);data.visible=f.style.display!=='none';}const all=leerBorradores();all[id]=data;localStorage.setItem(BORRADORES_KEY,JSON.stringify(all));}
+function restaurarBorrador(id){const f=document.getElementById(id),all=leerBorradores(),data=all[id];if(!f||!data)return;Object.keys(data).forEach(k=>{const x=document.getElementById(k);if(x&&data[k]!==undefined&&k!=='servicios'&&k!=='visible')x.value=data[k]});if(id==='priceForm'){(data.servicios||[]).forEach(x=>seleccionados.add(x));const tipo=document.getElementById('mobileOS').value;const boton=document.querySelector('.opcion-dispositivo[data-tipo="'+(tipo==='iPhone'?'iPhone':tipo==='PC'?'PC':'Android')+'"]');if(boton&&tipo)boton.click();renderServicios(tipo);renderChips();if(data.visible)f.style.display='flex';}}
 function borrarBorrador(id){const all=leerBorradores();delete all[id];localStorage.setItem(BORRADORES_KEY,JSON.stringify(all));}
 ['priceForm','salesForm'].forEach(id=>{const f=document.getElementById(id);if(f){restaurarBorrador(id);f.querySelectorAll('input,select,textarea').forEach(x=>x.addEventListener('input',()=>guardarBorrador(id)));f.querySelectorAll('select').forEach(x=>x.addEventListener('change',()=>guardarBorrador(id)));}});
+window.addEventListener('beforeunload',()=>{guardarBorrador('priceForm');guardarBorrador('salesForm');});
 
 function imprimirNotaReparacion(){
   const cliente=document.getElementById('clientName')?.value.trim() || '';
