@@ -643,7 +643,7 @@ select.sel-estado, select.sel-pago {
     </div>
   </form>
 
-  <input type="search" id="searchBox" name="registro-busqueda" class="search-box" placeholder="🔍 Buscar por cliente, teléfono, técnico, dispositivo, IMEI..." autocomplete="new-password" autocapitalize="none" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other">
+  <input type="search" id="searchBox" name="consulta-registros-lifox" class="search-box" placeholder="🔍 Buscar por cliente, teléfono, técnico, dispositivo, IMEI..." autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other">
 
   <div class="barra">
     <span class="punto" id="punto"></span>
@@ -1008,16 +1008,22 @@ function tokenPoner(t) { try { sessionStorage.setItem('adminToken', t || ''); } 
 const priceForm = document.getElementById('priceForm');
 const inventoryTable = document.getElementById('inventoryTable');
 const searchBox = document.getElementById('searchBox');
-// Evita que el navegador rellene el buscador con usuarios guardados al recargar.
-searchBox.value = '';
-searchBox.setAttribute('readonly', 'readonly');
+// Chrome puede rellenar el campo después de una recarga normal; se limpia hasta que el usuario lo use.
+let usuarioActivoEnBuscador = false;
+function limpiarBuscadorInicial() {
+  if (!usuarioActivoEnBuscador) { searchBox.value = ''; displayItems(''); }
+}
 function activarBuscador() {
+  usuarioActivoEnBuscador = true;
   searchBox.removeAttribute('readonly');
   searchBox.setAttribute('autocomplete', 'off');
 }
+searchBox.value = '';
+searchBox.setAttribute('readonly', 'readonly');
 searchBox.addEventListener('pointerdown', activarBuscador, { once: true });
 searchBox.addEventListener('focus', activarBuscador, { once: true });
-window.addEventListener('pageshow', function () { searchBox.value = ''; displayItems(''); });
+window.addEventListener('pageshow', limpiarBuscadorInicial);
+[50, 250, 750, 1500, 2500].forEach(function (ms) { setTimeout(limpiarBuscadorInicial, ms); });
 const loadingStatus = document.getElementById('loadingStatus');
 const punto = document.getElementById('punto');
 const fechaActual = document.getElementById('fechaActual');
@@ -1839,7 +1845,7 @@ btnNueva.addEventListener('click', abrirFormulario);
 btnCancelar.addEventListener('click', function() { cerrarFormulario(); limpiarEstadoTac(); });
 
 function iniciar() {
-  searchBox.value = '';
+  limpiarBuscadorInicial();
   verificarAdminUI();
   mostrarFecha();
   sincronizarHora();
