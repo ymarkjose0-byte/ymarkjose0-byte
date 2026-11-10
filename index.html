@@ -664,6 +664,7 @@ select.sel-estado, select.sel-pago {
           <th>Técnico</th>
           <th>Dispositivo</th>
           <th>IMEI</th>
+          <th>Color</th>
           <th>Reparaciones / Servicios</th>
           <th>Estado</th>
           <th>Pago</th>
@@ -1178,6 +1179,14 @@ function partesDe(it) {
   return r;
 }
 
+function colorActual() {
+  const cat = document.getElementById('deviceCategory').value;
+  if (cat === 'pc') return document.getElementById('pcColor').value || '';
+  return document.getElementById('mobileOS').value === 'iPhone'
+    ? (document.getElementById('iphoneColor').value || '')
+    : (document.getElementById('androidColor').value || '');
+}
+
 function dispositivoTexto() {
   const cat = document.getElementById('deviceCategory').value;
   if (cat === 'pc') {
@@ -1548,7 +1557,7 @@ function displayItems(filter) {
   if (firma === firmaTabla) return;
   firmaTabla = firma;
 
-  const totalCols = isAdmin ? 15 : 13;
+  const totalCols = isAdmin ? 16 : 14;
   inventoryTable.innerHTML = '';
   pintarTotales(lista);
 
@@ -1603,6 +1612,7 @@ function displayItems(filter) {
         '<td data-label="Teléfono">' + esc(it.phone || '-') + '</td>' +
         '<td data-label="Técnico">' + esc(it.technician) + '</td>' +
         '<td data-label="Dispositivo">' + esc(it.name) + '</td>' +
+        '<td data-label="Color">' + esc(it.color || '') + '</td>' +
         '<td data-label="IMEI">' + (it.imei ? '<code>' + esc(it.imei) + '</code>' : '-') + '</td>' +
         '<td data-label="Servicios">' + esc(it.type) + '</td>' +
         '<td data-label="Estado">' + estadoHtml + '</td>' +
@@ -1648,7 +1658,7 @@ function editarRegistro(it) {
 
 function payloadDe(it, extra) {
   return Object.assign({
-    client: it.client, phone: it.phone, technician: it.technician, name: it.name,
+    client: it.client, phone: it.phone, technician: it.technician, name: it.name, color: it.color || '',
     imei: it.imei || '', type: it.type, estado: estadoDe(it), pagado: estaPagado(it) ? 'Sí' : 'No',
     pCompra: Number(it.pCompra || 0), pCliente: Number(it.pCliente || 0), note: notaDe(it)
   }, extra || {});
@@ -1741,7 +1751,7 @@ priceForm.addEventListener('submit', async function(ev) {
   if (!cliente || !telefono || !tecnico) { alert('Faltan datos obligatorios.'); return; }
 
   const payload = {
-    client: cliente, phone: telefono, technician: tecnico, name: dispositivoTexto(),
+    client: cliente, phone: telefono, technician: tecnico, name: dispositivoTexto(), color: colorActual(),
     imei: document.getElementById('imeiInput').value.replace(/\s/g, ''),
     type: Array.from(seleccionados).join(', '),
     estado: document.getElementById('itemEstado').value,
@@ -1760,11 +1770,23 @@ priceForm.addEventListener('submit', async function(ev) {
     if (!respuesta.ok) throw new Error('servidor');
     const resultado = await respuesta.json().catch(function () { return {}; });
     if (resultado.success === false) throw new Error(resultado.message || 'rechazado');
+    const idServidor = resultado.id || editandoId || ('LOCAL-' + Date.now());
+    const anterior = inventory.find(function (x) { return String(x.id) === String(editandoId); });
+    const ahora = new Date();
+    const registroLocal = Object.assign({}, payload, {
+      id: idServidor,
+      date: anterior && anterior.date ? anterior.date : ahora.toISOString().slice(0, 10),
+      time: anterior && anterior.time ? anterior.time : ahora.toTimeString().slice(0, 8),
+      profit: resultado.profit !== undefined ? resultado.profit : (payload.pagado === 'Sí' ? Number(payload.pCliente || 0) - Number(payload.pCompra || 0) : '')
+    });
+    const posicion = inventory.findIndex(function (x) { return String(x.id) === String(editandoId) || String(x.id) === String(idServidor); });
+    if (posicion >= 0) inventory[posicion] = registroLocal; else inventory.unshift(registroLocal);
+    store.set('lifox_inventory_cache', JSON.stringify(inventory));
     cerrarFormulario();
     limpiarEstadoTac();
-    // No bloqueamos la interfaz esperando que vuelva a descargar toda la hoja.
-    loadInventory(true);
-    estado('ok', 'Guardado · sincronizando en segundo plano');
+    firmaTabla = '';
+    displayItems(searchBox.value);
+    estado('ok', 'Guardado · tabla actualizada');
   } catch (e) {
     guardarOperacionOffline(payload, editandoId);
     cerrarFormulario();
