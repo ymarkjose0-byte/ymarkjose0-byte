@@ -1,0 +1,10 @@
+{
+  "name": "Lifox Tech - Reparaciones",
+  "short_name": "Lifox Tech",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#121214",
+  "theme_color": "#121214",
+  "lang": "es",
+  "icons": []
+}
