@@ -520,7 +520,7 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
         <button type="button" class="mini azul" id="btnLeerFotoVenta" style="width:100%;margin-top:5px">📁 Leer foto del IMEI</button>
         <button type="button" class="mini rojo" id="btnCerrarCamaraVenta" style="width:100%;margin-top:5px">Cerrar Cámara</button>
       </div>
-      <input type="file" id="qrImageInput" accept="image/*" capture="environment" style="display:none">
+      <input type="file" id="qrImageInput" accept="image/*" style="display:none">
       <div class="form-row">
         <select id="saleSeller" required>
           <option value="Claris">Vendedora: Claris</option>
@@ -806,15 +806,21 @@ async function leerFotoIMEI(file) {
   const readerId = isVenta ? 'qrReaderVenta' : 'qrReader';
   scannerTargetInput = scannerFileTarget;
   container.style.display = 'block';
+  let lectorFoto = null;
   try {
     const formatos = obtenerFormatosEscaner();
     const opcionesLector = formatos.length ? { formatsToSupport: formatos } : undefined;
-    const lectorFoto = new Html5Qrcode(readerId, opcionesLector);
-    const texto = await lectorFoto.scanFile(file, true);
+    const visor = document.getElementById(readerId);
+    if (visor) visor.innerHTML = '';
+    lectorFoto = new Html5Qrcode(readerId, opcionesLector);
+    const texto = await lectorFoto.scanFile(file, false);
     aplicarCodigoEscaneado(texto);
-    try { lectorFoto.clear(); } catch (e) {}
   } catch (err) {
-    alert('No se pudo leer la foto. Toma otra con buena luz y enfoca el código completo.');
+    alert('No se pudo leer el código de barras del IMEI. Usa una foto nítida y completa.');
+  } finally {
+    try { if (lectorFoto) await lectorFoto.clear(); } catch (e) {}
+    const visor = document.getElementById(readerId);
+    if (visor) visor.innerHTML = '';
   }
 }
 
