@@ -311,11 +311,12 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
       <label class="titulo-grupo" for="imeiInput">2 · IMEI del dispositivo — Escribe o escanea y se completa solo</label>
       <div class="imei-tools" style="display: flex; gap: 8px;">
         <input type="text" id="imeiInput" placeholder="IMEI de 15 dígitos" maxlength="15" minlength="15" pattern="\d{15}" inputmode="numeric" required autocomplete="off" style="flex:1;">
-        <button type="button" class="azul" id="btnEscanear">📷 Escanear</button>
+        <button type="button" class="azul" id="btnEscanear">📷 Escanear código de barras</button>
       </div>
       <div id="scannerContainer">
-        <div id="qrReader" aria-label="Lector de código QR"></div>
-        <div id="scannerHint" style="font-size:11px;color:var(--text-muted);padding:8px;text-align:center;">Apunta al código QR del IMEI</div>
+        <div id="qrReader" aria-label="Lector de código de barras"></div>
+        <div id="scannerHint" style="font-size:11px;color:var(--text-muted);padding:8px;text-align:center;">Apunta al código de barras del IMEI</div>
+        <button type="button" class="mini azul" id="btnAbrirCamara" style="width:100%; margin-top:5px;">📷 Abrir cámara</button>
         <button type="button" class="mini azul" id="btnLeerFoto" style="width:100%; margin-top:5px;">📁 Leer foto del IMEI</button>
         <button type="button" class="mini rojo" id="btnCerrarCamara" style="width:100%; margin-top:5px;">Cerrar Cámara</button>
       </div>
@@ -505,7 +506,7 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
         <input type="tel" id="salePhone" placeholder="Número de teléfono del cliente" maxlength="20" required>
       </div>
       <div class="form-row">
-        <div style="display:flex;gap:8px;align-items:center"><input type="text" id="saleImei" placeholder="IMEI del teléfono (15 dígitos)" maxlength="15" minlength="15" pattern="\d{15}" inputmode="numeric" required><button type="button" class="mini azul" id="btnEscanearVenta">📷 QR</button></div>
+        <div style="display:flex;gap:8px;align-items:center"><input type="text" id="saleImei" placeholder="IMEI del teléfono (15 dígitos)" maxlength="15" minlength="15" pattern="\d{15}" inputmode="numeric" required><button type="button" class="mini azul" id="btnEscanearVenta">📷 Código de barras</button></div>
         <div><input type="text" id="saleModel" placeholder="Modelo del teléfono o accesorio" maxlength="100" required><div id="tacVentaStatus" style="font-size:10px;color:var(--text-muted);margin-top:4px;min-height:14px"></div></div>
       </div>
       <div class="form-row">
@@ -513,8 +514,9 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
         <select id="saleCapacity"><option value="">Capacidad</option><option>16 GB</option><option>32 GB</option><option>64 GB</option><option>128 GB</option><option>256 GB</option><option>512 GB</option><option>1 TB</option><option>2 TB</option></select>
       </div>
       <div id="scannerContainerVenta" style="display:none;margin:10px 0;border-radius:8px;overflow:hidden;border:1px solid var(--border-color);max-width:350px;position:relative">
-        <div id="qrReaderVenta" aria-label="Lector de código QR para ventas"></div>
-        <div style="font-size:11px;color:var(--text-muted);padding:8px;text-align:center">Apunta al código QR del IMEI</div>
+        <div id="qrReaderVenta" aria-label="Lector de código de barras para ventas"></div>
+        <div style="font-size:11px;color:var(--text-muted);padding:8px;text-align:center">Apunta al código de barras del IMEI</div>
+        <button type="button" class="mini azul" id="btnAbrirCamaraVenta" style="width:100%;margin-top:5px">📷 Abrir cámara</button>
         <button type="button" class="mini azul" id="btnLeerFotoVenta" style="width:100%;margin-top:5px">📁 Leer foto del IMEI</button>
         <button type="button" class="mini rojo" id="btnCerrarCamaraVenta" style="width:100%;margin-top:5px">Cerrar Cámara</button>
       </div>
@@ -778,6 +780,13 @@ function aplicarCodigoEscaneado(decodedText) {
   return true;
 }
 
+function obtenerFormatosEscaner() {
+  const nombres = ['CODE_128','CODE_39','CODE_93','CODABAR','EAN_13','EAN_8','UPC_A','UPC_E','ITF'];
+  return window.Html5QrcodeSupportedFormats
+    ? nombres.map(n => window.Html5QrcodeSupportedFormats[n]).filter(Boolean)
+    : [];
+}
+
 function abrirSelectorFoto(targetId) {
   scannerFileTarget = targetId;
   scannerTargetInput = targetId;
@@ -798,13 +807,22 @@ async function leerFotoIMEI(file) {
   scannerTargetInput = scannerFileTarget;
   container.style.display = 'block';
   try {
-    const lectorFoto = new Html5Qrcode(readerId);
+    const formatos = obtenerFormatosEscaner();
+    const opcionesLector = formatos.length ? { formatsToSupport: formatos } : undefined;
+    const lectorFoto = new Html5Qrcode(readerId, opcionesLector);
     const texto = await lectorFoto.scanFile(file, true);
     aplicarCodigoEscaneado(texto);
     try { lectorFoto.clear(); } catch (e) {}
   } catch (err) {
     alert('No se pudo leer la foto. Toma otra con buena luz y enfoca el código completo.');
   }
+}
+
+function mostrarOpcionesEscaner(targetId = 'imeiInput') {
+  scannerTargetInput = targetId;
+  const isVenta = targetId === 'saleImei';
+  const container = document.getElementById(isVenta ? 'scannerContainerVenta' : 'scannerContainer');
+  if (container) container.style.display = 'block';
 }
 
 async function iniciarEscaner(targetId = 'imeiInput') {
@@ -814,20 +832,18 @@ async function iniciarEscaner(targetId = 'imeiInput') {
   const readerId = isVenta ? 'qrReaderVenta' : 'qrReader';
   container.style.display = 'block';
   if (!window.Html5Qrcode) {
-    alert('No se pudo cargar el lector QR. Usa “Leer foto del IMEI” o escribe el IMEI manualmente.');
+    alert('No se pudo cargar el lector de códigos de barras. Usa “Leer foto del IMEI” o escribe el IMEI manualmente.');
     container.style.display = 'none';
     return;
   }
 
-  const formatosNombres = ['QR_CODE','CODE_128','CODE_39','CODE_93','CODABAR','EAN_13','EAN_8','UPC_A','UPC_E','ITF','DATA_MATRIX'];
-  const formatos = window.Html5QrcodeSupportedFormats
-    ? formatosNombres.map(n => window.Html5QrcodeSupportedFormats[n]).filter(Boolean)
-    : [];
+  const formatos = obtenerFormatosEscaner();
   const config = { fps: 10, qrbox: { width: 250, height: 160 }, aspectRatio: 1.777778 };
   if (formatos.length) config.formatsToSupport = formatos;
+  const opcionesLector = formatos.length ? { formatsToSupport: formatos } : undefined;
 
   const iniciarConFuente = async (fuente) => {
-    qrScanner = new Html5Qrcode(readerId);
+    qrScanner = new Html5Qrcode(readerId, opcionesLector);
     await qrScanner.start(fuente, config, aplicarCodigoEscaneado, () => {});
   };
 
@@ -863,7 +879,8 @@ async function detenerEscaner() {
   const venta = document.getElementById('scannerContainerVenta');
   if (venta) venta.style.display = 'none';
 }
-document.getElementById('btnEscanear').addEventListener('click', iniciarEscaner);
+document.getElementById('btnEscanear').addEventListener('click', () => mostrarOpcionesEscaner('imeiInput'));
+document.getElementById('btnAbrirCamara').addEventListener('click', () => iniciarEscaner('imeiInput'));
 document.getElementById('btnCerrarCamara').addEventListener('click', detenerEscaner);
 document.getElementById('btnLeerFoto').addEventListener('click', () => abrirSelectorFoto('imeiInput'));
 document.getElementById('btnLeerFotoVenta').addEventListener('click', () => abrirSelectorFoto('saleImei'));
@@ -1538,7 +1555,8 @@ document.getElementById('saleModel').addEventListener('change', function(){
 document.getElementById('saleImei').addEventListener('input', function() {
   detectarModeloVentaPorTac(this.value);
 });
-document.getElementById('btnEscanearVenta').addEventListener('click', () => iniciarEscaner('saleImei'));
+document.getElementById('btnEscanearVenta').addEventListener('click', () => mostrarOpcionesEscaner('saleImei'));
+document.getElementById('btnAbrirCamaraVenta').addEventListener('click', () => iniciarEscaner('saleImei'));
 document.getElementById('btnCerrarCamaraVenta').addEventListener('click', detenerEscaner);
 
 async function cargarVentasDesdeNube() {
