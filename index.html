@@ -257,6 +257,10 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
 .wm-label{color:#fff!important;font-size:12px!important;font-weight:700!important;letter-spacing:.10em!important}
 .wm-nombre{color:#fff!important;background:none!important;-webkit-text-fill-color:#fff!important;font-size:15px!important;font-weight:800!important}
 .wm-build{color:#fff!important;font-size:12px!important;font-weight:700!important;letter-spacing:.10em!important}
+/* Pie original solicitado */
+.wm-label{color:#8b93a3!important;font-size:9px!important;font-weight:700!important;letter-spacing:.15em!important;text-transform:uppercase!important}
+.wm-nombre{font-size:14px!important;font-weight:800!important;background:linear-gradient(90deg,#60a5fa 0%,#22d3ee 45%,#a78bfa 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;color:transparent!important}
+.wm-build{color:#8b93a3!important;font-size:8.5px!important;font-weight:700!important;letter-spacing:.15em!important;text-transform:uppercase!important}
 @media print { body { background:#fff; padding:0; } .container { display:none !important; } }
 </style>
 </head>
@@ -585,7 +589,7 @@ function pedirAgregarTAC(tac, destino, estado) {
 
 "use strict";
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz6obXFYEE_W5HR4weYQF3bVG7j4qvkNyCngFzafhHFT7RGhoEMdeaSfQqjd_V9du0hjA/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXl6vlj3UF6J2jZLfvoB-N_8L5gzEz0TRUzZ6lN8PDgGV_0YOVUcRCZHxQvMK812YqFA/exec";
 let desfaseServidor = 0;
 
 function fetchConTiempo(url, opciones = {}, limite = 8000) {
