@@ -1493,6 +1493,13 @@ async function loadInventory(silent) {
     const r = await fetchTimeout(WEB_APP_URL + '?t=' + Date.now(), 9000);
     const data = await r.json();
     if (!Array.isArray(data)) throw new Error('invalido');
+    // Una respuesta vacía no debe borrar la tabla local: normalmente indica
+    // que la URL de Apps Script apunta a otra hoja o implementación.
+    if (data.length === 0 && inventory.length > 0) {
+      displayItems(searchBox.value);
+      estado('warn', 'El servidor devolvió 0 registros; se conservan los datos locales');
+      return;
+    }
     const locales = inventory.filter(function (it) { return it._offline; });
     inventory = data.filter(function(it) { return !pendientesBorrar.has(claveRegistro(it)); });
     locales.forEach(function (local) { if (!inventory.some(function (x) { return String(x.id) === String(local.id); })) inventory.push(local); });
@@ -1612,8 +1619,8 @@ function displayItems(filter) {
         '<td data-label="Teléfono">' + esc(it.phone || '-') + '</td>' +
         '<td data-label="Técnico">' + esc(it.technician) + '</td>' +
         '<td data-label="Dispositivo">' + esc(it.name) + '</td>' +
-        '<td data-label="Color">' + esc(it.color || '') + '</td>' +
         '<td data-label="IMEI">' + (it.imei ? '<code>' + esc(it.imei) + '</code>' : '-') + '</td>' +
+        '<td data-label="Color">' + esc(it.color || '') + '</td>' +
         '<td data-label="Servicios">' + esc(it.type) + '</td>' +
         '<td data-label="Estado">' + estadoHtml + '</td>' +
         '<td data-label="Pago">' + pagoHtml + '</td>' +
@@ -1652,6 +1659,13 @@ function editarRegistro(it) {
   document.getElementById('itemEstado').value = estadoDe(it);
   document.getElementById('itemPagado').value = estaPagado(it) ? 'Sí' : 'No';
   rehidratarDispositivo(it.name);
+  // Restaurar los servicios seleccionados al editar el registro.
+  const serviciosGuardados = String(it.type || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+  document.querySelectorAll('#serviciosBox input[type="checkbox"]').forEach(function (chk) {
+    chk.checked = serviciosGuardados.indexOf(chk.value) !== -1;
+    if (chk.checked) seleccionados.add(chk.value);
+  });
+  renderChips();
   editandoId = claveRegistro(it);
   document.getElementById('btnSubmit').textContent = 'Guardar cambios';
 }
@@ -1665,9 +1679,12 @@ function payloadDe(it, extra) {
 }
 
 async function enviarCambio(it, payload) {
-  await fetchTimeout(WEB_APP_URL + '?action=update&id=' + encodeURIComponent(claveRegistro(it)) + '&token=' + encodeURIComponent(tokenLeer()) + '&t=' + Date.now(), 15000, {
+  const r = await fetchTimeout(WEB_APP_URL + '?action=update&id=' + encodeURIComponent(claveRegistro(it)) + '&token=' + encodeURIComponent(tokenLeer()) + '&t=' + Date.now(), 15000, {
     method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload)
   });
+  const data = await r.json().catch(function () { return {}; });
+  if (!r.ok || data.success === false) throw new Error(data.message || 'No se pudo actualizar');
+  return data;
 }
 
 async function cambiarEstado(it, sel) {
@@ -1675,7 +1692,7 @@ async function cambiarEstado(it, sel) {
   const previo = estadoDe(it);
   it.estado = nuevo;
   firmaTabla = '';
-  try { await enviarCambio(it, payloadDe(it, { estado: nuevo })); } catch (e) { it.estado = previo; }
+  try { await enviarCambio(it, payloadDe(it, { estado: nuevo })); } catch (e) { it.estado = previo; firmaTabla = ''; displayItems(searchBox.value); alert(e.message || 'No se pudo actualizar el estado en Google Sheets.'); }
 }
 
 async function cambiarPago(it, sel) {
@@ -1685,7 +1702,7 @@ async function cambiarPago(it, sel) {
   it.profit = pagado ? (Number(it.pCliente || 0) - Number(it.pCompra || 0)) : '';
   firmaTabla = '';
   displayItems(searchBox.value);
-  try { await enviarCambio(it, payloadDe(it, { pagado: pagado ? 'Sí' : 'No' })); } catch (e) { it.pagado = previoPagado ? 'Sí' : 'No'; }
+  try { await enviarCambio(it, payloadDe(it, { pagado: pagado ? 'Sí' : 'No' })); } catch (e) { it.pagado = previoPagado ? 'Sí' : 'No'; firmaTabla = ''; displayItems(searchBox.value); alert(e.message || 'No se pudo actualizar el pago en Google Sheets.'); }
 }
 
 async function borrarRegistro(it) {
@@ -1788,11 +1805,8 @@ priceForm.addEventListener('submit', async function(ev) {
     displayItems(searchBox.value);
     estado('ok', 'Guardado · tabla actualizada');
   } catch (e) {
-    guardarOperacionOffline(payload, editandoId);
-    cerrarFormulario();
-    limpiarEstadoTac();
-    estado('warn', 'Guardado en este dispositivo · pendiente de sincronizar');
-    alert('Sin conexión: el registro quedó guardado en este dispositivo y se sincronizará cuando vuelva Internet.');
+    estado('err', 'No se guardó en Google Sheets');
+    alert('No se pudo guardar en Google Sheets. Revisa la conexión y la URL de Apps Script. El registro no se marcará como guardado.');
   }
 });
 
