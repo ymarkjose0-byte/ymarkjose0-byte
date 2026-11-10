@@ -651,6 +651,7 @@ select.sel-estado, select.sel-pago {
     <span id="relojVivo"></span>
     <button type="button" id="btnReload" title="Actualizar ahora">↻</button>
     <button type="button" class="mini solo-admin" id="btnExportar">⬇ Excel</button>
+    <button type="button" class="mini solo-admin" id="btnExportarJson">⬇ JSON</button>
     <button type="button" class="mini solo-admin" id="btnNueva">➕ Nueva reparación</button>
   </div>
 
@@ -1037,6 +1038,7 @@ const passMsg = document.getElementById('passMsg');
 const btnCancelar = document.getElementById('btnCancelar');
 const btnNueva = document.getElementById('btnNueva');
 const btnExportar = document.getElementById('btnExportar');
+const btnExportarJson = document.getElementById('btnExportarJson');
 const panelReparto = document.getElementById('panelReparto');
 const totalesBox = document.getElementById('totalesBox');
 
@@ -1696,6 +1698,17 @@ function imprimirRecibo(it) {
   setTimeout(function() { window.print(); }, 120);
 }
 
+function exportarJSON() {
+  if (!isAdmin) return;
+  const datos = { app: 'Lifox Tech', version: 2, exportedAt: new Date().toISOString(), records: inventory };
+  const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'lifox-respaldo-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 500);
+}
+
 function exportarExcel() {
   if (!isAdmin) return;
   const lista = listaFiltrada();
@@ -1821,6 +1834,7 @@ document.getElementById('itemPagado').addEventListener('change', actualizarPanel
 searchBox.addEventListener('input', function(e) { displayItems(e.target.value); });
 document.getElementById('btnReload').addEventListener('click', function() { loadInventory(false); });
 btnExportar.addEventListener('click', exportarExcel);
+btnExportarJson.addEventListener('click', exportarJSON);
 btnNueva.addEventListener('click', abrirFormulario);
 btnCancelar.addEventListener('click', function() { cerrarFormulario(); limpiarEstadoTac(); });
 

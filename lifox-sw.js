@@ -1,4 +1,4 @@
-const CACHE = 'lifox-tech-v1';
+const CACHE = 'lifox-tech-v3';
 const APP = ['./', './index.html', './manifest.webmanifest', './tac-os-index.js'];
 
 self.addEventListener('install', event => {
