@@ -316,6 +316,7 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
       <div id="scannerContainer">
         <div id="qrReader" aria-label="Lector de código QR"></div>
         <div id="scannerHint" style="font-size:11px;color:var(--text-muted);padding:8px;text-align:center;">Apunta al código QR del IMEI</div>
+        <button type="button" class="mini azul" id="btnLeerFoto" style="width:100%; margin-top:5px;">📁 Leer foto del IMEI</button>
         <button type="button" class="mini rojo" id="btnCerrarCamara" style="width:100%; margin-top:5px;">Cerrar Cámara</button>
       </div>
       <div id="tacReparacionStatus" style="font-size: 10px; color: var(--text-muted); margin-top: 4px; min-height: 14px;">Los datos sugeridos se pueden corregir manualmente antes de guardar.</div>
@@ -514,8 +515,10 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
       <div id="scannerContainerVenta" style="display:none;margin:10px 0;border-radius:8px;overflow:hidden;border:1px solid var(--border-color);max-width:350px;position:relative">
         <div id="qrReaderVenta" aria-label="Lector de código QR para ventas"></div>
         <div style="font-size:11px;color:var(--text-muted);padding:8px;text-align:center">Apunta al código QR del IMEI</div>
+        <button type="button" class="mini azul" id="btnLeerFotoVenta" style="width:100%;margin-top:5px">📁 Leer foto del IMEI</button>
         <button type="button" class="mini rojo" id="btnCerrarCamaraVenta" style="width:100%;margin-top:5px">Cerrar Cámara</button>
       </div>
+      <input type="file" id="qrImageInput" accept="image/*" capture="environment" style="display:none">
       <div class="form-row">
         <select id="saleSeller" required>
           <option value="Claris">Vendedora: Claris</option>
@@ -755,9 +758,54 @@ document.getElementById('imeiInput').addEventListener('input', function(e) {
   tacTimer = setTimeout(() => consultarTACRemoto(e.target.value, 'reparacion'), 350);
 });
 
-// --- LECTOR QR MODERNO Y COMPATIBLE CON MÓVILES ---
+// --- LECTOR QR/IMEI COMPATIBLE CON MÓVILES, SAFARI Y PC ---
 let qrScanner = null;
 let scannerTargetInput = 'imeiInput';
+let scannerFileTarget = 'imeiInput';
+
+function aplicarCodigoEscaneado(decodedText) {
+  const texto = String(decodedText || '').trim();
+  const encontrado = texto.match(/(?:^|\D)(\d{15})(?!\d)/);
+  const digitos = encontrado ? encontrado[1] : texto.replace(/\D/g, '');
+  if (digitos.length < 15) return false;
+  const codigo = digitos.slice(0, 15);
+  const input = document.getElementById(scannerTargetInput);
+  if (!input) return false;
+  input.value = codigo;
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  if (scannerTargetInput === 'saleImei') detectarModeloVentaPorTac(codigo);
+  detenerEscaner();
+  return true;
+}
+
+function abrirSelectorFoto(targetId) {
+  scannerFileTarget = targetId;
+  scannerTargetInput = targetId;
+  const input = document.getElementById('qrImageInput');
+  if (!input) return;
+  input.value = '';
+  input.click();
+}
+
+async function leerFotoIMEI(file) {
+  if (!file || !window.Html5Qrcode) {
+    alert('No se pudo cargar el lector. Escribe el IMEI manualmente.');
+    return;
+  }
+  const isVenta = scannerFileTarget === 'saleImei';
+  const container = document.getElementById(isVenta ? 'scannerContainerVenta' : 'scannerContainer');
+  const readerId = isVenta ? 'qrReaderVenta' : 'qrReader';
+  scannerTargetInput = scannerFileTarget;
+  container.style.display = 'block';
+  try {
+    const lectorFoto = new Html5Qrcode(readerId);
+    const texto = await lectorFoto.scanFile(file, true);
+    aplicarCodigoEscaneado(texto);
+    try { lectorFoto.clear(); } catch (e) {}
+  } catch (err) {
+    alert('No se pudo leer la foto. Toma otra con buena luz y enfoca el código completo.');
+  }
+}
 
 async function iniciarEscaner(targetId = 'imeiInput') {
   scannerTargetInput = targetId;
@@ -766,31 +814,42 @@ async function iniciarEscaner(targetId = 'imeiInput') {
   const readerId = isVenta ? 'qrReaderVenta' : 'qrReader';
   container.style.display = 'block';
   if (!window.Html5Qrcode) {
-    alert('No se pudo cargar el lector QR. Escribe el IMEI manualmente.');
+    alert('No se pudo cargar el lector QR. Usa “Leer foto del IMEI” o escribe el IMEI manualmente.');
     container.style.display = 'none';
     return;
   }
-  try {
+
+  const formatosNombres = ['QR_CODE','CODE_128','CODE_39','CODE_93','CODABAR','EAN_13','EAN_8','UPC_A','UPC_E','ITF','DATA_MATRIX'];
+  const formatos = window.Html5QrcodeSupportedFormats
+    ? formatosNombres.map(n => window.Html5QrcodeSupportedFormats[n]).filter(Boolean)
+    : [];
+  const config = { fps: 10, qrbox: { width: 250, height: 160 }, aspectRatio: 1.777778 };
+  if (formatos.length) config.formatsToSupport = formatos;
+
+  const iniciarConFuente = async (fuente) => {
     qrScanner = new Html5Qrcode(readerId);
-    const config = { fps: 10, qrbox: { width: 250, height: 160 }, aspectRatio: 1.777778 };
-    await qrScanner.start(
-      { facingMode: 'environment' },
-      config,
-      (decodedText) => {
-        const codigo = String(decodedText || '').replace(/\D/g, '');
-        if (codigo.length >= 8) {
-          const input = document.getElementById(scannerTargetInput);
-          input.value = codigo.slice(0, 20);
-          input.dispatchEvent(new Event('input', { bubbles: true }));
-          if (scannerTargetInput === 'saleImei') detectarModeloVentaPorTac(codigo);
-          detenerEscaner();
-        }
-      },
-      () => {}
-    );
+    await qrScanner.start(fuente, config, aplicarCodigoEscaneado, () => {});
+  };
+
+  try {
+    try {
+      await iniciarConFuente({ facingMode: { exact: 'environment' } });
+    } catch (primero) {
+      try { if (qrScanner) await qrScanner.clear(); } catch (e) {}
+      qrScanner = null;
+      try {
+        await iniciarConFuente({ facingMode: 'environment' });
+      } catch (segundo) {
+        try { if (qrScanner) await qrScanner.clear(); } catch (e) {}
+        qrScanner = null;
+        const camaras = await Html5Qrcode.getCameras();
+        if (!camaras || !camaras.length) throw segundo;
+        await iniciarConFuente({ deviceId: { exact: camaras[camaras.length - 1].id } });
+      }
+    }
   } catch (err) {
-    detenerEscaner();
-    alert('No se pudo acceder a la cámara. Comprueba los permisos o escribe el IMEI manualmente.');
+    await detenerEscaner();
+    alert('No se pudo acceder a la cámara. Usa “Leer foto del IMEI” o escribe el IMEI manualmente.');
   }
 }
 
@@ -806,6 +865,9 @@ async function detenerEscaner() {
 }
 document.getElementById('btnEscanear').addEventListener('click', iniciarEscaner);
 document.getElementById('btnCerrarCamara').addEventListener('click', detenerEscaner);
+document.getElementById('btnLeerFoto').addEventListener('click', () => abrirSelectorFoto('imeiInput'));
+document.getElementById('btnLeerFotoVenta').addEventListener('click', () => abrirSelectorFoto('saleImei'));
+document.getElementById('qrImageInput').addEventListener('change', e => leerFotoIMEI(e.target.files && e.target.files[0]));
 
 let inventory = [];
 try { inventory = JSON.parse(localStorage.getItem('lifox_inventory_cache') || '[]'); } catch(e){}
@@ -1671,6 +1733,18 @@ async function iniciar() {
   cargarDatos().then(()=>mostrarAvisoPagoQuincena());
 }
 window.addEventListener('load', iniciar);
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const registro = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
+      await registro.update();
+    } catch (e) {
+      console.warn('Actualización automática no disponible:', e);
+    }
+  });
+}
 </script>
 </body>
 </html>
