@@ -24,18 +24,6 @@ Aplicación web para gestionar reparaciones, dispositivos, clientes, servicios y
 
 ---
 
-## ⚙️ Configuración online
-
-La página utiliza Google Apps Script para guardar y consultar los registros.
-
-1. Abre `appscript.gs` en Google Apps Script.
-2. Configura la hoja de inventario y la hoja `TAC`.
-3. Ejecuta `configurarTac()` una vez.
-4. Implementa el proyecto como aplicación web.
-5. Mantén actualizada la constante `WEB_APP_URL` en `index.html`.
-
----
-
 ## 📴 Modo offline
 
 Después de abrir la página al menos una vez con Internet:
