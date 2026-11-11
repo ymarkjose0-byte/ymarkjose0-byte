@@ -81,6 +81,7 @@ h1 {
   grid-column: 1 / -1; font-size: 10px; font-weight: 700; color: #94a3b8;
   text-transform: uppercase; letter-spacing: .08em; margin-bottom: 2px;
 }
+#seccionIMEI[aria-hidden="true"] { display: none !important; }
 .opcion-dispositivo {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
   padding: 16px 10px; background: #202024; border: 2px solid var(--border-color);
@@ -280,7 +281,7 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
   <div class="marca">
     <div class="bloque-logo">
       <div class="logo">
-        <span id="logoFallback" class="logo-fallback" style="display:flex">LIFOX<span>TECH</span></span>
+        <span id="logoFallback" class="logo-fallback" style="display:flex !important">LIFOX<span>TECH</span></span>
       </div>
       <span class="slogan-logo">Garantía, Calidad y Confianza</span>
     </div>
@@ -928,6 +929,7 @@ function renderChips() {
 function seleccionarTipo(tipo) {
   document.getElementById('deviceCategory').value = 'movil';
   document.getElementById('mobileOS').value = tipo;
+  document.getElementById('seccionIMEI').setAttribute('aria-hidden', 'false');
   document.getElementById('seccionIMEI').style.display = 'block';
   document.getElementById('seccionIphoneSpecs').style.display = tipo === 'iPhone' ? 'block' : 'none';
   document.getElementById('seccionAndroidSpecs').style.display = tipo === 'Android' ? 'block' : 'none';
@@ -943,6 +945,8 @@ document.querySelectorAll('.opcion-dispositivo').forEach(b => {
     if(t === 'PC') {
       document.getElementById('deviceCategory').value = 'pc';
       document.getElementById('mobileOS').value = 'PC';
+      document.getElementById('imeiInput').value = '';
+      document.getElementById('seccionIMEI').setAttribute('aria-hidden', 'true');
       document.getElementById('seccionIMEI').style.display = 'none';
       document.getElementById('seccionIphoneSpecs').style.display = 'none';
       document.getElementById('seccionAndroidSpecs').style.display = 'none';
@@ -1175,6 +1179,18 @@ function editarRegistro(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function imeiValidoFront(valor) {
+  const s = String(valor || '').replace(/\D/g, '');
+  if (!/^\d{15}$/.test(s)) return false;
+  let suma = 0;
+  for (let i = 0; i < 14; i++) {
+    let n = Number(s[i]);
+    if (i % 2 === 1) { n *= 2; if (n > 9) n -= 9; }
+    suma += n;
+  }
+  return (suma + Number(s[14])) % 10 === 0;
+}
+
 document.getElementById('priceForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const cliente = document.getElementById('clientName').value.trim();
@@ -1186,7 +1202,7 @@ document.getElementById('priceForm').addEventListener('submit', async (e) => {
   const isEditing = Boolean(editId);
   const cat = document.getElementById('deviceCategory').value;
   const imei = document.getElementById('imeiInput').value.replace(/\D/g, '');
-  if (cat !== 'pc' && imei.length !== 15) { alert('El IMEI debe tener 15 dígitos.'); return; }
+  if (cat !== 'pc' && !imeiValidoFront(imei)) { alert('El IMEI debe tener 15 dígitos válidos.'); return; }
 
   let nombreDispositivo = '';
   if (cat === 'pc') {
@@ -1206,7 +1222,8 @@ document.getElementById('priceForm').addEventListener('submit', async (e) => {
     phone: telefono,
     technician: tecnico,
     name: nombreDispositivo,
-    imei: imei,
+    imei: cat === 'pc' ? '' : imei,
+    category: cat,
     type: Array.from(seleccionados).join(', '),
     estado: document.getElementById('itemEstado').value,
     pagado: document.getElementById('itemPagado').value,
@@ -1614,7 +1631,7 @@ document.getElementById('salesForm').addEventListener('submit', async function(e
   const model = document.getElementById('saleModel').value.trim();
   const price = document.getElementById('salePrice').value;
   const imeiVenta = document.getElementById('saleImei').value.replace(/\D/g, '');
-  if (!buyer || !phone || !model || price === '' || imeiVenta.length !== 15) { alert('Completa comprador, teléfono, IMEI de 15 dígitos, modelo/artículo y precio.'); return; }
+  if (!buyer || !phone || !model || price === '' || !imeiValidoFront(imeiVenta)) { alert('Completa comprador, teléfono, un IMEI válido de 15 dígitos, modelo/artículo y precio.'); return; }
   const now = new Date(Date.now() + desfaseServidor);
   const venta = { deviceType: document.getElementById('saleDeviceType').value, buyer, phone, imei: imeiVenta, model: modeloComercial(model), color: document.getElementById('saleColor').value, capacity: document.getElementById('saleCapacity').value, item: document.getElementById('saleItem').value.trim(), seller: vendedorSeleccionado(), price: Number(price), note: document.getElementById('saleNote').value.trim(), date: now.toLocaleDateString('es-DO'), time: now.toLocaleTimeString('es-DO', { hour:'numeric', minute:'2-digit' }) };
   try {
@@ -1732,6 +1749,12 @@ window.addEventListener('load', iniciar);
 </script>
 <script>
 if ('serviceWorker' in navigator) {
+  let recargandoPorActualizacion = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (recargandoPorActualizacion) return;
+    recargandoPorActualizacion = true;
+    window.location.reload();
+  });
   window.addEventListener('load', async () => {
     try {
       const registro = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
