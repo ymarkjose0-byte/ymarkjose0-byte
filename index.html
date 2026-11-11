@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
 
 <style>
 :root {
@@ -151,6 +152,8 @@ button.gris { background: #3f3f46; color: #fff; }
 button.gris:hover { background: #52525b; }
 button.azul { background: var(--primary); color: #fff; }
 button.azul:hover { background: #2563eb; }
+button.verde { background: var(--success); color: #fff; }
+button.verde:hover { background: #059669; }
 .acciones-form { display: flex; gap: 8px; flex-wrap: wrap; }
 .search-box {
   width: 100%; padding: 12px 16px; margin-bottom: 14px; font-size: 14px;
@@ -166,6 +169,31 @@ button.azul:hover { background: #2563eb; }
 #btnExportar { background: #1d4ed8; color: #fff; }
 body.admin #btnNueva { display: inline-flex; }
 body.admin #btnExportar { display: inline-block; }
+.rep-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; align-items:stretch; }
+.rep-cards > .vacio { grid-column:1 / -1; border:1px dashed var(--border-color); border-radius:12px; }
+.rep-card { position:relative; overflow:hidden; display:flex; flex-direction:column; gap:12px; padding:16px; border:1px solid #2e2e33; border-radius:14px; background:linear-gradient(160deg,#1c1c21 0%,#141417 100%); color:#e5e7eb; font-size:12px; box-shadow:0 6px 18px rgba(0,0,0,.35); transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease; }
+.rep-card::before { content:""; position:absolute; inset:0 0 auto 0; height:4px; background:linear-gradient(90deg,#10b981,#34d399); }
+.rep-card.no-pagado::before { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+.rep-card:hover { transform:translateY(-3px); border-color:#3f3f46; box-shadow:0 12px 26px rgba(0,0,0,.45); }
+.rep-top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+.rep-badges { display:flex; flex-direction:column; align-items:flex-end; gap:5px; }
+.rep-estado { background:#1e293b; color:#cbd5e1; }
+.rep-cliente { display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; }
+.rep-cliente strong { font-size:15px; color:#fff; }
+.rep-cliente span { color:var(--text-muted); font-size:12px; }
+.rep-info { display:flex; flex-direction:column; gap:6px; padding:10px 12px; border-radius:10px; background:#0f0f12; border:1px solid #232328; }
+.rep-row { display:flex; justify-content:space-between; gap:12px; color:var(--text-muted); }
+.rep-row b { color:#e5e7eb; font-weight:600; text-align:right; word-break:break-word; }
+.rep-row code { color:#e5e7eb; font-size:12px; }
+.rep-precios { display:grid; grid-template-columns:repeat(auto-fit,minmax(80px,1fr)); gap:8px; }
+.rep-precio { display:flex; flex-direction:column; gap:2px; padding:8px 10px; border-radius:9px; background:#18181b; border:1px solid #26262b; }
+.rep-precio span { font-size:9px; text-transform:uppercase; letter-spacing:.08em; color:#64748b; font-weight:700; }
+.rep-precio strong { font-size:14px; font-variant-numeric:tabular-nums; color:#e2e8f0; }
+.rep-precio.cliente strong { color:#34d399; }
+.rep-card.no-pagado .rep-precio.cliente strong { color:#fbbf24; }
+.rep-precio.ganancia strong { color:#60a5fa; }
+.rep-acciones { margin-top:auto; display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.rep-acciones button { width:100%; padding:8px 6px; font-size:11.5px; border-radius:8px; }
 .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
 table { width: 100%; table-layout: auto; border-collapse: collapse; }
 th, td {
@@ -176,7 +204,9 @@ th { background: #202024; color: #f1f5f9; font-weight: 600; text-transform: uppe
 tr:nth-child(even) { background: #121214; }
 .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .vacio { text-align: center; color: var(--text-muted); padding: 24px; font-style: italic; }
-td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center; }
+td.celda-acc { width: 196px; min-width: 196px; text-align: center; padding-left: 4px; padding-right: 4px; }
+td.celda-acc .acc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 188px; margin: 0 auto; }
+td.celda-acc button { white-space: nowrap; width: 100%; padding: 5px 4px; }
 .hora-txt { color: #94a3b8; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .badge {
   display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase;
@@ -229,7 +259,42 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
 .modal-buttons button { padding: 8px 14px; font-size: 12px; width: 100%; }
 .btn-gris { background: #3f3f46; color: #fff; }
 .btn-azul { background: var(--primary); color: #fff; }
-#scannerContainer { display: none; margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); max-width: 350px; position: relative; }
+.scanner-box { display:none; margin-top:12px; max-width:440px; border-radius:14px; overflow:hidden; border:1px solid #2e2e33; background:linear-gradient(160deg,#1a1a1f 0%,#121215 100%); box-shadow:0 10px 28px rgba(0,0,0,.45); }
+.scanner-box [hidden] { display:none !important; }
+.scanner-head { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid #26262b; }
+.scanner-title { display:flex; align-items:center; gap:8px; font-size:11px; font-weight:800; color:#f8fafc; letter-spacing:.06em; text-transform:uppercase; }
+.scanner-dot { width:8px; height:8px; border-radius:50%; background:#52525b; }
+.scanner-box.scanning .scanner-dot { background:#ef4444; animation:scanPulse 1.4s infinite; }
+.scanner-box.scan-ok .scanner-dot { background:#10b981; animation:none; }
+.scanner-tip { font-size:10px; color:var(--text-muted); }
+.scan-stage { position:relative; height:260px; background:#000; overflow:hidden; }
+.scan-stage > div[id^="qrReader"] { position:absolute; inset:0; }
+.scan-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+.scan-idle { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:#94a3b8; font-size:12px; background:radial-gradient(circle at 50% 40%,#1e293b 0%,#09090b 75%); z-index:3; }
+.scan-bars { width:160px; height:50px; border-radius:4px; opacity:.55; background:repeating-linear-gradient(90deg,#e5e7eb 0 2px,transparent 2px 4px,#e5e7eb 4px 7px,transparent 7px 9px,#e5e7eb 9px 10px,transparent 10px 13px); }
+.scanner-box.scanning .scan-idle, .scanner-box.scan-ok .scan-idle { display:none; }
+.scan-frame { display:none; position:absolute; left:4%; right:4%; top:25%; bottom:25%; border-radius:10px; box-shadow:0 0 0 9999px rgba(0,0,0,.45); z-index:4; pointer-events:none; }
+.scanner-box.scanning .scan-frame, .scanner-box.scan-ok .scan-frame { display:block; }
+.scan-frame i { position:absolute; width:26px; height:26px; border:3px solid #3b82f6; transition:border-color .2s ease; }
+.scan-frame i:nth-child(1) { top:-2px; left:-2px; border-right:0; border-bottom:0; border-top-left-radius:10px; }
+.scan-frame i:nth-child(2) { top:-2px; right:-2px; border-left:0; border-bottom:0; border-top-right-radius:10px; }
+.scan-frame i:nth-child(3) { bottom:-2px; left:-2px; border-right:0; border-top:0; border-bottom-left-radius:10px; }
+.scan-frame i:nth-child(4) { bottom:-2px; right:-2px; border-left:0; border-top:0; border-bottom-right-radius:10px; }
+.scan-laser { position:absolute; left:3%; right:3%; top:50%; height:2px; background:#ef4444; box-shadow:0 0 10px 2px rgba(239,68,68,.8); animation:scanLaser 1.8s ease-in-out infinite; }
+.scanner-box.scan-ok .scan-frame i { border-color:#10b981; }
+.scanner-box.scan-ok .scan-laser { top:50%; background:#10b981; box-shadow:0 0 12px 3px rgba(16,185,129,.9); animation:none; }
+.scanner-box.scan-ok .scan-frame { box-shadow:0 0 0 9999px rgba(6,78,59,.45); }
+@keyframes scanLaser { 0%,100% { top:12%; } 50% { top:88%; } }
+@keyframes scanPulse { 0% { box-shadow:0 0 0 0 rgba(239,68,68,.6); } 70% { box-shadow:0 0 0 8px rgba(239,68,68,0); } 100% { box-shadow:0 0 0 0 rgba(239,68,68,0); } }
+.scan-zoom { display:flex; align-items:center; gap:10px; padding:10px 14px 0; font-size:11px; color:#cbd5e1; }
+.scan-zoom input[type=range] { flex:1; width:auto; padding:0; margin:0; border:none; background:none; accent-color:#3b82f6; }
+.scanner-hint { padding:10px 14px; font-size:11.5px; color:#94a3b8; text-align:center; line-height:1.4; }
+.scanner-hint.ok { color:#34d399; font-weight:700; }
+.scanner-hint.warn { color:#fbbf24; }
+.scanner-actions { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; padding:0 14px 14px; }
+.scanner-actions button { padding:10px 12px; font-size:12px; border-radius:9px; font-weight:700; }
+.scanner-actions .scan-main { grid-column:1 / -1; }
+.scanner-actions button.activa { background:#f59e0b; color:#111; }
 #scannerVideo { width: 100%; height: auto; display: block; background: #000; }
 
 /* PESTAÑAS Y MÓDULO DE VENTAS */
@@ -248,7 +313,7 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
 .sales-table { margin-top:18px; }
 .receipt-actions { display:flex; gap:6px; flex-wrap:wrap; }
 .payment-notice{margin:10px 0;padding:12px 14px;border:1px solid #f59e0b;background:#3b2506;color:#fff7ed;border-radius:9px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px}.payment-notice span{flex:1;min-width:240px}.payment-notice button{white-space:nowrap}
-.payment-summary{margin:12px 0 18px;padding:14px;border:1px solid var(--border-color);border-radius:10px;background:#121214}.payment-summary-head{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:#f8fafc}.payment-summary-head span{font-size:11px;color:var(--text-muted)}.payment-filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.payment-filters select{background:#18181b;color:#e5e7eb;border:1px solid #3f3f46;border-radius:6px;padding:7px}.payment-totals{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}.payment-card{padding:9px 12px;border-radius:7px;background:#1f2937;color:#e5e7eb;font-size:12px}.payment-detail{margin-top:10px;overflow:auto}.payment-detail table{width:100%;font-size:12px;border-collapse:collapse}.payment-detail th,.payment-detail td{padding:7px;border-bottom:1px solid #27272a;text-align:left}.payment-detail th{color:#93c5fd}
+.payment-summary{margin:12px 0 18px;padding:14px;border:1px solid var(--border-color);border-radius:10px;background:#121214}.payment-summary-head{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:#f8fafc}.payment-summary-head span{font-size:11px;color:var(--text-muted)}.payment-filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.payment-filters select{background:#18181b;color:#e5e7eb;border:1px solid #3f3f46;border-radius:6px;padding:7px}.payment-totals{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}.payment-card{padding:9px 12px;border-radius:7px;background:#1f2937;color:#e5e7eb;font-size:12px}.payment-detail{margin-top:10px;overflow:auto}.payment-detail table{width:100%;font-size:12px;border-collapse:collapse}.payment-detail th,.payment-detail td{padding:7px;border-bottom:1px solid #27272a;text-align:left}.payment-detail th{color:#93c5fd}.payment-summary-head{align-items:center}.payment-summary-head .payment-close{margin-left:auto}.pay-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-top:14px;align-items:stretch}.pay-card{position:relative;overflow:hidden;padding:16px;border:1px solid #2e2e33;border-radius:14px;background:linear-gradient(160deg,#1c1c21 0%,#141417 100%);color:#e5e7eb;font-size:12px;display:flex;flex-direction:column;gap:12px;box-shadow:0 6px 18px rgba(0,0,0,.35);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}.pay-card::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:linear-gradient(90deg,#10b981,#34d399)}.pay-card.no-pagado::before{background:linear-gradient(90deg,#f59e0b,#fbbf24)}.pay-card:hover{transform:translateY(-3px);border-color:#3f3f46;box-shadow:0 12px 26px rgba(0,0,0,.45)}.pay-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.pay-date{display:flex;align-items:center;gap:10px}.pay-date-day{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:52px;padding:6px 8px;border-radius:10px;background:#1e3a8a;color:#fff;line-height:1}.pay-date-day b{font-size:22px;font-weight:800}.pay-date-day small{font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-top:3px;color:#bfdbfe}.pay-date-text{display:flex;flex-direction:column;gap:2px}.pay-date-text strong{font-size:14px;color:#f8fafc}.pay-date-text span{color:var(--text-muted);font-size:11px}.pay-status{padding:4px 10px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;background:#052e26;color:#34d399;border:1px solid #065f46}.pay-card.no-pagado .pay-status{background:#422006;color:#fbbf24;border-color:#92400e}.pay-card-name{font-size:15px;font-weight:700;color:#fff}.pay-card-info{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:10px;background:#0f0f12;border:1px solid #232328}.pay-card-row{display:flex;justify-content:space-between;gap:10px;color:var(--text-muted)}.pay-card-row b{color:#e5e7eb;font-weight:600;text-align:right}.pay-card-amount{margin-top:auto;display:flex;justify-content:space-between;align-items:baseline;padding-top:2px}.pay-card-amount span{color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}.pay-card-amount strong{font-size:20px;font-weight:800;color:#34d399}.pay-card.no-pagado .pay-card-amount strong{color:#fbbf24}
 
 /* Ajuste visual solicitado para el pie */
 .wm-label{color:#fff!important;font-size:11px!important;font-weight:600!important;letter-spacing:.12em!important}
@@ -302,26 +367,37 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
     <input type="hidden" id="deviceCategory">
     <input type="hidden" id="mobileOS">
 
-    <div class="menu-dispositivo" id="menuDispositivo">
-      <span class="menu-titulo">1 · Tipo de equipo (opcional: se detecta con el IMEI)</span>
-      <button type="button" class="opcion-dispositivo" data-tipo="Android"><span class="od-icono" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="currentColor"><path d="M10.1 12.1h11.8a3.1 3.1 0 0 1 3.1 3.1v8.7a3.1 3.1 0 0 1-3.1 3.1H10.1A3.1 3.1 0 0 1 7 23.9v-8.7a3.1 3.1 0 0 1 3.1-3.1Z"/><path d="M10.1 11.7c.8-3.1 3.1-5 5.9-5s5.1 1.9 5.9 5H10.1Z"/><rect x="3.9" y="14" width="3.1" height="10.7" rx="1.55"/><rect x="25" y="14" width="3.1" height="10.7" rx="1.55"/><rect x="10.2" y="24" width="3.4" height="6" rx="1.7"/><rect x="18.4" y="24" width="3.4" height="6" rx="1.7"/><path d="m11.7 7.7-1.8-3.1a.8.8 0 0 1 1.4-.8l1.8 3.1m7.2.8 1.8-3.1a.8.8 0 1 0-1.4-.8l-1.8 3.1"/></g><circle cx="12.8" cy="10.7" r=".8" fill="#202024"/><circle cx="19.2" cy="10.7" r=".8" fill="#202024"/></svg></span><span>android</span></button>
-      <button type="button" class="opcion-dispositivo" data-tipo="iPhone"><span class="od-icono" aria-hidden="true"><svg viewBox="0 0 32 32"><path fill="currentColor" d="M20.7 5.1c.8-1 1.4-2.4 1.2-3.8-1.3.1-2.8.9-3.7 1.9-.8.9-1.5 2.3-1.3 3.6 1.4.1 2.9-.7 3.8-1.7ZM25 17.1c0-3.1 2.5-4.7 2.6-4.8-1.4-2.1-3.6-2.4-4.4-2.4-1.9-.2-3.7 1.1-4.7 1.1-1 0-2.5-1.1-4.1-1.1-2.1 0-4 1.2-5.1 3.1-2.2 3.8-.6 9.5 1.5 12.6 1 1.5 2.2 3.2 3.8 3.1 1.5-.1 2.1-1 4-1s2.4 1 4 1c1.7 0 2.8-1.5 3.8-3.1 1.2-1.7 1.7-3.4 1.7-3.5-.1 0-3.1-1.2-3.1-5Z"/></svg></span><span>apple</span></button>
-      <button type="button" class="opcion-dispositivo" data-tipo="PC"><span class="od-icono">💻</span><span>pc/laptop</span></button>
-    </div>
-
     <div id="seccionIMEI" class="seccion-reparaciones" style="background:#121214; display:block;">
-      <label class="titulo-grupo" for="imeiInput">2 · IMEI del dispositivo — Escribe o escanea y se completa solo</label>
+      <label class="titulo-grupo" for="imeiInput">1 · IMEI del dispositivo — Escribe o escanea y el equipo se elige solo</label>
       <div class="imei-tools" style="display: flex; gap: 8px;">
         <input type="text" id="imeiInput" placeholder="IMEI de 15 dígitos" maxlength="15" minlength="15" pattern="\d{15}" inputmode="numeric" required autocomplete="off" style="flex:1;">
         <button type="button" class="azul" id="btnEscanear">📷 Escanear código de barras</button>
       </div>
-      <div id="scannerContainer">
-        <div id="qrReader" aria-label="Lector de códigos de barras para iPhone y Android"></div>
-        <div id="scannerHint" style="font-size:11px;color:var(--text-muted);padding:8px;text-align:center;">Apunta al código de barras del IMEI</div>
-        <button type="button" class="mini azul" id="btnAbrirCamara" style="width:100%; margin-top:5px;">📷 Abrir cámara</button>
-        <button type="button" class="mini rojo" id="btnCerrarCamara" style="width:100%; margin-top:5px;">Cerrar Cámara</button>
+      <div id="scannerContainer" class="scanner-box">
+        <div class="scanner-head"><span class="scanner-title"><span class="scanner-dot"></span>Escáner de IMEI</span><span class="scanner-tip">Código de barras · 15 dígitos</span></div>
+        <div class="scan-stage">
+          <div id="qrReader" aria-label="Lector de códigos de barras para iPhone y Android"></div>
+          <div class="scan-idle"><div class="scan-bars"></div><span>Toca «Abrir cámara» o elige una foto</span></div>
+          <div class="scan-frame"><i></i><i></i><i></i><i></i><div class="scan-laser"></div></div>
+        </div>
+        <div class="scan-zoom" id="zoomBox" hidden><span>🔍 Zoom</span><input type="range" id="zoomImei" min="1" max="1" step="0.1" value="1" aria-label="Zoom de la cámara"></div>
+        <div id="scannerHint" class="scanner-hint">Pon el código de barras del IMEI dentro del recuadro, horizontal y a unos 10–15 cm.</div>
+        <div class="scanner-actions">
+          <button type="button" class="azul scan-main" id="btnAbrirCamara">📷 Abrir cámara</button>
+          <button type="button" class="gris" id="btnLinterna" hidden>🔦 Linterna</button>
+          <button type="button" class="gris" id="btnFotoImei">🖼️ Desde foto</button>
+          <button type="button" class="rojo" id="btnCerrarCamara">✕ Cerrar</button>
+          <input type="file" id="fotoImei" accept="image/*" hidden>
+        </div>
       </div>
       <div id="tacReparacionStatus" style="font-size: 10px; color: var(--text-muted); margin-top: 4px; min-height: 14px;">Los datos sugeridos se pueden corregir manualmente antes de guardar.</div>
+    </div>
+
+    <div class="menu-dispositivo" id="menuDispositivo">
+      <span class="menu-titulo">2 · Tipo de equipo (se elige solo con el IMEI, o tócalo tú)</span>
+      <button type="button" class="opcion-dispositivo" data-tipo="Android"><span class="od-icono" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="currentColor"><path d="M10.1 12.1h11.8a3.1 3.1 0 0 1 3.1 3.1v8.7a3.1 3.1 0 0 1-3.1 3.1H10.1A3.1 3.1 0 0 1 7 23.9v-8.7a3.1 3.1 0 0 1 3.1-3.1Z"/><path d="M10.1 11.7c.8-3.1 3.1-5 5.9-5s5.1 1.9 5.9 5H10.1Z"/><rect x="3.9" y="14" width="3.1" height="10.7" rx="1.55"/><rect x="25" y="14" width="3.1" height="10.7" rx="1.55"/><rect x="10.2" y="24" width="3.4" height="6" rx="1.7"/><rect x="18.4" y="24" width="3.4" height="6" rx="1.7"/><path d="m11.7 7.7-1.8-3.1a.8.8 0 0 1 1.4-.8l1.8 3.1m7.2.8 1.8-3.1a.8.8 0 1 0-1.4-.8l-1.8 3.1"/></g><circle cx="12.8" cy="10.7" r=".8" fill="#202024"/><circle cx="19.2" cy="10.7" r=".8" fill="#202024"/></svg></span><span>android</span></button>
+      <button type="button" class="opcion-dispositivo" data-tipo="iPhone"><span class="od-icono" aria-hidden="true"><svg viewBox="0 0 32 32"><path fill="currentColor" d="M20.7 5.1c.8-1 1.4-2.4 1.2-3.8-1.3.1-2.8.9-3.7 1.9-.8.9-1.5 2.3-1.3 3.6 1.4.1 2.9-.7 3.8-1.7ZM25 17.1c0-3.1 2.5-4.7 2.6-4.8-1.4-2.1-3.6-2.4-4.4-2.4-1.9-.2-3.7 1.1-4.7 1.1-1 0-2.5-1.1-4.1-1.1-2.1 0-4 1.2-5.1 3.1-2.2 3.8-.6 9.5 1.5 12.6 1 1.5 2.2 3.2 3.8 3.1 1.5-.1 2.1-1 4-1s2.4 1 4 1c1.7 0 2.8-1.5 3.8-3.1 1.2-1.7 1.7-3.4 1.7-3.5-.1 0-3.1-1.2-3.1-5Z"/></svg></span><span>apple</span></button>
+      <button type="button" class="opcion-dispositivo" data-tipo="PC"><span class="od-icono">💻</span><span>pc/laptop</span></button>
     </div>
 
     <div id="seccionIphoneSpecs" class="seccion-reparaciones" style="background:#121214; display:none;">
@@ -392,21 +468,17 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
       <div class="form-row">
         <input type="text" id="androidBrand" placeholder="Marca">
         <input type="text" id="androidModel" placeholder="Modelo">
-        <select id="androidColor"><option value="Negro">Negro</option><option value="Azul">Azul</option><option value="Plata">Plata</option></select>
+        <select id="androidColor"><option value="">Seleccione color</option><option value="Negro">Negro</option><option value="Blanco">Blanco</option><option value="Gris">Gris</option><option value="Grafito">Grafito</option><option value="Plata">Plata</option><option value="Titanio">Titanio</option><option value="Azul">Azul</option><option value="Azul oscuro">Azul oscuro</option><option value="Azul cielo">Azul cielo</option><option value="Celeste">Celeste</option><option value="Verde">Verde</option><option value="Verde menta">Verde menta</option><option value="Verde oliva">Verde oliva</option><option value="Rojo">Rojo</option><option value="Vino">Vino</option><option value="Rosa">Rosa</option><option value="Morado">Morado</option><option value="Lila">Lila</option><option value="Lavanda">Lavanda</option><option value="Dorado">Dorado</option><option value="Bronce">Bronce</option><option value="Cobre">Cobre</option><option value="Crema">Crema</option><option value="Beige">Beige</option><option value="Café">Café</option><option value="Naranja">Naranja</option><option value="Amarillo">Amarillo</option><option value="Coral">Coral</option><option value="Turquesa">Turquesa</option><option value="Multicolor">Multicolor</option><option value="Otro">Otro</option></select>
       </div>
     </div>
 
     <div id="seccionPCSpecs" class="seccion-reparaciones" style="background:#121214; display:none;">
       <label class="titulo-grupo">3 · PC (editables):</label>
       <div class="form-row">
-        <input type="text" id="pcBrand" placeholder="Marca de la computadora" list="pcBrandOptions" autocomplete="off">
-        <datalist id="pcBrandOptions">
-          <option value="Acer"><option value="Alienware"><option value="Apple"><option value="ASUS"><option value="Dell"><option value="Gigabyte"><option value="HP"><option value="Huawei"><option value="Lenovo"><option value="LG"><option value="Microsoft"><option value="MSI"><option value="Razer"><option value="Samsung"><option value="Toshiba"><option value="Xiaomi"><option value="Otra marca">
-        </datalist>
+        <select id="pcBrand"><option value="">💻 Marca de la PC</option><option value="HP">HP</option><option value="Dell">Dell</option><option value="Lenovo">Lenovo</option><option value="ASUS">ASUS</option><option value="Acer">Acer</option><option value="Apple (MacBook / iMac)">Apple (MacBook / iMac)</option><option value="Microsoft Surface">Microsoft Surface</option><option value="Samsung">Samsung</option><option value="Toshiba">Toshiba</option><option value="MSI">MSI</option><option value="Huawei">Huawei</option><option value="Xiaomi">Xiaomi</option><option value="LG">LG</option><option value="Gigabyte">Gigabyte</option><option value="Alienware">Alienware</option><option value="Razer">Razer</option><option value="Sony VAIO">Sony VAIO</option><option value="Fujitsu">Fujitsu</option><option value="Panasonic">Panasonic</option><option value="Compaq">Compaq</option><option value="Gateway">Gateway</option><option value="Chuwi">Chuwi</option><option value="Medion">Medion</option><option value="Armada / Clon">Armada / Clon</option><option value="Otra">Otra marca…</option></select>
+        <input type="text" id="pcBrandOtra" placeholder="Escribe la marca" maxlength="40" autocomplete="off" style="display:none;">
         <input type="text" id="pcModel" placeholder="Modelo">
-        <select id="pcColor">
-          <option value="">Seleccione color</option><option value="Negro">Negro</option><option value="Gris">Gris</option><option value="Blanco">Blanco</option><option value="Plata">Plata</option><option value="Azul">Azul</option><option value="Rojo">Rojo</option><option value="Verde">Verde</option><option value="Dorado">Dorado</option><option value="Rosa">Rosa</option><option value="Morado">Morado</option><option value="Otro">Otro</option>
-        </select>
+        <select id="pcColor"><option value="">Seleccione color</option><option value="Negro">Negro</option><option value="Gris">Gris</option><option value="Gris espacial">Gris espacial</option><option value="Grafito">Grafito</option><option value="Plata">Plata</option><option value="Blanco">Blanco</option><option value="Azul">Azul</option><option value="Azul oscuro">Azul oscuro</option><option value="Azul marino">Azul marino</option><option value="Celeste">Celeste</option><option value="Verde">Verde</option><option value="Verde oscuro">Verde oscuro</option><option value="Rojo">Rojo</option><option value="Vino">Vino</option><option value="Rosa">Rosa</option><option value="Oro rosa">Oro rosa</option><option value="Morado">Morado</option><option value="Lila">Lila</option><option value="Dorado">Dorado</option><option value="Champán">Champán</option><option value="Bronce">Bronce</option><option value="Cobre">Cobre</option><option value="Beige">Beige</option><option value="Naranja">Naranja</option><option value="Amarillo">Amarillo</option><option value="Transparente / RGB">Transparente / RGB</option><option value="Camuflaje">Camuflaje</option><option value="Otro">Otro</option></select>
       </div>
     </div>
 
@@ -453,12 +525,11 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
   <input type="search" id="searchBox" class="search-box" placeholder="🔍 Buscar..." autocomplete="off">
 
   <section id="resumenQuincenal" class="solo-admin payment-summary" style="display:none;">
-    <div class="payment-summary-head"><strong>Pagos por quincena</strong><span>Registros ordenados por año, mes y período</span></div>
+    <div class="payment-summary-head"><strong>Pagos</strong><span>Registros ordenados por fecha</span><button type="button" class="mini gris payment-close" id="btnCerrarPagos" onclick="cerrarMenuPagos()" aria-label="Cerrar pagos">✕ Cerrar</button></div>
     <div class="payment-filters">
       <select id="filtroAnio"><option value="todos">Todos los años</option></select>
       <select id="filtroMes"><option value="todos">Todos los meses</option></select>
-      <select id="filtroQuincena"><option value="todos">Ambas quincenas</option><option value="1">Del 1 al 15</option><option value="2">Del 16 al último día</option></select>
-    </div>
+          </div>
     <div id="totalesQuincena" class="payment-totals"></div>
     <div id="detalleQuincena" class="payment-detail"></div>
   </section>
@@ -470,19 +541,7 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
     <button type="button" class="mini solo-admin" id="btnNueva">➕ Nueva reparación</button>
   </div>
 
-  <div class="table-responsive repair-only">
-    <table id="tabla">
-      <thead>
-        <tr>
-          <th>Cliente</th><th>Teléfono</th><th>Técnico</th><th>Dispositivo</th><th>IMEI</th><th>Color</th><th>Servicios</th>
-          <th>Estado</th><th>Pago</th><th class="num">Compra</th><th class="num">Cliente</th>
-          <th class="num solo-admin">Ganancia</th><th class="solo-admin">Producción / Reparto</th><th>Nota</th><th>Fecha / Hora</th>
-          <th class="solo-admin" style="text-align:center;">Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="inventoryTable"></tbody>
-    </table>
-  </div>
+  <div class="rep-cards repair-only" id="inventoryTable" aria-label="Registros de reparaciones"></div>
 
   <div class="totales solo-admin repair-only" id="totalesBox">
     <div class="tot-item"><span class="tot-et">Registros</span><span class="tot-val" id="totCount">0</span></div>
@@ -498,33 +557,48 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
     <div class="sales-heading">
       <div><h2 id="salesTitle">Ventas y caja</h2><p>Registra teléfonos y accesorios vendidos, sin mezclar las reparaciones.</p></div>
     </div>
-    <div class="sales-device-type" id="salesDeviceType">
-      <div class="sales-type-title">1 · TIPO DE EQUIPO</div>
-      <div class="sales-type-grid">
-        <button type="button" class="sales-type-option activa" data-sale-type="Android"><span class="od-icono" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="currentColor"><path d="M10.1 12.1h11.8a3.1 3.1 0 0 1 3.1 3.1v8.7a3.1 3.1 0 0 1-3.1 3.1H10.1A3.1 3.1 0 0 1 7 23.9v-8.7a3.1 3.1 0 0 1 3.1-3.1Z"/><path d="M10.1 11.7c.8-3.1 3.1-5 5.9-5s5.1 1.9 5.9 5H10.1Z"/><rect x="3.9" y="14" width="3.1" height="10.7" rx="1.55"/><rect x="25" y="14" width="3.1" height="10.7" rx="1.55"/><rect x="10.2" y="24" width="3.4" height="6" rx="1.7"/><rect x="18.4" y="24" width="3.4" height="6" rx="1.7"/><path d="m11.7 7.7-1.8-3.1a.8.8 0 0 1 1.4-.8l1.8 3.1m7.2.8 1.8-3.1a.8.8 0 1 0-1.4-.8l-1.8 3.1"/></g><circle cx="12.8" cy="10.7" r=".8" fill="#202024"/><circle cx="19.2" cy="10.7" r=".8" fill="#202024"/></svg></span><span>android</span></button>
-        <button type="button" class="sales-type-option" data-sale-type="iPhone"><span class="od-icono" aria-hidden="true"><svg viewBox="0 0 32 32"><path fill="currentColor" d="M20.7 5.1c.8-1 1.4-2.4 1.2-3.8-1.3.1-2.8.9-3.7 1.9-.8.9-1.5 2.3-1.3 3.6 1.4.1 2.9-.7 3.8-1.7ZM25 17.1c0-3.1 2.5-4.7 2.6-4.8-1.4-2.1-3.6-2.4-4.4-2.4-1.9-.2-3.7 1.1-4.7 1.1-1 0-2.5-1.1-4.1-1.1-2.1 0-4 1.2-5.1 3.1-2.2 3.8-.6 9.5 1.5 12.6 1 1.5 2.2 3.2 3.8 3.1 1.5-.1 2.1-1 4-1s2.4 1 4 1c1.7 0 2.8-1.5 3.8-3.1 1.2-1.7 1.7-3.4 1.7-3.5-.1 0-3.1-1.2-3.1-5Z"/></svg></span><span>apple</span></button>
-        <button type="button" class="sales-type-option" data-sale-type="PC">💻<span>pc/laptop</span></button>
-      </div>
-      <input type="hidden" id="saleDeviceType" value="Android">
-    </div>
     <form id="salesForm" autocomplete="off" novalidate>
+      <div class="sales-device-type" id="salesImeiBox">
+        <div class="sales-type-title">1 · IMEI DEL TELÉFONO — ESCRIBE O ESCANEA Y SE COMPLETA SOLO</div>
+        <div style="display:flex;gap:8px;align-items:center"><input type="text" id="saleImei" placeholder="IMEI del teléfono (15 dígitos)" maxlength="15" minlength="15" pattern="\d{15}" inputmode="numeric" required style="flex:1"><button type="button" class="mini azul" id="btnEscanearVenta">📷 Código de barras</button></div>
+        <div id="tacVentaStatus" style="font-size:10px;color:var(--text-muted);margin-top:4px;min-height:14px"></div>
+        <div id="scannerContainerVenta" class="scanner-box">
+        <div class="scanner-head"><span class="scanner-title"><span class="scanner-dot"></span>Escáner de IMEI</span><span class="scanner-tip">Código de barras · 15 dígitos</span></div>
+        <div class="scan-stage">
+          <div id="qrReaderVenta" aria-label="Lector de códigos de barras para iPhone y Android para ventas"></div>
+          <div class="scan-idle"><div class="scan-bars"></div><span>Toca «Abrir cámara» o elige una foto</span></div>
+          <div class="scan-frame"><i></i><i></i><i></i><i></i><div class="scan-laser"></div></div>
+        </div>
+        <div class="scan-zoom" id="zoomBoxVenta" hidden><span>🔍 Zoom</span><input type="range" id="zoomImeiVenta" min="1" max="1" step="0.1" value="1" aria-label="Zoom de la cámara"></div>
+        <div id="scannerHintVenta" class="scanner-hint">Pon el código de barras del IMEI dentro del recuadro, horizontal y a unos 10–15 cm.</div>
+        <div class="scanner-actions">
+          <button type="button" class="azul scan-main" id="btnAbrirCamaraVenta">📷 Abrir cámara</button>
+          <button type="button" class="gris" id="btnLinternaVenta" hidden>🔦 Linterna</button>
+          <button type="button" class="gris" id="btnFotoImeiVenta">🖼️ Desde foto</button>
+          <button type="button" class="rojo" id="btnCerrarCamaraVenta">✕ Cerrar</button>
+          <input type="file" id="fotoImeiVenta" accept="image/*" hidden>
+        </div>
+      </div>
+      </div>
+      <div class="sales-device-type" id="salesDeviceType">
+        <div class="sales-type-title">2 · TIPO DE EQUIPO (SE ELIGE SOLO CON EL IMEI)</div>
+        <div class="sales-type-grid">
+          <button type="button" class="sales-type-option activa" data-sale-type="Android"><span class="od-icono" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="currentColor"><path d="M10.1 12.1h11.8a3.1 3.1 0 0 1 3.1 3.1v8.7a3.1 3.1 0 0 1-3.1 3.1H10.1A3.1 3.1 0 0 1 7 23.9v-8.7a3.1 3.1 0 0 1 3.1-3.1Z"/><path d="M10.1 11.7c.8-3.1 3.1-5 5.9-5s5.1 1.9 5.9 5H10.1Z"/><rect x="3.9" y="14" width="3.1" height="10.7" rx="1.55"/><rect x="25" y="14" width="3.1" height="10.7" rx="1.55"/><rect x="10.2" y="24" width="3.4" height="6" rx="1.7"/><rect x="18.4" y="24" width="3.4" height="6" rx="1.7"/><path d="m11.7 7.7-1.8-3.1a.8.8 0 0 1 1.4-.8l1.8 3.1m7.2.8 1.8-3.1a.8.8 0 1 0-1.4-.8l-1.8 3.1"/></g><circle cx="12.8" cy="10.7" r=".8" fill="#202024"/><circle cx="19.2" cy="10.7" r=".8" fill="#202024"/></svg></span><span>android</span></button>
+          <button type="button" class="sales-type-option" data-sale-type="iPhone"><span class="od-icono" aria-hidden="true"><svg viewBox="0 0 32 32"><path fill="currentColor" d="M20.7 5.1c.8-1 1.4-2.4 1.2-3.8-1.3.1-2.8.9-3.7 1.9-.8.9-1.5 2.3-1.3 3.6 1.4.1 2.9-.7 3.8-1.7ZM25 17.1c0-3.1 2.5-4.7 2.6-4.8-1.4-2.1-3.6-2.4-4.4-2.4-1.9-.2-3.7 1.1-4.7 1.1-1 0-2.5-1.1-4.1-1.1-2.1 0-4 1.2-5.1 3.1-2.2 3.8-.6 9.5 1.5 12.6 1 1.5 2.2 3.2 3.8 3.1 1.5-.1 2.1-1 4-1s2.4 1 4 1c1.7 0 2.8-1.5 3.8-3.1 1.2-1.7 1.7-3.4 1.7-3.5-.1 0-3.1-1.2-3.1-5Z"/></svg></span><span>apple</span></button>
+          <button type="button" class="sales-type-option" data-sale-type="PC">💻<span>pc/laptop</span></button>
+        </div>
+        <input type="hidden" id="saleDeviceType" value="Android">
+      </div>
       <div class="form-row">
         <input type="text" id="saleBuyer" placeholder="Nombre del comprador" maxlength="80" required>
         <input type="tel" id="salePhone" placeholder="Número de teléfono del cliente" maxlength="20" required>
       </div>
       <div class="form-row">
-        <div style="display:flex;gap:8px;align-items:center"><input type="text" id="saleImei" placeholder="IMEI del teléfono (15 dígitos)" maxlength="15" minlength="15" pattern="\d{15}" inputmode="numeric" required><button type="button" class="mini azul" id="btnEscanearVenta">📷 Código de barras</button></div>
-        <div><input type="text" id="saleModel" placeholder="Modelo del teléfono o accesorio" maxlength="100" required><div id="tacVentaStatus" style="font-size:10px;color:var(--text-muted);margin-top:4px;min-height:14px"></div></div>
+        <input type="text" id="saleModel" placeholder="Modelo del teléfono o accesorio" maxlength="100" required>
       </div>
       <div class="form-row">
         <select id="saleColor"><option value="">Color del teléfono</option><option>Negro</option><option>Blanco</option><option>Azul</option><option>Rojo</option><option>Verde</option><option>Morado</option><option>Rosa</option><option>Plata</option><option>Dorado</option><option>Gris</option><option>Otro</option></select>
         <select id="saleCapacity"><option value="">Capacidad</option><option>16 GB</option><option>32 GB</option><option>64 GB</option><option>128 GB</option><option>256 GB</option><option>512 GB</option><option>1 TB</option><option>2 TB</option></select>
-      </div>
-      <div id="scannerContainerVenta" style="display:none;margin:10px 0;border-radius:8px;overflow:hidden;border:1px solid var(--border-color);max-width:350px;position:relative">
-        <div id="qrReaderVenta" aria-label="Lector de códigos de barras para iPhone y Android para ventas"></div>
-        <div style="font-size:11px;color:var(--text-muted);padding:8px;text-align:center">Apunta al código de barras del IMEI</div>
-        <button type="button" class="mini azul" id="btnAbrirCamaraVenta" style="width:100%;margin-top:5px">📷 Abrir cámara</button>
-        <button type="button" class="mini rojo" id="btnCerrarCamaraVenta" style="width:100%;margin-top:5px">Cerrar Cámara</button>
       </div>
       <div class="form-row">
         <select id="saleSeller" required>
@@ -769,94 +843,301 @@ document.getElementById('imeiInput').addEventListener('input', function(e) {
   tacTimer = setTimeout(() => consultarTACRemoto(e.target.value, 'reparacion'), 350);
 });
 
-// --- LECTOR QR/IMEI COMPATIBLE CON MÓVILES, SAFARI Y PC ---
+// --- LECTOR DE IMEI (cámara y foto) COMPATIBLE CON MÓVILES, SAFARI Y PC ---
 let qrScanner = null;
 let scannerTargetInput = 'imeiInput';
 let scannerFileTarget = 'imeiInput';
 let codigoDetectado = false;
+let ultimoCodigoLeido = '', lecturasIguales = 0, ultimoAvisoNoImei = 0, linternaEncendida = false;
+let streamEscaner = null, trackEscaner = null, videoEscaner = null, bucleEscaner = null, sesionEscaner = 0, cuadroEscaner = 0;
+let detectorNativo = null, lectorZX = null;
+const lienzoEscaner = document.createElement('canvas');
+const ctxEscaner = lienzoEscaner.getContext('2d', { willReadFrequently: true });
+const TEXTO_AYUDA_ESCANER = 'Pon el código de barras del IMEI dentro del recuadro, horizontal y a unos 10–15 cm.';
 
-function aplicarCodigoEscaneado(decodedText) {
-  if (codigoDetectado) return false;
-  const texto = String(decodedText || '').trim();
-  const encontrado = texto.match(/(?:^|\D)(\d{15})(?!\d)/);
-  const digitos = encontrado ? encontrado[1] : texto.replace(/\D/g, '');
-  if (digitos.length < 15) return false;
-  const codigo = digitos.slice(0, 15);
+function sufijoEscaner(t) { return t === 'saleImei' ? 'Venta' : ''; }
+function elEscaner(base, t = scannerTargetInput) { return document.getElementById(base + sufijoEscaner(t)); }
+
+function imeiValido(d) {
+  if (!/^\d{15}$/.test(d)) return false;
+  let suma = 0;
+  for (let i = 0; i < 15; i++) { let n = +d[i]; if (i % 2 === 1) { n *= 2; if (n > 9) n -= 9; } suma += n; }
+  return suma % 10 === 0;
+}
+
+function extraerImei(texto) {
+  const t = String(texto || '');
+  const grupos = t.match(/\d+/g) || [];
+  for (const r of grupos) if (r.length === 15 && imeiValido(r)) return r;
+  const limpio = t.replace(/[\s\-\/\.]/g, '');
+  const tramos = limpio.match(/\d{15}/g) || [];
+  for (const r of tramos) if (imeiValido(r)) return r;
+  return null;
+}
+
+function mensajeEscaner(txt, tipo = '', t = scannerTargetInput) {
+  const h = elEscaner('scannerHint', t); if (!h) return;
+  h.textContent = txt; h.className = 'scanner-hint' + (tipo ? ' ' + tipo : '');
+}
+
+function sonidoOk() {
+  try {
+    if (navigator.vibrate) navigator.vibrate(120);
+    const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+    const ctx = new C(), o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = 1750; g.gain.value = 0.15;
+    o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.12);
+    o.onended = () => { try { ctx.close(); } catch (e) {} };
+  } catch (e) {}
+}
+
+function colocarImei(codigo) {
   const input = document.getElementById(scannerTargetInput);
   if (!input) return false;
   input.value = codigo;
   input.dispatchEvent(new Event('input', { bubbles: true }));
   if (scannerTargetInput === 'saleImei') detectarModeloVentaPorTac(codigo);
+  return true;
+}
+
+function aplicarCodigoEscaneado(decodedText) {
+  if (codigoDetectado) return false;
+  const codigo = extraerImei(decodedText);
+  if (!codigo) {
+    const ahora = Date.now();
+    if (ahora - ultimoAvisoNoImei > 1500) { ultimoAvisoNoImei = ahora; mensajeEscaner('Ese código no es un IMEI. Apunta al código de barras que dice IMEI.', 'warn'); }
+    return false;
+  }
+  if (codigo !== ultimoCodigoLeido) { ultimoCodigoLeido = codigo; lecturasIguales = 1; mensajeEscaner('Leyendo… mantén el teléfono quieto'); return false; }
+  lecturasIguales++;
+  if (lecturasIguales < 2) return false;
   codigoDetectado = true;
-  detenerEscaner().finally(() => { codigoDetectado = false; });
+  if (!colocarImei(codigo)) { codigoDetectado = false; return false; }
+  const box = elEscaner('scannerContainer'); if (box) box.classList.add('scan-ok');
+  mensajeEscaner('✓ IMEI detectado: ' + codigo, 'ok');
+  sonidoOk();
+  setTimeout(() => { detenerEscaner().finally(() => { codigoDetectado = false; }); }, 700);
   return true;
 }
 
 function obtenerFormatosEscaner() {
-  const nombres = ['CODE_128','CODE_39','CODE_93','CODABAR','EAN_13','EAN_8','UPC_A','UPC_E','ITF','RSS_14','RSS_EXPANDED','PDF_417','AZTEC','MAXICODE'];
+  const nombres = ['CODE_128','CODE_39','CODE_93','ITF','CODABAR','QR_CODE','DATA_MATRIX'];
   return window.Html5QrcodeSupportedFormats
-    ? nombres.map(n => window.Html5QrcodeSupportedFormats[n]).filter(Boolean)
+    ? nombres.map(n => window.Html5QrcodeSupportedFormats[n]).filter(v => v !== undefined)
     : [];
 }
 
+async function prepararDetectorNativo() {
+  if (detectorNativo !== null) return detectorNativo;
+  detectorNativo = false;
+  try {
+    if ('BarcodeDetector' in window) {
+      const soportados = await BarcodeDetector.getSupportedFormats();
+      const formatos = ['code_128','code_39','code_93','itf','codabar','qr_code','data_matrix'].filter(f => soportados.includes(f));
+      if (formatos.includes('code_128')) detectorNativo = new BarcodeDetector({ formats: formatos });
+    }
+  } catch (e) { detectorNativo = false; }
+  return detectorNativo;
+}
+
+function lectorZXing() {
+  if (lectorZX) return lectorZX;
+  const Z = window.ZXing; if (!Z) return null;
+  const F = Z.BarcodeFormat, pistas = new Map();
+  pistas.set(Z.DecodeHintType.POSSIBLE_FORMATS, [F.CODE_128, F.CODE_39, F.CODE_93, F.ITF, F.CODABAR, F.QR_CODE, F.DATA_MATRIX]);
+  pistas.set(Z.DecodeHintType.TRY_HARDER, true);
+  lectorZX = new Z.MultiFormatReader();
+  lectorZX.setHints(pistas);
+  return lectorZX;
+}
+
+function decodificarZXing(lienzo, n = 0) {
+  const Z = window.ZXing, lector = lectorZXing(); if (!lector) return null;
+  try {
+    const fuente = new Z.HTMLCanvasElementLuminanceSource(lienzo);
+    const binarizador = n % 2 ? new Z.GlobalHistogramBinarizer(fuente) : new Z.HybridBinarizer(fuente);
+    return lector.decodeWithState(new Z.BinaryBitmap(binarizador)).getText();
+  } catch (e) { return null; }
+  finally { try { lector.reset(); } catch (e) {} }
+}
+
+async function decodificarLienzo(lienzo, n = 0) {
+  const nativo = await prepararDetectorNativo();
+  if (nativo) {
+    try {
+      const res = await nativo.detect(lienzo);
+      const conImei = res.find(r => extraerImei(r.rawValue));
+      if (conImei) return conImei.rawValue;
+      if (res.length) return res[0].rawValue;
+    } catch (e) {}
+    if (n % 4 !== 3) return null;
+  }
+  return decodificarZXing(lienzo, n);
+}
+
+function recortarCuadro(video, completo) {
+  const vw = video.videoWidth, vh = video.videoHeight; if (!vw || !vh) return null;
+  const cw = video.clientWidth || vw, ch = video.clientHeight || vh;
+  const esc = Math.max(cw / vw, ch / vh);
+  const visW = cw / esc, visH = ch / esc, x0 = (vw - visW) / 2, y0 = (vh - visH) / 2;
+  let sx = x0, sy = y0, sw = visW, sh = visH;
+  if (!completo) { sx = x0 + visW * 0.04; sw = visW * 0.92; sy = y0 + visH * 0.25; sh = visH * 0.5; }
+  const f = Math.min(1, 1280 / sw);
+  lienzoEscaner.width = Math.max(1, Math.round(sw * f)); lienzoEscaner.height = Math.max(1, Math.round(sh * f));
+  ctxEscaner.drawImage(video, sx, sy, sw, sh, 0, 0, lienzoEscaner.width, lienzoEscaner.height);
+  return lienzoEscaner;
+}
+
+async function cicloEscaner(sesion) {
+  if (sesion !== sesionEscaner || !streamEscaner || !videoEscaner) return;
+  if (!codigoDetectado && videoEscaner.readyState >= 2) {
+    cuadroEscaner++;
+    const lienzo = recortarCuadro(videoEscaner, cuadroEscaner % 5 === 0);
+    if (lienzo) {
+      const texto = await decodificarLienzo(lienzo, cuadroEscaner);
+      if (texto && sesion === sesionEscaner) aplicarCodigoEscaneado(texto);
+    }
+  }
+  if (sesion === sesionEscaner && streamEscaner) bucleEscaner = setTimeout(() => cicloEscaner(sesion), 80);
+}
 
 function mostrarOpcionesEscaner(targetId = 'imeiInput') {
-  scannerTargetInput = targetId;
-  const isVenta = targetId === 'saleImei';
-  const container = document.getElementById(isVenta ? 'scannerContainerVenta' : 'scannerContainer');
-  if (container) container.style.display = 'block';
+  iniciarEscaner(targetId);
+}
+
+function configurarExtrasCamara(s) {
+  const btnL = document.getElementById('btnLinterna' + s), zb = document.getElementById('zoomBox' + s), zr = document.getElementById('zoomImei' + s);
+  if (btnL) { btnL.hidden = true; btnL.textContent = '🔦 Linterna'; btnL.classList.remove('activa'); }
+  if (zb) zb.hidden = true;
+  const track = trackEscaner;
+  if (!track || typeof track.getCapabilities !== 'function') return;
+  let caps = {};
+  try { caps = track.getCapabilities() || {}; } catch (e) {}
+  if (caps.torch && btnL) {
+    btnL.hidden = false;
+    btnL.onclick = async () => {
+      try {
+        linternaEncendida = !linternaEncendida;
+        await track.applyConstraints({ advanced: [{ torch: linternaEncendida }] });
+        btnL.textContent = linternaEncendida ? '🔦 Apagar luz' : '🔦 Linterna';
+        btnL.classList.toggle('activa', linternaEncendida);
+      } catch (e) { linternaEncendida = false; }
+    };
+  }
+  if (caps.zoom && zb && zr && caps.zoom.max > caps.zoom.min) {
+    const min = caps.zoom.min, max = caps.zoom.max, step = caps.zoom.step || 0.1;
+    zr.min = min; zr.max = max; zr.step = step;
+    const inicial = max >= 2 ? Math.min(max, Math.max(min, 1.5)) : min;
+    zr.value = inicial;
+    track.applyConstraints({ advanced: [{ zoom: inicial }] }).catch(() => {});
+    zb.hidden = false;
+    zr.oninput = () => { track.applyConstraints({ advanced: [{ zoom: Number(zr.value) }] }).catch(() => {}); };
+  }
 }
 
 async function iniciarEscaner(targetId = 'imeiInput') {
-  codigoDetectado = false;
+  await detenerEscaner();
+  const sesion = sesionEscaner;
+  codigoDetectado = false; ultimoCodigoLeido = ''; lecturasIguales = 0; linternaEncendida = false; cuadroEscaner = 0;
   scannerTargetInput = targetId;
-  const isVenta = targetId === 'saleImei';
-  const container = document.getElementById(isVenta ? 'scannerContainerVenta' : 'scannerContainer');
-  const readerId = isVenta ? 'qrReaderVenta' : 'qrReader';
+  const s = sufijoEscaner(targetId);
+  const container = document.getElementById('scannerContainer' + s);
+  const reader = document.getElementById('qrReader' + s);
+  if (!container || !reader) return;
   container.style.display = 'block';
-  if (!window.Html5Qrcode) {
-    alert('No se pudo cargar el lector de códigos de barras. Escribe el IMEI manualmente o abre la cámara.');
-    container.style.display = 'none';
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    mensajeEscaner('Este navegador no deja usar la cámara aquí. Usa «Desde foto» o escribe el IMEI.', 'warn'); return;
+  }
+  mensajeEscaner('Abriendo cámara…');
+  const pruebas = [
+    { audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 }, advanced: [{ focusMode: 'continuous' }] } },
+    { audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } },
+    { audio: false, video: true }
+  ];
+  let stream = null, error = null;
+  for (const p of pruebas) {
+    try { stream = await navigator.mediaDevices.getUserMedia(p); break; }
+    catch (e) { error = e; if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) break; }
+  }
+  if (sesion !== sesionEscaner) { if (stream) stream.getTracks().forEach(t => t.stop()); return; }
+  if (!stream) {
+    const permiso = error && error.name === 'NotAllowedError';
+    mensajeEscaner(permiso ? 'Permite el uso de la cámara en el navegador y toca «Abrir cámara» otra vez.' : 'No se pudo abrir la cámara. Usa «Desde foto» o escribe el IMEI.', 'warn');
     return;
   }
+  streamEscaner = stream;
+  trackEscaner = stream.getVideoTracks()[0] || null;
+  reader.innerHTML = '';
+  const video = document.createElement('video');
+  video.className = 'scan-video';
+  video.setAttribute('playsinline', ''); video.setAttribute('muted', ''); video.muted = true; video.autoplay = true;
+  video.srcObject = stream;
+  reader.appendChild(video);
+  videoEscaner = video;
+  try { await video.play(); } catch (e) {}
+  if (sesion !== sesionEscaner) return;
+  container.classList.add('scanning');
+  mensajeEscaner(TEXTO_AYUDA_ESCANER);
+  configurarExtrasCamara(s);
+  if (!window.ZXing && !(await prepararDetectorNativo())) mensajeEscaner('No se pudo cargar el lector. Revisa el internet, usa «Desde foto» o escribe el IMEI.', 'warn');
+  cicloEscaner(sesion);
+}
 
-  const formatos = obtenerFormatosEscaner();
-  const config = { fps: 10, qrbox: { width: 250, height: 160 }, aspectRatio: 1.777778 };
-  if (formatos.length) config.formatsToSupport = formatos;
-  const opcionesLector = formatos.length ? { formatsToSupport: formatos } : undefined;
-
-  const iniciarConFuente = async (fuente) => {
-    qrScanner = new Html5Qrcode(readerId, opcionesLector);
-    await qrScanner.start(fuente, config, aplicarCodigoEscaneado, () => {});
-  };
-
+async function leerImeiDesdeFoto(targetId, file) {
+  if (!file) return;
+  await detenerEscaner();
+  scannerTargetInput = targetId;
+  const s = sufijoEscaner(targetId);
+  const box = document.getElementById('scannerContainer' + s);
+  if (!box) return;
+  box.style.display = 'block';
+  mensajeEscaner('Analizando la foto…');
+  let codigo = null;
   try {
-    try {
-      await iniciarConFuente({ facingMode: { exact: 'environment' } });
-    } catch (primero) {
-      try { if (qrScanner) await qrScanner.clear(); } catch (e) {}
-      qrScanner = null;
-      try {
-        await iniciarConFuente({ facingMode: 'environment' });
-      } catch (segundo) {
-        try { if (qrScanner) await qrScanner.clear(); } catch (e) {}
-        qrScanner = null;
-        const camaras = await Html5Qrcode.getCameras();
-        if (!camaras || !camaras.length) throw segundo;
-        await iniciarConFuente({ deviceId: { exact: camaras[camaras.length - 1].id } });
-      }
+    const imagen = await createImageBitmap(file);
+    const nativo = await prepararDetectorNativo();
+    if (nativo) {
+      try { codigo = (await nativo.detect(imagen)).map(r => extraerImei(r.rawValue)).find(Boolean) || null; } catch (e) {}
     }
-  } catch (err) {
-    await detenerEscaner();
-    alert('No se pudo acceder a la cámara. Escribe el IMEI manualmente o abre la cámara.');
+    if (!codigo && window.ZXing) {
+      const f = Math.min(1, 2000 / Math.max(imagen.width, imagen.height));
+      const lienzo = document.createElement('canvas');
+      lienzo.width = Math.round(imagen.width * f); lienzo.height = Math.round(imagen.height * f);
+      lienzo.getContext('2d', { willReadFrequently: true }).drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
+      codigo = extraerImei(decodificarZXing(lienzo, 0)) || extraerImei(decodificarZXing(lienzo, 1));
+    }
+  } catch (e) {}
+  if (!codigo && window.Html5Qrcode) {
+    const formatos = obtenerFormatosEscaner();
+    const lector = new Html5Qrcode('qrReader' + s, formatos.length ? { verbose: false, formatsToSupport: formatos } : undefined);
+    try { codigo = extraerImei(await lector.scanFile(file, false)); } catch (e) {}
+    try { lector.clear(); } catch (e) {}
+  }
+  if (codigo && colocarImei(codigo)) {
+    box.classList.add('scan-ok');
+    mensajeEscaner('✓ IMEI detectado: ' + codigo, 'ok');
+    sonidoOk();
+    setTimeout(() => detenerEscaner(), 900);
+  } else {
+    mensajeEscaner('No encontré un IMEI en la foto. Tómala de cerca, recta y con buena luz.', 'warn');
   }
 }
 
 async function detenerEscaner() {
-  const reparacion = document.getElementById('scannerContainer');
-  const venta = document.getElementById('scannerContainerVenta');
-  if (reparacion) reparacion.style.display = 'none';
-  if (venta) venta.style.display = 'none';
+  sesionEscaner++;
+  clearTimeout(bucleEscaner); bucleEscaner = null;
+  if (streamEscaner) streamEscaner.getTracks().forEach(t => { try { t.stop(); } catch (e) {} });
+  streamEscaner = null; trackEscaner = null;
+  if (videoEscaner) { try { videoEscaner.srcObject = null; videoEscaner.remove(); } catch (e) {} }
+  videoEscaner = null;
+  ['', 'Venta'].forEach(s => {
+    const c = document.getElementById('scannerContainer' + s);
+    if (c) { c.style.display = 'none'; c.classList.remove('scanning', 'scan-ok'); }
+    const l = document.getElementById('btnLinterna' + s); if (l) { l.hidden = true; l.classList.remove('activa'); }
+    const z = document.getElementById('zoomBox' + s); if (z) z.hidden = true;
+    const h = document.getElementById('scannerHint' + s); if (h) { h.className = 'scanner-hint'; h.textContent = TEXTO_AYUDA_ESCANER; }
+  });
+  linternaEncendida = false;
   if (qrScanner) {
     const lectorActivo = qrScanner;
     qrScanner = null;
@@ -864,6 +1145,12 @@ async function detenerEscaner() {
     try { lectorActivo.clear(); } catch (e) {}
   }
 }
+['imeiInput', 'saleImei'].forEach(t => {
+  const s = sufijoEscaner(t);
+  const f = document.getElementById('fotoImei' + s), b = document.getElementById('btnFotoImei' + s);
+  if (b && f) b.addEventListener('click', () => f.click());
+  if (f) f.addEventListener('change', () => { const file = f.files && f.files[0]; f.value = ''; leerImeiDesdeFoto(t, file); });
+});
 document.getElementById('btnEscanear').addEventListener('click', () => mostrarOpcionesEscaner('imeiInput'));
 document.getElementById('btnAbrirCamara').addEventListener('click', () => iniciarEscaner('imeiInput'));
 document.getElementById('btnCerrarCamara').addEventListener('click', detenerEscaner);
@@ -937,8 +1224,8 @@ function reiniciarSeleccionEquipo() {
   document.getElementById('deviceCategory').value = '';
   document.getElementById('mobileOS').value = '';
   document.querySelectorAll('.opcion-dispositivo').forEach(x => x.classList.remove('activa'));
-  document.getElementById('seccionIMEI').setAttribute('aria-hidden', 'true');
-  document.getElementById('seccionIMEI').style.display = 'none';
+  document.getElementById('seccionIMEI').setAttribute('aria-hidden', 'false');
+  document.getElementById('seccionIMEI').style.display = 'block';
   document.getElementById('seccionIphoneSpecs').style.display = 'none';
   document.getElementById('seccionAndroidSpecs').style.display = 'none';
   document.getElementById('seccionPCSpecs').style.display = 'none';
@@ -968,8 +1255,8 @@ document.querySelectorAll('.opcion-dispositivo').forEach(b => {
       document.getElementById('deviceCategory').value = 'pc';
       document.getElementById('mobileOS').value = 'PC';
       document.getElementById('imeiInput').value = '';
-      document.getElementById('seccionIMEI').setAttribute('aria-hidden', 'true');
-      document.getElementById('seccionIMEI').style.display = 'none';
+      document.getElementById('seccionIMEI').setAttribute('aria-hidden', 'false');
+      document.getElementById('seccionIMEI').style.display = 'block';
       document.getElementById('seccionIphoneSpecs').style.display = 'none';
       document.getElementById('seccionAndroidSpecs').style.display = 'none';
       document.getElementById('seccionPCSpecs').style.display = 'block';
@@ -979,6 +1266,42 @@ document.querySelectorAll('.opcion-dispositivo').forEach(b => {
     }
   });
 });
+
+// ---- Marca de PC y color según el tipo de equipo ----
+function marcaPCSeleccionada() {
+  const sel = document.getElementById('pcBrand');
+  if (!sel) return '';
+  if (sel.value === 'Otra') return (document.getElementById('pcBrandOtra').value || '').trim();
+  return String(sel.value || '').replace(/\s*\(.*\)$/, '').trim();
+}
+function colorSeleccionado() {
+  const cat = document.getElementById('deviceCategory').value;
+  const os = document.getElementById('mobileOS').value;
+  const id = cat === 'pc' || os === 'PC' ? 'pcColor' : os === 'iPhone' ? 'iphoneColor' : 'androidColor';
+  return document.getElementById(id)?.value || '';
+}
+function actualizarMarcaPCOtra() {
+  const otra = document.getElementById('pcBrandOtra');
+  if (otra) otra.style.display = document.getElementById('pcBrand').value === 'Otra' ? '' : 'none';
+}
+document.getElementById('pcBrand').addEventListener('change', actualizarMarcaPCOtra);
+function ponerMarcaPC(texto) {
+  const sel = document.getElementById('pcBrand');
+  let resto = String(texto || '').trim();
+  const op = Array.from(sel.options).find(o => {
+    const corta = o.value.replace(/\s*\(.*\)$/, '').trim();
+    return corta && o.value !== 'Otra' && (resto.toUpperCase() === corta.toUpperCase() || resto.toUpperCase().startsWith(corta.toUpperCase() + ' '));
+  });
+  if (op) { sel.value = op.value; resto = resto.slice(op.value.replace(/\s*\(.*\)$/, '').trim().length).trim(); }
+  else sel.value = '';
+  actualizarMarcaPCOtra();
+  return resto;
+}
+
+function imprimirNotaRegistro(id) {
+  const it = inventory.find(x => String(x.id) === String(id));
+  if (it) imprimirNotaReparacion(it);
+}
 
 function money(n) { return '$' + Number(n || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 }); }
 function estaPagado(it) {
@@ -1038,7 +1361,7 @@ function listaFiltrada() {
 }
 
 function dispositivoVisible(it) {
-  const nombre = String(it.name || '').trim();
+  const nombre = nombreGuardadoCorto(it.name);
   const partes = nombre.split('/').map(x => x.trim()).filter(Boolean);
   return partes.length >= 3 ? partes[0] + ' / ' + partes[2] : nombre;
 }
@@ -1070,36 +1393,49 @@ function displayItems() {
   document.getElementById('totalesBox').classList.toggle('activo', lista.length > 0);
 
   if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="16" class="vacio">Sin registros.</td></tr>';
+    tbody.innerHTML = '<p class="vacio">Sin registros.</p>';
     return;
   }
 
-  lista.forEach(it => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${it.client}</strong></td>
-      <td>${it.phone || '-'}</td>
-      <td>${it.technician}</td>
-      <td>${dispositivoVisible(it)}</td>
-      <td><code>${it.imei || '-'}</code></td>
-      <td>${it.color || ''}</td>
-      <td>${it.type}</td>
-      <td><span class="badge">${it.estado || 'Recibido'}</span></td>
-      <td><span class="badge ${estaPagado(it) ? 'pag-si' : 'pag-no'}">${estaPagado(it) ? 'Pagado' : 'Sin pagar'}</span></td>
-      <td class="num">${money(it.pCompra)}</td>
-      <td class="num">${money(it.pCliente)}</td>
-      <td class="num solo-admin">${estaPagado(it) ? money(it.profit) : '—'}</td>
-      <td class="solo-admin">${it.technician}</td>
-      <td>${it.note || '-'}</td>
-      <td>${it.date} <span class="hora-txt">${limpiarHoraVisual(it.time)}</span></td>
-      <td class="celda-acc solo-admin">
-        <button class="mini azul" onclick="editarRegistro('${it.id}')">Editar</button>
-        <button class="mini ${estaPagado(it) ? 'gris' : 'verde'}" onclick="alternarPago('${it.id}')">${estaPagado(it) ? 'Quitar pago' : 'Marcar pagado'}</button>
-        <button class="mini rojo" onclick="borrar('${it.id}')">Borrar</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+  const escR = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const mesesR = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  tbody.innerHTML = lista.map(it => {
+    const pagado = estaPagado(it);
+    const f = fechaRegistro(it);
+    const hora = limpiarHoraVisual(it.time);
+    let fechaBloque;
+    if (f) {
+      const dia = f.toLocaleDateString('es-DO', { weekday: 'long' });
+      const fechaCorta = String(f.getDate()).padStart(2,'0') + '/' + String(f.getMonth()+1).padStart(2,'0') + '/' + f.getFullYear();
+      fechaBloque = '<div class="pay-date"><div class="pay-date-day"><b>' + f.getDate() + '</b><small>' + mesesR[f.getMonth()] + '</small></div><div class="pay-date-text"><strong>' + escR(dia.charAt(0).toUpperCase() + dia.slice(1)) + '</strong><span>📅 ' + fechaCorta + '</span>' + (hora ? '<span>🕒 ' + escR(hora) + '</span>' : '') + '</div></div>';
+    } else {
+      fechaBloque = '<div class="pay-date"><div class="pay-date-text"><strong>' + escR(it.date || 'Sin fecha') + '</strong>' + (hora ? '<span>🕒 ' + escR(hora) + '</span>' : '') + '</div></div>';
+    }
+    return '<article class="rep-card' + (pagado ? '' : ' no-pagado') + '">'
+      + '<div class="rep-top">' + fechaBloque + '<div class="rep-badges"><span class="badge ' + (pagado ? 'pag-si' : 'pag-no') + '">' + (pagado ? 'Pagado' : 'Sin pagar') + '</span><span class="badge rep-estado">' + escR(it.estado || 'Recibido') + '</span></div></div>'
+      + '<div class="rep-cliente"><strong>' + escR(it.client) + '</strong><span>📞 ' + escR(it.phone || '-') + '</span></div>'
+      + '<div class="rep-info">'
+        + '<div class="rep-row"><span>📱 Dispositivo</span><b>' + escR(dispositivoVisible(it)) + '</b></div>'
+        + '<div class="rep-row"><span>🔢 IMEI</span><b><code>' + escR(it.imei || '-') + '</code></b></div>'
+        + (it.color ? '<div class="rep-row"><span>🎨 Color</span><b>' + escR(it.color) + '</b></div>' : '')
+        + '<div class="rep-row"><span>🔧 Servicios</span><b>' + escR(it.type) + '</b></div>'
+        + '<div class="rep-row"><span>👤 Técnico</span><b>' + escR(it.technician) + '</b></div>'
+        + '<div class="rep-row solo-admin"><span>🏭 Producción / Reparto</span><b>' + escR(it.technician) + '</b></div>'
+        + '<div class="rep-row"><span>📝 Nota</span><b>' + escR(it.note || '-') + '</b></div>'
+      + '</div>'
+      + '<div class="rep-precios">'
+        + '<div class="rep-precio"><span>Compra</span><strong>' + money(it.pCompra) + '</strong></div>'
+        + '<div class="rep-precio cliente"><span>Cliente</span><strong>' + money(it.pCliente) + '</strong></div>'
+        + '<div class="rep-precio ganancia solo-admin"><span>Ganancia</span><strong>' + (pagado ? money(it.profit) : '—') + '</strong></div>'
+      + '</div>'
+      + '<div class="rep-acciones solo-admin">'
+        + '<button class="mini azul" onclick="editarRegistro(\'' + it.id + '\')">Editar</button>'
+        + '<button class="mini ' + (pagado ? 'gris' : 'verde') + '" onclick="alternarPago(\'' + it.id + '\')">' + (pagado ? 'Quitar pago' : 'Marcar pagado') + '</button>'
+        + '<button class="mini gris" onclick="imprimirNotaRegistro(\'' + it.id + '\')">🖨 Nota</button>'
+        + '<button class="mini rojo" onclick="borrar(\'' + it.id + '\')">Borrar</button>'
+      + '</div>'
+      + '</article>';
+  }).join('');
 }
 
 async function alternarPago(id){
@@ -1110,21 +1446,35 @@ async function alternarPago(id){
   try{const r=await fetch(WEB_APP_URL+'?action=update&token='+encodeURIComponent(sessionStorage.getItem('adminToken')||''),{method:'POST',body:JSON.stringify(payload)});const res=await r.json();if(!res||res.success!==true)throw new Error('No se pudo actualizar');it.pagado=nuevo;it.profit=nuevo==='Sí'?(Number(it.pCliente||0)-Number(it.pCompra||0)):'';displayItems();}catch(e){alert('No se pudo actualizar el pago en la hoja.');}
 }
 
-function fechaRegistro(x){ const d=String(x.date||'').trim(); const m=d.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/); return m?new Date(+m[1],+m[2]-1,+m[3]):null; }
+function fechaRegistro(x){ const d=String(x.date||'').trim(); const m=d.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/); if(m)return new Date(+m[1],+m[2]-1,+m[3]); const m2=d.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/); return m2?new Date(+m2[3],+m2[2]-1,+m2[1]):null; }
 function renderResumenQuincenal(){
   const box=document.getElementById('detalleQuincena'); if(!box)return;
-  const todos=inventory.map(x=>({tipo:'Reparación',persona:x.technician||'Sin asignar',fecha:fechaRegistro(x),importe:estaPagado(x)?Number(x.pCliente||0):0,pagado:estaPagado(x)})).filter(x=>x.fecha);
+  const todos=inventory.map(x=>({persona:x.technician||'Sin asignar',fecha:fechaRegistro(x),pagado:estaPagado(x),item:x})).filter(x=>x.fecha);
   const anios=[...new Set(todos.map(x=>x.fecha.getFullYear()))].sort((a,b)=>b-a), meses=[...new Set(todos.map(x=>x.fecha.getMonth()+1))].sort((a,b)=>a-b);
   const fy=document.getElementById('filtroAnio'),fm=document.getElementById('filtroMes');
   if(fy && fy.options.length===1) anios.forEach(a=>fy.add(new Option(a,a)));
   if(fm && fm.options.length===1) ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'].forEach((n,i)=>meses.includes(i+1)&&fm.add(new Option(n,i+1)));
-  const y=fy?.value||'todos', m=fm?.value||'todos', q=document.getElementById('filtroQuincena')?.value||'todos';
-  const filtrados=todos.filter(x=>(y==='todos'||x.fecha.getFullYear()==y)&&(m==='todos'||x.fecha.getMonth()+1==m)&&(q==='todos'||(x.fecha.getDate()<=15?'1':'2')===q));
-  const grupos={}; filtrados.forEach(x=>{const k=x.fecha.getFullYear()+'-'+String(x.fecha.getMonth()+1).padStart(2,'0')+' · '+(x.fecha.getDate()<=15?'1ª quincena':'2ª quincena'); if(!grupos[k])grupos[k]={total:0,pagados:0,personas:{}}; grupos[k].total+=x.importe; if(x.pagado)grupos[k].pagados++; grupos[k].personas[x.persona]=(grupos[k].personas[x.persona]||0)+x.importe;});
-  const keys=Object.keys(grupos).sort().reverse(); let total=0; keys.forEach(k=>total+=grupos[k].total);
-  document.getElementById('totalesQuincena').innerHTML='<div class="payment-card">Períodos: '+keys.length+'</div><div class="payment-card">Pagado: $'+total.toLocaleString('es-DO',{minimumFractionDigits:2})+'</div>';
-  box.innerHTML=keys.length?'<table><thead><tr><th>Período</th><th>Pagado</th><th>Registros</th><th>Detalle</th></tr></thead><tbody>'+keys.map(k=>'<tr><td>'+k+'</td><td>$'+grupos[k].total.toLocaleString('es-DO',{minimumFractionDigits:2})+'</td><td>'+grupos[k].pagados+'</td><td>'+Object.entries(grupos[k].personas).map(([n,v])=>n+': $'+v.toLocaleString('es-DO',{minimumFractionDigits:2})).join(' · ')+'</td></tr>').join('')+'</tbody></table>':'<p class="vacio">No hay pagos para este filtro.</p>';
-  renderResumenQuincenal();
+  const y=fy?.value||'todos', m=fm?.value||'todos';
+  const lista=todos.filter(x=>(y==='todos'||x.fecha.getFullYear()==y)&&(m==='todos'||x.fecha.getMonth()+1==m));
+  lista.sort((a,b)=>(b.fecha-a.fecha)||(String(b.item.time||'')>String(a.item.time||'')?1:-1));
+  let total=0, pagados=0; lista.forEach(x=>{if(x.pagado){pagados++;total+=Number(x.item.pCliente||0);}});
+  document.getElementById('totalesQuincena').innerHTML='<div class="payment-card">Registros: '+lista.length+'</div><div class="payment-card">Pagados: '+pagados+'</div><div class="payment-card">Cobrado: '+money(total)+'</div>';
+  const escP=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const mesesC=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  box.innerHTML=lista.length?'<div class="pay-cards">'+lista.map(r=>{const it=r.item,f=r.fecha;
+    const dia=f.toLocaleDateString('es-DO',{weekday:'long'}); const fechaLarga=dia.charAt(0).toUpperCase()+dia.slice(1); const fechaCorta=String(f.getDate()).padStart(2,'0')+'/'+String(f.getMonth()+1).padStart(2,'0')+'/'+f.getFullYear();
+    const hora=it.time?limpiarHoraVisual(it.time):'';
+    return '<article class="pay-card'+(r.pagado?'':' no-pagado')+'">'
+      +'<div class="pay-card-top"><div class="pay-date"><div class="pay-date-day"><b>'+f.getDate()+'</b><small>'+mesesC[f.getMonth()]+'</small></div><div class="pay-date-text"><strong>'+escP(fechaLarga)+'</strong>'+'<span>📅 '+fechaCorta+'</span>'+(hora?'<span>🕒 '+escP(hora)+'</span>':'')+'</div></div>'
+      +'<span class="pay-status">'+(r.pagado?'Pagado':'Sin pagar')+'</span></div>'
+      +'<div class="pay-card-name">'+escP(it.client||'Sin cliente')+'</div>'
+      +'<div class="pay-card-info">'
+        +(it.name?'<div class="pay-card-row"><span>📱 Equipo</span><b>'+escP(it.name)+'</b></div>':'')
+        +(it.type?'<div class="pay-card-row"><span>🔧 Reparación</span><b>'+escP(it.type)+'</b></div>':'')
+        +'<div class="pay-card-row"><span>👤 Técnico</span><b>'+escP(r.persona)+'</b></div>'
+      +'</div>'
+      +'<div class="pay-card-amount"><span>Monto</span><strong>'+money(Number(it.pCliente||0))+'</strong></div>'
+      +'</article>';}).join('')+'</div>':'<p class="vacio">No hay pagos para este filtro.</p>';
 }
 
 async function cargarDatos() {
@@ -1180,7 +1530,8 @@ function editarRegistro(id) {
 
   if (it.name && it.name.startsWith('PC')) {
     document.querySelectorAll('.opcion-dispositivo')[2].click();
-    document.getElementById('pcModel').value = it.name.replace('PC ', '').trim();
+    document.getElementById('pcModel').value = ponerMarcaPC(it.name.replace(/^PC\s*/, ''));
+    if (it.color) asegurarOpcion('pcColor', it.color);
   } else if (it.name && it.name.includes('/')) {
     document.querySelectorAll('.opcion-dispositivo')[1].click(); // iPhone
     const partes = it.name.split('/');
@@ -1192,7 +1543,8 @@ function editarRegistro(id) {
     if (partes[2]) document.getElementById('iphoneStorage').value = partes[2].trim();
   } else {
     document.querySelectorAll('.opcion-dispositivo')[0].click(); // Android
-    document.getElementById('androidModel').value = it.name || '';
+    document.getElementById('androidModel').value = nombreGuardadoCorto(it.name);
+    if (it.color) asegurarOpcion('androidColor', it.color);
   }
 
   renderChips();
@@ -1228,7 +1580,7 @@ document.getElementById('priceForm').addEventListener('submit', async (e) => {
 
   let nombreDispositivo = '';
   if (cat === 'pc') {
-    nombreDispositivo = 'PC ' + document.getElementById('pcModel').value;
+    nombreDispositivo = ('PC ' + (marcaPCSeleccionada() + ' ' + document.getElementById('pcModel').value).trim()).trim();
   } else {
     const os = document.getElementById('mobileOS').value;
     if (os === 'iPhone') {
@@ -1252,7 +1604,7 @@ document.getElementById('priceForm').addEventListener('submit', async (e) => {
     pCompra: document.getElementById('itemCompra').value,
     pCliente: document.getElementById('itemCliente').value,
     note: document.getElementById('itemNote').value,
-    color: document.getElementById('iphoneColor').value || document.getElementById('androidColor').value || 'Negro'
+    color: colorSeleccionado()
   };
 
   const action = isEditing ? 'update' : 'create';
@@ -1264,10 +1616,7 @@ document.getElementById('priceForm').addEventListener('submit', async (e) => {
     });
     const res = await r.json();
     if (res.success) {
-      borrarBorrador('priceForm');
-      document.getElementById('priceForm').reset();
-      document.getElementById('editId').value = '';
-      document.getElementById('priceForm').style.display = 'none';
+      limpiarFormularioReparacion();
       cargarDatos();
     } else {
       alert('Error al guardar en la nube: ' + (res.message || ''));
@@ -1351,10 +1700,7 @@ document.getElementById('btnNueva').addEventListener('click', () => {
   document.getElementById('priceForm').style.display = 'flex';
 });
 document.getElementById('btnCancelar').addEventListener('click', () => { 
-  borrarBorrador('priceForm');
-  document.getElementById('priceForm').reset();
-  document.getElementById('editId').value = '';
-  document.getElementById('priceForm').style.display = 'none'; 
+  limpiarFormularioReparacion();
 });
 searchBox.addEventListener('input', displayItems);
 
@@ -1413,7 +1759,7 @@ function aplicarResultadoTAC(d, destino) {
   const specs = String(d.specs || d.detalle || d.model || '').trim();
   const brand = String(d.brand || '').trim();
   if (destino === 'venta') {
-    document.getElementById('saleModel').value = specs || brand;
+    document.getElementById('saleModel').value = modeloComercial(specs || brand, brand);
     return Boolean(specs || brand);
   }
   const texto = specs || brand;
@@ -1424,19 +1770,56 @@ function aplicarResultadoTAC(d, destino) {
   } else {
     document.querySelector('.opcion-dispositivo[data-tipo="Android"]').click();
     document.getElementById('androidBrand').value = brand;
-    document.getElementById('androidModel').value = specs;
+    document.getElementById('androidModel').value = modeloComercial(specs, brand);
   }
   return Boolean(texto);
 }
 
-function modeloComercial(texto) {
-  let t = String(texto || '').trim();
+// Deja solo la marca y el nombre comercial del modelo.
+// Ej: "OUKITEL C1 PLUS, Yunji Holdings Co Ltd C1 Plus2025" -> "OUKITEL C1 PLUS"
+function nombreLimpioEquipo(texto, marca) {
+  const original = String(texto || '').trim();
+  if (!original) return '';
+  const marcaTxt = String(marca || '').trim();
+  const brand = marcaTxt.toUpperCase();
+  const esRelleno = p => /^(19|20)\d{2}$/.test(p) || /^n\/?a$/i.test(p) || /^(global|china|india|eu|europe|europa|latam|usa?|japan|korea)?\s*(model|version|versi[oó]n)$/i.test(p) || /\b(co\.?\s*ltd|ltd\.?|inc\.?|corp\.?|holdings?|limited|llc|gmbh|technolog(y|ies))\b/i.test(p);
+  const soloMarca = p => brand && p.toUpperCase() === brand;
+  const esCodigo = p => {
+    const palabras = p.split(/\s+/);
+    const ultimo = palabras.length <= 2 ? palabras[palabras.length - 1] : '';
+    return !!ultimo && /^[A-Z0-9\-\/]{5,}$/i.test(ultimo) && /[A-Z]/i.test(ultimo) && /\d{3,}/.test(ultimo);
+  };
+  const partes = original.split(',')
+    .map(p => p.replace(/\([^)]*\)/g, ' ').replace(/\?/g, ' ').replace(/\s+/g, ' ').trim())
+    .filter(p => p && !esRelleno(p) && !soloMarca(p));
+  const nombre = partes.find(p => !esCodigo(p)) || partes[0] || original.split(',')[0].trim();
+  if (!brand) return nombre;
+  if (brand === 'APPLE') return nombre.replace(/^APPLE\s+/i, '').trim();
+  const up = nombre.toUpperCase();
+  let resto = nombre;
+  if (up === brand) resto = '';
+  else if (up.startsWith(brand + ' ')) resto = nombre.slice(brand.length + 1);
+  else {
+    const i = up.indexOf(' ' + brand + ' ');
+    if (i >= 0) resto = nombre.slice(i + brand.length + 2);
+  }
+  return (marcaTxt + ' ' + resto).replace(/\s+/g, ' ').trim();
+}
+
+// Para registros viejos guardados con el texto largo.
+function nombreGuardadoCorto(nombre) {
+  const t = String(nombre || '').trim();
+  if (!t.includes(',')) return t;
+  return nombreLimpioEquipo(t, t.split(/[\s,]+/)[0]);
+}
+
+function modeloComercial(texto, marca) {
+  const t = String(texto || '').trim();
   if (!t) return '';
-  t = t.split(',')[0].trim();
-  // Apple lleva la marca separada del nombre comercial.
-  // En OUKITEL, REDMI, POCO y Samsung la marca forma parte del modelo visible.
-  t = t.replace(/^APPLE\s+/i, '');
-  return t.trim();
+  if (/iphone/i.test(t) || /^apple$/i.test(String(marca || '').trim())) {
+    return t.split(',')[0].replace(/^APPLE\s+/i, '').trim();
+  }
+  return nombreLimpioEquipo(t, marca);
 }
 
 function seleccionarTipoVentaAutomatico(tipo){
@@ -1455,7 +1838,7 @@ function aplicarTACLocal(d, destino, estado, tac) {
       const tipo = /iphone|apple/i.test(texto+' '+brand) ? 'iPhone' : (/pc|laptop|computer/i.test(texto) ? 'PC' : 'Android');
       seleccionarTipoVentaAutomatico(tipo);
       const campo = document.getElementById('saleModel');
-      if (campo) campo.value = modeloComercial(texto);
+      if (campo) campo.value = modeloComercial(texto, brand);
     } else if (/iphone/i.test(texto) || /^apple$/i.test(brand)) {
       const op = document.querySelector('.opcion-dispositivo[data-tipo="iPhone"]');
       if (op) op.click();
@@ -1470,11 +1853,11 @@ function aplicarTACLocal(d, destino, estado, tac) {
       const marcaCampo = document.getElementById('androidBrand');
       const modeloCampo = document.getElementById('androidModel');
       if (marcaCampo) marcaCampo.value = brand;
-      if (modeloCampo) modeloCampo.value = texto;
+      if (modeloCampo) modeloCampo.value = modeloComercial(texto, brand);
     }
-    if (estado) estado.textContent = 'Modelo encontrado: ' + modeloComercial(texto);
+    if (estado) estado.textContent = 'Modelo encontrado: ' + modeloComercial(texto, brand);
   } catch (e) {
-    if (estado) estado.textContent = 'Modelo encontrado: ' + modeloComercial(texto);
+    if (estado) estado.textContent = 'Modelo encontrado: ' + modeloComercial(texto, brand);
   }
 }
 
@@ -1516,7 +1899,7 @@ function buscarTACDirecto(imei, destino) {
           const tipo = /iphone|apple/i.test(texto+' '+brand) ? 'iPhone' : (/pc|laptop|computer/i.test(texto) ? 'PC' : 'Android');
           seleccionarTipoVentaAutomatico(tipo);
           const venta = document.getElementById('saleModel');
-          if (venta) venta.value = modeloComercial(texto);
+          if (venta) venta.value = modeloComercial(texto, brand);
         } else if (/iphone/i.test(texto) || /^apple$/i.test(brand)) {
           const opcion = document.querySelector('.opcion-dispositivo[data-tipo="iPhone"]');
           if (opcion) opcion.click();
@@ -1531,12 +1914,12 @@ function buscarTACDirecto(imei, destino) {
           const marcaCampo = document.getElementById('androidBrand');
           const modeloCampo = document.getElementById('androidModel');
           if (marcaCampo) marcaCampo.value = brand;
-          if (modeloCampo) modeloCampo.value = texto;
+          if (modeloCampo) modeloCampo.value = modeloComercial(texto, brand);
         }
       } catch (error) {
         console.error('TAC recibido pero no se pudo rellenar el formulario', error);
       }
-      if (estado) estado.textContent = 'Modelo encontrado: ' + modeloComercial(texto);
+      if (estado) estado.textContent = 'Modelo encontrado: ' + modeloComercial(texto, brand);
     } else if (estado) {
       estado.textContent = 'TAC no encontrado. Puedes agregarlo.';
       const boton = document.createElement('button');
@@ -1600,7 +1983,7 @@ function renderSales() {
   if (!body) return;
   if (!sales.length) { body.innerHTML = '<tr><td colspan="8" class="vacio">Todavía no hay ventas registradas.</td></tr>'; return; }
   body.innerHTML = sales.slice().reverse().map((v, i) => `
-    <tr><td><strong>${v.buyer}</strong></td><td>${v.phone || '-'}</td><td><code>${v.imei || '-'}</code></td><td><strong>${v.model}</strong>${v.color ? '<br><small>Color: '+v.color+'</small>' : ''}${v.capacity ? '<br><small>Capacidad: '+v.capacity+'</small>' : ''}${v.item ? '<br><small>' + v.item + '</small>' : ''}</td><td>${v.seller}</td><td class="num">${money(v.price)}</td><td>${horaSinSegundos((v.date || '') + ' ' + (v.time || ''))}</td><td class="receipt-actions"><button type="button" class="mini azul" onclick="editarVenta(${sales.length - 1 - i})">Editar</button><button type="button" class="mini gris" onclick="imprimirRecibo(${sales.length - 1 - i})">Imprimir</button><button type="button" class="mini rojo" onclick="eliminarVenta(${sales.length - 1 - i})">Eliminar</button></td></tr>`).join('');
+    <tr><td><strong>${v.buyer}</strong></td><td>${v.phone || '-'}</td><td><code>${v.imei || '-'}</code></td><td><strong>${nombreGuardadoCorto(v.model)}</strong>${v.color ? '<br><small>Color: '+v.color+'</small>' : ''}${v.capacity ? '<br><small>Capacidad: '+v.capacity+'</small>' : ''}${v.item ? '<br><small>' + v.item + '</small>' : ''}</td><td>${v.seller}</td><td class="num">${money(v.price)}</td><td>${horaSinSegundos((v.date || '') + ' ' + (v.time || ''))}</td><td class="receipt-actions"><button type="button" class="mini azul" onclick="editarVenta(${sales.length - 1 - i})">Editar</button><button type="button" class="mini gris" onclick="imprimirRecibo(${sales.length - 1 - i})">Imprimir</button><button type="button" class="mini rojo" onclick="eliminarVenta(${sales.length - 1 - i})">Eliminar</button></td></tr>`).join('');
 }
 
 async function eliminarVenta(index){const venta=sales[index];if(!venta)return;if(!confirm('¿Eliminar esta venta? Esta acción no se puede deshacer.'))return;try{const id=venta.id||venta._id||'';if(id){const r=await fetch(WEB_APP_URL+'?action=deleteSale&token='+encodeURIComponent(sessionStorage.getItem('adminToken')||''),{method:'POST',body:JSON.stringify({action:'deleteSale',id:id})});const res=await r.json();if(!res||res.success!==true)throw new Error('No se pudo eliminar');}sales.splice(index,1);localStorage.setItem(SALES_KEY,JSON.stringify(sales));renderSales();}catch(e){alert('No se pudo eliminar la venta de la hoja.');}}
@@ -1694,15 +2077,33 @@ function actualizarAccesoModulos() {
     document.querySelectorAll('.repair-only').forEach(el => el.style.display = 'none');
     document.getElementById('salesPanel').classList.remove('activo');
   } else {
-    document.querySelectorAll('.repair-only').forEach(el => el.style.display = ventasActivas ? 'none' : '');
+    document.querySelectorAll('.repair-only:not(#priceForm)').forEach(el => el.style.display = ventasActivas ? 'none' : '');
   }
 }
 
-function cambiarPestana(nombre) {
+function limpiarFormularioReparacion() {
+  borrarBorrador('priceForm');
+  const f = document.getElementById('priceForm');
+  f.reset();
+  document.getElementById('editId').value = '';
+  seleccionados.clear();
+  reiniciarSeleccionEquipo();
+  actualizarMarcaPCOtra();
+  f.style.display = 'none';
+}
+
+// limpiar=false solo se usa al recargar la página (para volver a la misma pestaña sin borrar nada).
+function cambiarPestana(nombre, limpiar) {
   if (!isAdmin) return;
   const ventas = nombre === 'ventas';
+  const estabaEnVentas = document.getElementById('salesPanel').classList.contains('activo');
+  if (limpiar !== false && ventas !== estabaEnVentas) {
+    if (ventas) limpiarFormularioReparacion(); else limpiarFormularioVenta();
+  }
+  sessionStorage.setItem('lifox_pestana', ventas ? 'ventas' : 'reparaciones');
   document.getElementById('salesPanel').classList.toggle('activo', ventas);
-  document.querySelectorAll('.repair-only').forEach(el => el.style.display = ventas ? 'none' : '');
+  document.querySelectorAll('.repair-only:not(#priceForm)').forEach(el => el.style.display = ventas ? 'none' : '');
+  if (ventas) document.getElementById('priceForm').style.display = 'none';
   document.getElementById('tabVentas').classList.toggle('activa', ventas);
   document.getElementById('tabReparaciones').classList.toggle('activa', !ventas);
   if (ventas) renderSales();
@@ -1710,7 +2111,8 @@ function cambiarPestana(nombre) {
 document.getElementById('tabReparaciones').addEventListener('click', () => cambiarPestana('reparaciones'));
 document.getElementById('tabVentas').addEventListener('click', () => cambiarPestana('ventas'));
 
-['filtroAnio','filtroMes','filtroQuincena'].forEach(id=>document.getElementById(id)?.addEventListener('change',renderResumenQuincenal));
+['filtroAnio','filtroMes'].forEach(id=>document.getElementById(id)?.addEventListener('change',renderResumenQuincenal));
+function cerrarMenuPagos(){const p=document.getElementById('resumenQuincenal');if(p)p.style.display='none';}
 function abrirMenuPagos(){const p=document.getElementById('resumenQuincenal');if(p){p.style.display='block';renderResumenQuincenal();p.scrollIntoView({behavior:'smooth',block:'start'});}}
 function mostrarAvisoPagoQuincena(){const h=new Date(),d=h.getDate(),u=new Date(h.getFullYear(),h.getMonth()+1,0).getDate();if(d!==15&&d!==u)return;const periodo=d===15?'1ª quincena (1 al 15)':'2ª quincena (16 al '+u+')';const key='lifox_aviso_pago_'+h.getFullYear()+'_'+(h.getMonth()+1)+'_'+d;if(localStorage.getItem(key)==='cerrado')return;const total=inventory.filter(x=>{const f=fechaRegistro(x);return f&&f.getFullYear()===h.getFullYear()&&f.getMonth()===h.getMonth()&&(d===15?f.getDate()<=15:f.getDate()>=16)&&estaPagado(x)}).reduce((a,x)=>a+Number(x.pCliente||0),0);const a=document.getElementById('avisoPago'),t=document.getElementById('avisoPagoTexto');if(a&&t){t.textContent='Recordatorio de pago: '+periodo+'. Total registrado: '+money(total)+'.';a.style.display='flex';document.getElementById('btnVerAvisoPago').onclick=abrirMenuPagos;document.getElementById('btnCerrarAvisoPago').onclick=()=>{localStorage.setItem(key,'cerrado');a.style.display='none';};}}
 document.getElementById('btnMenuPagos')?.addEventListener('click',abrirMenuPagos);
@@ -1731,20 +2133,28 @@ function restaurarBorrador(id){const f=document.getElementById(id),all=leerBorra
 function borrarBorrador(id){const all=leerBorradores();delete all[id];localStorage.setItem(BORRADORES_KEY,JSON.stringify(all));}
 ['priceForm','salesForm'].forEach(id=>{const f=document.getElementById(id);if(f){restaurarBorrador(id);f.querySelectorAll('input,select,textarea').forEach(x=>x.addEventListener('input',()=>guardarBorrador(id)));f.querySelectorAll('select').forEach(x=>x.addEventListener('change',()=>guardarBorrador(id)));}});
 window.addEventListener('beforeunload',()=>{guardarBorrador('priceForm');guardarBorrador('salesForm');});
+(function(){const d=leerBorradores().priceForm;if(!d)return;if(d.mobileOS==='iPhone'){refrescarColoresIphone();actualizarCapacidadesIphone();['iphoneColor','iphoneStorage'].forEach(k=>{if(d[k])asegurarOpcion(k,d[k]);});}actualizarMarcaPCOtra();})();
 
-function imprimirNotaReparacion(){
-  const cliente=document.getElementById('clientName')?.value.trim() || '';
-  const telefono=document.getElementById('clientPhone')?.value.trim() || '';
-  const imei=document.getElementById('imeiInput')?.value.trim() || '';
-  const tipo=document.getElementById('mobileOS')?.value || document.getElementById('deviceCategory')?.value || 'Dispositivo';
+function imprimirNotaReparacion(reg){
+  let cliente=document.getElementById('clientName')?.value.trim() || '';
+  let telefono=document.getElementById('clientPhone')?.value.trim() || '';
+  let imei=document.getElementById('imeiInput')?.value.trim() || '';
+  let tipo=document.getElementById('mobileOS')?.value || document.getElementById('deviceCategory')?.value || 'Dispositivo';
   const iphone=document.getElementById('iphoneModel')?.value || '';
   const androidBrand=document.getElementById('androidBrand')?.value || '';
   const androidModel=document.getElementById('androidModel')?.value || '';
-  const pc=document.getElementById('pcModel')?.value || '';
-  const color=document.getElementById('iphoneColor')?.value || document.getElementById('androidColor')?.value || '';
-  const capacidad=document.getElementById('iphoneStorage')?.value || '';
-  const nota=document.getElementById('itemNote')?.value.trim() || '';
-  let dispositivo=tipo==='iPhone' ? iphone : tipo==='Android' ? (androidBrand+' '+androidModel).trim() : pc;
+  const pc=(marcaPCSeleccionada()+' '+(document.getElementById('pcModel')?.value || '')).trim();
+  let color=colorSeleccionado();
+  let capacidad=document.getElementById('iphoneStorage')?.value || '';
+  let nota=document.getElementById('itemNote')?.value.trim() || '';
+  let dispositivo=tipo==='iPhone' ? iphone : tipo==='Android' ? (androidModel.toUpperCase().startsWith(androidBrand.toUpperCase()) ? androidModel : androidBrand+' '+androidModel).trim() : pc;
+  if (reg && typeof reg === 'object' && !(reg instanceof Event)) {
+    const n = String(reg.name || '').trim();
+    cliente = reg.client || ''; telefono = reg.phone || ''; imei = reg.imei || ''; nota = reg.note || ''; color = reg.color || ''; capacidad = '';
+    if (/^PC\b/i.test(n)) { tipo = 'PC'; dispositivo = n.replace(/^PC\s*/i, '') || 'PC'; }
+    else if (n.includes('/')) { tipo = 'iPhone'; const p = n.split('/').map(x => x.trim()); dispositivo = p[0]; capacidad = p.length >= 3 ? p[2] : (p[1] || ''); if (p.length >= 3 && !color) color = p[1]; }
+    else { tipo = 'Android'; dispositivo = nombreGuardadoCorto(n); }
+  }
   if(!dispositivo) dispositivo=tipo || 'Dispositivo';
   const w=window.open('','_blank','width=430,height=700');
   if(!w){alert('Permite las ventanas emergentes para imprimir la nota.');return;}
@@ -1755,16 +2165,16 @@ function imprimirNotaReparacion(){
   w.document.close();
 }
 
-document.getElementById('btnImprimirNota')?.addEventListener('click',imprimirNotaReparacion);
+document.getElementById('btnImprimirNota')?.addEventListener('click',()=>imprimirNotaReparacion());
 
-
-document.getElementById('btnImprimirNota')?.addEventListener('click',imprimirNotaReparacion);
+(function(){const t=document.getElementById('saleDeviceType')?.value;const b=t&&document.querySelector('.sales-type-option[data-sale-type="'+t+'"]');if(b){document.querySelectorAll('.sales-type-option').forEach(x=>x.classList.toggle('activa',x===b));}})();
 
 async function iniciar() {
   actualizarRelojVivo();
   sincronizarHoraServidor().catch(() => {});
   if (isAdmin) document.body.classList.add('admin');
   actualizarAccesoModulos();
+  if (isAdmin && sessionStorage.getItem('lifox_pestana') === 'ventas') cambiarPestana('ventas', false);
   cargarVentasDesdeNube();
   cargarDatos().then(()=>mostrarAvisoPagoQuincena());
 }
