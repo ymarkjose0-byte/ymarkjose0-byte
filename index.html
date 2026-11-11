@@ -2563,5 +2563,167 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<!-- LECTOR USB GLOBAL · lee pistolas USB/Bluetooth desde cualquier parte de la página -->
+<style id="estilos-lector-usb">
+.btn-usb{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;background:#121214!important;border:1px solid #166534!important;color:#bbf7d0!important}
+.btn-usb .usb-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:usbPulso 2s infinite;flex:none}
+.btn-usb.armado{border-color:#22c55e!important;background:#052e16!important}
+@keyframes usbPulso{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}70%{box-shadow:0 0 0 7px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+input.usb-esperando{border-color:#22c55e!important;box-shadow:0 0 0 3px rgba(34,197,94,.22)!important}
+input.usb-recibido{border-color:#22c55e!important;box-shadow:0 0 0 4px rgba(34,197,94,.4)!important;transition:box-shadow .2s}
+.imei-tools{flex-wrap:wrap}
+.imei-tools > input{min-width:180px}
+@media (max-width:640px){.imei-tools .btn-usb{flex:1 1 100%}}
+.usb-aviso{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;z-index:99999;display:flex;align-items:center;gap:10px;flex-wrap:wrap;max-width:calc(100vw - 24px);padding:12px 14px;border-radius:12px;background:#0b1220;border:1px solid #22c55e;color:#e2e8f0;font-size:13px;box-shadow:0 12px 30px rgba(0,0,0,.5);transition:opacity .25s,transform .25s;pointer-events:none}
+.usb-aviso.visible{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.usb-aviso.alerta{border-color:#f59e0b}
+.usb-aviso b{color:#86efac;font-variant-numeric:tabular-nums}
+.usb-aviso button{padding:6px 10px;border-radius:8px;border:1px solid #3b82f6;background:#1d4ed8;color:#fff;font-weight:700;font-size:12px;cursor:pointer}
+</style>
+<script>
+(function () {
+  "use strict";
+  // Las pistolas USB escriben como un teclado muy rápido (menos de ~50 ms entre letras) y terminan con Enter o Tab.
+  var MAX_ENTRE_TECLAS = 50, MIN_CARACTERES = 8;
+  var CAMPOS_IMEI = ['imeiInput', 'saleImei'];
+  var buf = '', ultimo = 0, inicio = null, temporizador = null, avisoTimer = null;
+
+  function esTexto(el) {
+    if (!el) return false;
+    if (el.tagName === 'TEXTAREA' || el.isContentEditable) return true;
+    return el.tagName === 'INPUT' && !/^(button|submit|checkbox|radio|range|file|color|reset|image|hidden)$/i.test(el.type || '');
+  }
+  function reiniciar() { buf = ''; inicio = null; clearTimeout(temporizador); }
+  function visible(el) { return !!el && el.offsetParent !== null && getComputedStyle(el).display !== 'none'; }
+  function enVentas() { var p = document.getElementById('salesPanel'); return !!p && p.classList.contains('activo'); }
+
+  function aviso(html, opciones) {
+    opciones = opciones || {};
+    var a = document.getElementById('usbAviso');
+    if (!a) { a = document.createElement('div'); a.id = 'usbAviso'; a.className = 'usb-aviso'; a.setAttribute('role', 'status'); document.body.appendChild(a); }
+    a.innerHTML = '<span>🔌 ' + html + '</span>';
+    a.classList.toggle('alerta', !!opciones.alerta);
+    if (opciones.boton) {
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = opciones.boton.texto;
+      b.addEventListener('click', function () { a.classList.remove('visible'); opciones.boton.accion(); });
+      a.appendChild(b);
+    }
+    a.classList.add('visible');
+    clearTimeout(avisoTimer);
+    avisoTimer = setTimeout(function () { a.classList.remove('visible'); }, opciones.boton ? 9000 : 3500);
+  }
+
+  function llenarImei(id, valor) {
+    var input = document.getElementById(id);
+    if (!input) return;
+    input.value = valor;
+    try { normalizarCampoImei(input, true); } catch (e) {}
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    try { clearTimeout(tacTimer); } catch (e) {}
+    if (input.value.length >= 8) { try { consultarTACRemoto(input.value, id === 'saleImei' ? 'venta' : 'reparacion'); } catch (e) {} }
+    input.classList.remove('usb-esperando');
+    input.classList.add('usb-recibido');
+    setTimeout(function () { input.classList.remove('usb-recibido'); }, 1500);
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    aviso('IMEI leído: <b>' + input.value + '</b>' + (input.value.length === 15 ? ' · completando el equipo…' : ''));
+  }
+
+  function buscar(texto) {
+    var caja = document.getElementById('searchBox');
+    if (!caja) return;
+    caja.value = texto;
+    caja.dispatchEvent(new Event('input', { bubbles: true }));
+    caja.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function nuevaReparacionCon(imei) {
+    var caja = document.getElementById('searchBox');
+    if (caja && caja.value) { caja.value = ''; caja.dispatchEvent(new Event('input', { bubbles: true })); }
+    var btn = document.getElementById('btnNueva');
+    if (btn) btn.click();
+    setTimeout(function () { llenarImei('imeiInput', imei); }, 60);
+  }
+
+  // Decide adónde va lo que leyó el lector según la pantalla en la que estás.
+  function procesar(texto) {
+    var imei = '';
+    try { imei = extraerImei(texto) || ''; } catch (e) {}
+    var digitos = String(texto).replace(/\D/g, '');
+    var valorImei = imei || (digitos.length >= 8 ? digitos.slice(0, 15) : '');
+    var admin = typeof isAdmin !== 'undefined' && isAdmin;
+
+    if (admin && valorImei && enVentas()) return llenarImei('saleImei', valorImei);
+    if (admin && valorImei && visible(document.getElementById('priceForm'))) return llenarImei('imeiInput', valorImei);
+
+    var termino = imei || String(texto).trim();
+    buscar(termino);
+    if (!admin) return aviso('Código leído: <b>' + termino + '</b>. Inicia sesión como administrador para registrarlo.', { alerta: true });
+    var existe = false;
+    try { existe = (inventory || []).some(function (x) { return digitos && String(x.imei || '').replace(/\D/g, '').indexOf(digitos.slice(0, 15)) !== -1; }); } catch (e) {}
+    if (existe) aviso('Encontrado: <b>' + termino + '</b>');
+    else if (valorImei) aviso('No hay reparaciones con <b>' + valorImei + '</b>.', { boton: { texto: '➕ Nueva reparación con este IMEI', accion: function () { nuevaReparacionCon(valorImei); } } });
+    else aviso('Buscando: <b>' + termino + '</b>');
+  }
+
+  function terminar() {
+    var texto = buf, origen = inicio;
+    reiniciar();
+    // Si el lector escribió dentro de otro campo (nombre, nota…), se devuelve ese campo como estaba.
+    if (origen && origen.el && origen.valor !== null && origen.el.id !== 'searchBox') {
+      setTimeout(function () {
+        origen.el.value = origen.valor;
+        origen.el.dispatchEvent(new Event('input', { bubbles: true }));
+      }, 0);
+    }
+    procesar(texto);
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var el = document.activeElement;
+    // Los campos de IMEI ya entienden el lector por sí solos.
+    if (el && CAMPOS_IMEI.indexOf(el.id) !== -1) { reiniciar(); return; }
+    if (el && el.type === 'password') { reiniciar(); return; }
+    var ahora = performance.now();
+    if (e.key === 'Enter' || e.key === 'Tab') {
+      if (buf.length >= MIN_CARACTERES && ahora - ultimo <= 150) { e.preventDefault(); e.stopPropagation(); terminar(); }
+      else reiniciar();
+      return;
+    }
+    if (!e.key || e.key.length !== 1) return;
+    if (!buf || ahora - ultimo > MAX_ENTRE_TECLAS) {
+      buf = '';
+      inicio = { el: esTexto(el) ? el : null, valor: esTexto(el) ? el.value : null };
+    }
+    ultimo = ahora;
+    buf += e.key;
+    clearTimeout(temporizador);
+    // Lectores configurados sin Enter: si llegó un código largo y se detuvo, también se toma.
+    temporizador = setTimeout(function () { if (buf.length >= 14) terminar(); else reiniciar(); }, 160);
+  }, true);
+
+  // Botón "Lector USB" junto a cada botón de cámara: deja el campo de IMEI listo para la pistola.
+  [['btnEscanear', 'imeiInput'], ['btnEscanearVenta', 'saleImei']].forEach(function (par) {
+    var cam = document.getElementById(par[0]), input = document.getElementById(par[1]);
+    if (!cam || !input || document.getElementById(par[0] + 'Usb')) return;
+    var b = document.createElement('button');
+    b.type = 'button'; b.id = par[0] + 'Usb';
+    b.className = 'btn-usb' + (cam.classList.contains('mini') ? ' mini' : '');
+    b.title = 'Usar una pistola lectora USB o Bluetooth';
+    b.innerHTML = '<span class="usb-dot"></span>Lector USB';
+    b.addEventListener('click', function () {
+      try { detenerEscaner(); } catch (e) {}
+      input.value = '';
+      input.classList.add('usb-esperando');
+      b.classList.add('armado');
+      input.focus();
+      aviso('Lector USB listo. Escanea el código de barras del IMEI.');
+    });
+    input.addEventListener('blur', function () { input.classList.remove('usb-esperando'); b.classList.remove('armado'); });
+    cam.insertAdjacentElement('afterend', b);
+  });
+})();
+</script>
+
 </body>
 </html>
