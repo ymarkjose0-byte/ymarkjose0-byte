@@ -404,7 +404,9 @@ td.celda-acc { white-space: nowrap; display: flex; gap: 4px; align-items: center
           <option value="Acer"><option value="Alienware"><option value="Apple"><option value="ASUS"><option value="Dell"><option value="Gigabyte"><option value="HP"><option value="Huawei"><option value="Lenovo"><option value="LG"><option value="Microsoft"><option value="MSI"><option value="Razer"><option value="Samsung"><option value="Toshiba"><option value="Xiaomi"><option value="Otra marca">
         </datalist>
         <input type="text" id="pcModel" placeholder="Modelo">
-        <select id="pcColor"><option value="Negro">Negro</option><option value="Gris">Gris</option></select>
+        <select id="pcColor">
+          <option value="">Seleccione color</option><option value="Negro">Negro</option><option value="Gris">Gris</option><option value="Blanco">Blanco</option><option value="Plata">Plata</option><option value="Azul">Azul</option><option value="Rojo">Rojo</option><option value="Verde">Verde</option><option value="Dorado">Dorado</option><option value="Rosa">Rosa</option><option value="Morado">Morado</option><option value="Otro">Otro</option>
+        </select>
       </div>
     </div>
 
@@ -931,6 +933,21 @@ function renderChips() {
   });
 }
 
+function reiniciarSeleccionEquipo() {
+  document.getElementById('deviceCategory').value = '';
+  document.getElementById('mobileOS').value = '';
+  document.querySelectorAll('.opcion-dispositivo').forEach(x => x.classList.remove('activa'));
+  document.getElementById('seccionIMEI').setAttribute('aria-hidden', 'true');
+  document.getElementById('seccionIMEI').style.display = 'none';
+  document.getElementById('seccionIphoneSpecs').style.display = 'none';
+  document.getElementById('seccionAndroidSpecs').style.display = 'none';
+  document.getElementById('seccionPCSpecs').style.display = 'none';
+  document.getElementById('seccionServicios').style.display = 'none';
+  document.getElementById('serviciosBox').innerHTML = '';
+  document.getElementById('chipsBox').innerHTML = '';
+  document.getElementById('imeiInput').value = '';
+}
+
 function seleccionarTipo(tipo) {
   document.getElementById('deviceCategory').value = 'movil';
   document.getElementById('mobileOS').value = tipo;
@@ -1326,10 +1343,11 @@ function cerrarModal() {
 
 document.getElementById('btnNueva').addEventListener('click', () => {
   if (!isAdmin) { document.getElementById('adminModal').style.display = 'flex'; return; }
+  borrarBorrador('priceForm');
   document.getElementById('priceForm').reset();
   document.getElementById('editId').value = '';
   seleccionados.clear();
-  renderChips();
+  reiniciarSeleccionEquipo();
   document.getElementById('priceForm').style.display = 'flex';
 });
 document.getElementById('btnCancelar').addEventListener('click', () => { 
