@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estado de tu equipo · LifoxTech</title>
+<meta name="description" content="Consulta el estado de la reparación de tu equipo en LifoxTech.">
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#0c0c0e;color:#f4f4f5;font-family:Arial,Helvetica,sans-serif;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{width:100%;max-width:420px;background:#18181b;border:1px solid #27272a;border-radius:18px;padding:26px}
+h1{font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:#a1a1aa;margin:0 0 4px;text-align:center}
+.equipo{font-size:22px;font-weight:800;text-align:center;margin:6px 0 20px}
+.pasos{display:flex;justify-content:space-between;position:relative;margin:10px 0 24px}
+.pasos:before{content:"";position:absolute;top:15px;left:12%;right:12%;height:3px;background:#27272a}
+.barra{position:absolute;top:15px;left:12%;height:3px;background:#22c55e;transition:width .6s}
+.paso{position:relative;z-index:1;flex:1;text-align:center;font-size:11px;color:#71717a}
+.paso i{display:flex;align-items:center;justify-content:center;width:32px;height:32px;margin:0 auto 6px;border-radius:50%;background:#27272a;font-style:normal;font-weight:700}
+.paso.ok{color:#f4f4f5}.paso.ok i{background:#22c55e;color:#0c0c0e}
+.fila{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid #27272a;font-size:14px}.fila span{color:#a1a1aa}
+.aviso{margin-top:18px;padding:12px;border-radius:12px;background:#14532d;color:#bbf7d0;font-size:14px;text-align:center;display:none}
+.err{color:#fca5a5;text-align:center}
+form{display:flex;gap:8px;margin-top:10px}input{flex:1;padding:12px;border-radius:10px;border:1px solid #3f3f46;background:#0c0c0e;color:#f4f4f5;font-size:14px}button{padding:12px 16px;border:0;border-radius:10px;background:#22c55e;color:#0c0c0e;font-weight:700}
+</style></head><body>
+<div class="card"><h1>LifoxTech · Estado del equipo</h1><div id="out"><p style="text-align:center;color:#a1a1aa">Cargando…</p></div></div>
+<script>
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz6obXFYEE_W5HR4weYQF3bVG7j4qvkNyCngFzafhHFT7RGhoEMdeaSfQqjd_V9du0hjA/exec";
+const PASOS = ['Recibido','En proceso','Listo','Entregado'];
+const out = document.getElementById('out');
+const esc = x => String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dinero = n => 'RD$' + Number(n || 0).toLocaleString('es-DO');
+function formulario(msg) {
+  out.innerHTML = (msg ? '<p class="err">' + esc(msg) + '</p>' : '<p style="text-align:center;color:#a1a1aa">Escribe el código de tu nota.</p>')
+    + '<form id="f"><input id="c" placeholder="LIFOX-..." autocomplete="off"><button>Ver</button></form>';
+  document.getElementById('f').onsubmit = e => { e.preventDefault(); const v = document.getElementById('c').value.trim(); if (v) { history.replaceState(null, '', '?id=' + encodeURIComponent(v)); cargar(v); } };
+}
+async function cargar(id) {
+  out.innerHTML = '<p style="text-align:center;color:#a1a1aa">Cargando…</p>';
+  try {
+    const d = await (await fetch(WEB_APP_URL + '?action=estado&id=' + encodeURIComponent(id))).json();
+    if (!d.success) return formulario(d.message || 'No encontramos ese equipo.');
+    let i = PASOS.findIndex(p => p.toLowerCase() === String(d.estado).toLowerCase()); if (i < 0) i = 0;
+    out.innerHTML = '<div class="equipo">' + esc(d.dispositivo || 'Tu equipo') + '</div>'
+      + '<div class="pasos"><div class="barra" style="width:' + (i / 3 * 76) + '%"></div>' + PASOS.map((p, k) => '<div class="paso' + (k <= i ? ' ok' : '') + '"><i>' + (k < i ? '✓' : k + 1) + '</i>' + p + '</div>').join('') + '</div>'
+      + (d.cliente ? '<div class="fila"><span>Cliente</span><b>' + esc(d.cliente) + '</b></div>' : '')
+      + (d.servicios ? '<div class="fila"><span>Servicio</span><b>' + esc(d.servicios) + '</b></div>' : '')
+      + '<div class="fila"><span>Recibido</span><b>' + esc(d.fecha) + ' ' + esc(d.hora) + '</b></div>'
+      + (d.precio ? '<div class="fila"><span>Total</span><b>' + dinero(d.precio) + (d.pagado ? ' · Pagado' : '') + '</b></div>' : '')
+      + '<div class="aviso" style="display:' + (i === 2 ? 'block' : 'none') + '">🎉 ¡Tu equipo está listo! Puedes pasar a recogerlo.</div>';
+  } catch (e) { formulario('Sin conexión. Intenta de nuevo.'); }
+}
+const id = new URLSearchParams(location.search).get('id');
+id ? cargar(id) : formulario();
+</script></body></html>
