@@ -8,6 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" defer></script>
 <!-- Lector de códigos: se carga solo cuando hace falta (ver LECTOR DE IMEI v2) -->
 
 <style>
@@ -169,6 +171,8 @@ button.verde:hover { background: #059669; }
 #btnExportar { background: #1d4ed8; color: #fff; }
 body.admin #btnNueva { display: inline-flex; }
 body.admin #btnExportar { display: inline-block; }
+#btnPdf { background: #b91c1c; color: #fff; }
+body.admin #btnPdf { display: inline-block; }
 .rep-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; align-items:stretch; }
 .rep-cards > .vacio { grid-column:1 / -1; border:1px dashed var(--border-color); border-radius:12px; }
 .rep-card { position:relative; overflow:hidden; display:flex; flex-direction:column; gap:12px; padding:16px; border:1px solid #2e2e33; border-radius:14px; background:linear-gradient(160deg,#1c1c21 0%,#141417 100%); color:#e5e7eb; font-size:12px; box-shadow:0 6px 18px rgba(0,0,0,.35); transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease; }
@@ -447,6 +451,74 @@ td.celda-acc button { white-space: nowrap; width: 100%; padding: 5px 4px; }
   .vista-lista .rep-acciones { grid-column:1 / -1; }
   .vista-lista .rep-acciones button { padding:5px 6px; }
 }
+
+/* ===== v3 · Registros agrupados por mes / año ===== */
+#inventoryTable.agrupado { display:block; }
+.reg-grupo { margin:0 0 10px; border:1px solid var(--border-color); border-radius:12px; background:#0f0f12; }
+.reg-grupo > summary { list-style:none; cursor:pointer; user-select:none; display:flex; align-items:center; gap:8px 10px; flex-wrap:wrap; padding:9px 12px; border-radius:11px; background:#151519; position:sticky; top:0; z-index:3; }
+.reg-grupo[open] > summary { border-radius:11px 11px 0 0; border-bottom:1px solid var(--border-color); }
+.reg-grupo > summary::-webkit-details-marker { display:none; }
+.reg-grupo > summary:hover { background:#18181d; }
+.rg-flecha { flex:none; width:22px; height:22px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; background:#1f1f24; color:#94a3b8; font-size:10px; transition:transform .18s ease, background .18s ease; }
+.reg-grupo[open] > summary .rg-flecha { transform:rotate(90deg); background:#1d4ed8; color:#fff; }
+.rg-titulo { font-size:14px; font-weight:800; color:#f8fafc; letter-spacing:.01em; }
+.rg-titulo small { font-size:12px; font-weight:600; color:#94a3b8; margin-left:5px; }
+.rg-tag { font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; padding:2px 7px; border-radius:999px; background:#172554; color:#93c5fd; }
+.rg-stats { margin-left:auto; display:flex; gap:5px; flex-wrap:wrap; justify-content:flex-end; }
+.rg-stat { font-size:10.5px; padding:3px 8px; border-radius:999px; background:#1b1b20; border:1px solid #27272a; color:#94a3b8; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.rg-stat b { color:#f1f5f9; font-weight:700; }
+.rg-stat.verde b { color:#34d399; } .rg-stat.ambar b { color:#fbbf24; } .rg-stat.azul b { color:#60a5fa; }
+.rg-cuerpo { padding:10px; }
+.reg-grupo .reg-grupo { margin:0 0 8px; border-radius:10px; background:#0b0b0d; }
+.reg-grupo .reg-grupo:last-child { margin-bottom:0; }
+.reg-grupo .reg-grupo > summary { padding:7px 10px; background:#121216; position:static; border-radius:9px; }
+.reg-grupo .reg-grupo[open] > summary { border-radius:9px 9px 0 0; }
+.reg-grupo .reg-grupo .rg-titulo { font-size:13px; }
+.reg-grupo .reg-grupo .rg-cuerpo { padding:8px; }
+.vista-lista .rep-cards, .vista-mini .rep-cards, .rep-cards.vista-mini { grid-template-columns:1fr; gap:5px; }
+.grupo-acciones { display:inline-flex; background:#121214; border:1px solid var(--border-color); border-radius:8px; padding:3px; gap:3px; }
+.grupo-btn { padding:6px 9px; font-size:11.5px; border-radius:6px; background:transparent; color:#94a3b8; font-weight:700; width:auto; }
+.grupo-btn:hover { background:#1f1f24; color:#fff; }
+/* Vista mini: una línea fina por registro */
+.vista-mini .rep-card { display:grid; grid-template-columns:minmax(118px,.7fr) minmax(130px,1fr) minmax(150px,1.3fr) minmax(90px,.6fr) auto; align-items:center; gap:4px 12px; padding:6px 10px 6px 13px; border-radius:8px; box-shadow:none; }
+.vista-mini .rep-card::before { inset:0 auto 0 0; width:3px; height:auto; }
+.vista-mini .rep-card:hover { transform:none; background:#1a1a1f; }
+.vista-mini .rc-fecha { min-width:28px; height:28px; border-radius:6px; }
+.vista-mini .rc-fecha b { font-size:12px; } .vista-mini .rc-fecha small { font-size:7.5px; }
+.vista-mini .rc-top { gap:7px; }
+.vista-mini .rc-badges { display:none; }
+.vista-mini .rc-cliente { flex-direction:column; align-items:flex-start; gap:0; }
+.vista-mini .rc-cliente strong { font-size:13px; max-width:100%; }
+.vista-mini .rc-cliente span { font-size:10.5px; }
+.vista-mini .rc-equipo { background:none; border:0; padding:0; flex-wrap:nowrap; flex-direction:column; align-items:flex-start; gap:1px; min-width:0; }
+.vista-mini .rc-equipo b { flex:none; max-width:100%; }
+.vista-mini .rc-equipo code, .vista-mini .rc-color, .vista-mini .rc-nota { display:none; }
+.vista-mini .rc-detalle { display:none; }
+.vista-mini .rc-mini-estado { display:flex; gap:4px; flex-wrap:wrap; }
+.rc-mini-estado { display:none; }
+.vista-mini .rc-mini-estado .badge { font-size:8.5px; padding:2px 6px; }
+.vista-mini .rc-precios { flex-direction:column; align-items:flex-end; gap:0; }
+.vista-mini .rc-precios > span:not(.rc-cli) { display:none; }
+.vista-mini .rep-acciones { grid-column:1 / -1; margin:0; display:none; grid-template-columns:repeat(4,auto); justify-content:end; }
+.vista-mini .rep-card.abierta .rep-acciones { display:grid; }
+.vista-mini .rep-card { cursor:pointer; }
+@media (max-width:900px) {
+  .vista-mini .rep-card { grid-template-columns:1fr auto; }
+  .vista-mini .rc-top { grid-column:1; grid-row:1; }
+  .vista-mini .rc-precios { grid-column:2; grid-row:1 / span 2; }
+  .vista-mini .rc-cliente { grid-column:1; grid-row:2; flex-direction:row; align-items:baseline; gap:8px; min-width:0; }
+  .vista-mini .rc-equipo { grid-column:1 / -1; grid-row:3; }
+  .vista-mini .rc-mini-estado { grid-column:2; grid-row:3; justify-content:flex-end; }
+}
+@media (max-width:640px) {
+  .reg-grupo > summary { padding:8px 10px; gap:6px 8px; }
+  .rg-stats { margin-left:0; width:100%; justify-content:flex-start; }
+  .rg-titulo { font-size:13.5px; }
+  .rg-cuerpo { padding:7px; }
+  .grupo-acciones { flex:none; } .grupo-btn { padding:6px 11px; font-size:14px; } .grupo-btn span { display:none; }
+  .vista-btn { white-space:nowrap; padding:6px 6px; }
+  .rg-stat { font-size:10px; padding:2px 7px; }
+}
 </style>
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
@@ -488,14 +560,14 @@ td.celda-acc button { white-space: nowrap; width: 100%; padding: 5px 4px; }
         <button type="button" class="azul" id="btnEscanear">📷 Escanear código de barras</button>
       </div>
       <div id="scannerContainer" class="scanner-box">
-        <div class="scanner-head"><span class="scanner-title"><span class="scanner-dot"></span>Escáner de IMEI</span><span class="scanner-tip">Código de barras · 15 dígitos</span></div>
+        <div class="scanner-head"><span class="scanner-title"><span class="scanner-dot"></span>Escáner de IMEI</span><span class="scanner-tip">Código de barras o número escrito</span></div>
         <div class="scan-stage">
           <div id="qrReader" aria-label="Lector de códigos de barras para iPhone y Android"></div>
           <div class="scan-idle"><div class="scan-bars"></div><span>Toca «Abrir cámara» o elige una foto</span></div>
           <div class="scan-frame"><i></i><i></i><i></i><i></i><div class="scan-laser"></div></div>
         </div>
         <div class="scan-zoom" id="zoomBox" hidden><span>🔍 Zoom</span><input type="range" id="zoomImei" min="1" max="1" step="0.1" value="1" aria-label="Zoom de la cámara"></div>
-        <div id="scannerHint" class="scanner-hint">Pon el código de barras del IMEI dentro del recuadro, horizontal y a unos 10–15 cm.</div>
+        <div id="scannerHint" class="scanner-hint">Pon el código de barras o el número del IMEI dentro del recuadro, horizontal y a unos 10–15 cm.</div>
         <div class="scanner-actions">
           <button type="button" class="azul scan-main" id="btnAbrirCamara">📷 Abrir cámara</button>
           <button type="button" class="gris" id="btnLinterna" hidden>🔦 Linterna</button>
@@ -641,7 +713,10 @@ td.celda-acc button { white-space: nowrap; width: 100%; padding: 5px 4px; }
   <div class="reg-controles repair-only" id="controlesRegistros">
     <label class="reg-ctrl"><span data-icono="⇅">Ordenar</span><select id="ordenRegistros" aria-label="Ordenar registros"><option value="recientes">Más recientes</option><option value="antiguos">Más antiguos</option><option value="sin-pagar">Sin pagar primero</option><option value="pagados">Pagados primero</option><option value="estado">Por estado (Recibido → Entregado)</option><option value="cliente-az">Cliente A → Z</option><option value="cliente-za">Cliente Z → A</option><option value="precio-mayor">Precio mayor</option><option value="precio-menor">Precio menor</option><option value="tecnico">Técnico</option><option value="equipo">Equipo / modelo</option></select></label>
     <label class="reg-ctrl"><span data-icono="⏷">Mostrar</span><select id="filtroRegistros" aria-label="Filtrar registros"><option value="todos">Todos</option><option value="sin-pagar">Sin pagar</option><option value="pagados">Pagados</option><option value="recibido">Recibido</option><option value="en proceso">En proceso</option><option value="listo">Listo</option><option value="entregado">Entregado</option></select></label>
-    <div class="vista-toggle" role="group" aria-label="Tipo de vista"><button type="button" class="vista-btn" data-vista="compacta">▦ Tarjetas</button><button type="button" class="vista-btn" data-vista="lista">☰ Lista</button></div>
+    <label class="reg-ctrl"><span data-icono="▤">Agrupar</span><select id="agruparRegistros" aria-label="Agrupar registros"><option value="anio-mes">Año y mes</option><option value="mes">Por mes</option><option value="anio">Por año</option><option value="quincena">Por quincena</option><option value="semana">Por semana</option><option value="dia">Por día</option><option value="ninguno">Sin agrupar</option></select></label>
+    <label class="reg-ctrl"><span data-icono="📅">Período</span><select id="periodoRegistros" aria-label="Elegir mes o año"><option value="todo">Todo</option></select></label>
+    <div class="vista-toggle" role="group" aria-label="Tipo de vista"><button type="button" class="vista-btn" data-vista="compacta">▦ Tarjetas</button><button type="button" class="vista-btn" data-vista="lista">☰ Lista</button><button type="button" class="vista-btn" data-vista="mini">≡ Mini</button></div>
+    <div class="grupo-acciones" id="grupoAcciones" role="group" aria-label="Abrir o cerrar grupos"><button type="button" class="grupo-btn" data-grupos="abrir" title="Abrir todos los grupos">⊞<span> Abrir</span></button><button type="button" class="grupo-btn" data-grupos="cerrar" title="Cerrar todos los grupos">⊟<span> Cerrar</span></button></div>
     <span id="contadorRegistros" class="reg-contador"></span>
   </div>
 
@@ -659,6 +734,7 @@ td.celda-acc button { white-space: nowrap; width: 100%; padding: 5px 4px; }
     <span class="punto" id="punto"></span>
     <span id="loadingStatus">Cargando...</span>
     <button type="button" class="mini solo-admin" id="btnExportar">⬇ Excel</button>
+    <button type="button" class="mini solo-admin" id="btnPdf" title="Descargar informe PDF del mes o año elegido en Período">📄 Informe PDF</button>
     <button type="button" class="mini solo-admin" id="btnNueva">➕ Nueva reparación</button>
   </div>
 
@@ -684,14 +760,14 @@ td.celda-acc button { white-space: nowrap; width: 100%; padding: 5px 4px; }
         <div style="display:flex;gap:8px;align-items:center"><input type="text" id="saleImei" placeholder="IMEI del teléfono (15 dígitos)" maxlength="15" minlength="15" pattern="\d{15}" inputmode="numeric" required style="flex:1"><button type="button" class="mini azul" id="btnEscanearVenta">📷 Código de barras</button></div>
         <div id="tacVentaStatus" style="font-size:10px;color:var(--text-muted);margin-top:4px;min-height:14px"></div>
         <div id="scannerContainerVenta" class="scanner-box">
-        <div class="scanner-head"><span class="scanner-title"><span class="scanner-dot"></span>Escáner de IMEI</span><span class="scanner-tip">Código de barras · 15 dígitos</span></div>
+        <div class="scanner-head"><span class="scanner-title"><span class="scanner-dot"></span>Escáner de IMEI</span><span class="scanner-tip">Código de barras o número escrito</span></div>
         <div class="scan-stage">
           <div id="qrReaderVenta" aria-label="Lector de códigos de barras para iPhone y Android para ventas"></div>
           <div class="scan-idle"><div class="scan-bars"></div><span>Toca «Abrir cámara» o elige una foto</span></div>
           <div class="scan-frame"><i></i><i></i><i></i><i></i><div class="scan-laser"></div></div>
         </div>
         <div class="scan-zoom" id="zoomBoxVenta" hidden><span>🔍 Zoom</span><input type="range" id="zoomImeiVenta" min="1" max="1" step="0.1" value="1" aria-label="Zoom de la cámara"></div>
-        <div id="scannerHintVenta" class="scanner-hint">Pon el código de barras del IMEI dentro del recuadro, horizontal y a unos 10–15 cm.</div>
+        <div id="scannerHintVenta" class="scanner-hint">Pon el código de barras o el número del IMEI dentro del recuadro, horizontal y a unos 10–15 cm.</div>
         <div class="scanner-actions">
           <button type="button" class="azul scan-main" id="btnAbrirCamaraVenta">📷 Abrir cámara</button>
           <button type="button" class="gris" id="btnLinternaVenta" hidden>🔦 Linterna</button>
@@ -752,7 +828,7 @@ td.celda-acc button { white-space: nowrap; width: 100%; padding: 5px 4px; }
       <span class="wm-label">Desarrollado y Gestionado por</span>
       <span class="wm-nombre">Ymark Jose Ramirez Vargas</span>
       <span class="wm-linea"></span>
-      <span class="wm-build">Versión 2.0 · Escáner rápido</span>
+      <span class="wm-build">Versión 2.3 · Lee el IMEI escrito</span>
     </div>
     <div class="admin-link">
       <a class="solo-admin" onclick="abrirModalPass()">🔑 Cambiar Contraseña</a>
@@ -1015,8 +1091,8 @@ const CAMARA_GUARDADA_KEY = 'lifox_camara_imei';
 const ES_ANDROID = /Android/i.test(navigator.userAgent);
 const ES_MOVIL = ES_ANDROID || /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
 const TEXTO_AYUDA_ESCANER = ES_MOVIL
-  ? 'Pon el código de barras del IMEI dentro del recuadro, horizontal y a unos 10–15 cm.'
-  : 'Acerca el código del IMEI a la cámara (15–25 cm) dentro del recuadro. Si no enfoca, usa «Desde foto».';
+  ? 'Pon el código de barras o el número del IMEI dentro del recuadro, horizontal y a unos 10–15 cm.'
+  : 'Acerca el código o el número del IMEI a la cámara (15–25 cm) dentro del recuadro. Si no enfoca, usa «Desde foto».';
 
 let scannerTargetInput = 'imeiInput';
 let codigoDetectado = false, linternaEncendida = false, ultimoAvisoNoImei = 0, inicioEscaneo = 0, avisoLento = false;
@@ -1145,6 +1221,145 @@ function lectorZXing() {
   return lectorZX;
 }
 
+
+// ---------- LECTOR DEL NÚMERO ESCRITO (para equipos sin código de barras) ----------
+// Lee los dígitos impresos (etiqueta, caja, bandeja SIM o pantalla *#06#), busca el TAC (primeros 8)
+// para saber el modelo y solo acepta un IMEI completo si pasa la comprobación de 15 dígitos (Luhn).
+const TESSERACT_JS = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+let motorOCR = null, promesaOCR = null, falloOCR = 0, vistosOCR = {}, tacsAplicadosOCR = {};
+const lienzoOCR = document.createElement('canvas');
+const ctxOCR = lienzoOCR.getContext('2d', { willReadFrequently: true });
+
+function cargarMotorOCR() {
+  if (motorOCR) return Promise.resolve(motorOCR);
+  if (promesaOCR) return promesaOCR;
+  if (falloOCR && Date.now() - falloOCR < 15000) return Promise.resolve(null);
+  promesaOCR = (async () => {
+    if (!window.Tesseract) await cargarScript(TESSERACT_JS);
+    const w = await window.Tesseract.createWorker('eng', 1);
+    await w.setParameters({ tessedit_char_whitelist: '0123456789 ', tessedit_pageseg_mode: '11', user_defined_dpi: '300' });
+    motorOCR = w;
+    return w;
+  })().catch(e => { console.warn('Lector de número escrito no disponible:', e); falloOCR = Date.now(); return null; })
+    .finally(() => { promesaOCR = null; });
+  return promesaOCR;
+}
+
+function datosTAC(imei) {
+  const tac = String(imei || '').slice(0, 8);
+  if (tac.length < 8) return null;
+  return (window.TAC_EMBEDDED && window.TAC_EMBEDDED[tac]) || buscarEnBaseTAC(tac);
+}
+function nombreModeloTAC(imei) {
+  const d = datosTAC(imei); if (!d) return '';
+  const brand = String(d.brand || '').trim(), texto = String(d.specs || d.detalle || d.model || '').trim() || brand;
+  try { return /iphone/i.test(texto) ? modeloIphoneDesdeTexto(texto) : modeloComercial(texto, brand); } catch (e) { return texto; }
+}
+
+// Busca IMEIs en el texto leído. "validos" = 15 dígitos que pasan Luhn; "tacs" = números largos con TAC conocido.
+function imeisEnTextoOCR(texto) {
+  const validos = [], tacs = [], vistos = new Set();
+  String(texto || '').split(/\n+/).forEach(linea => {
+    const grupos = linea.match(/\d+/g) || [];
+    const corridas = grupos.map(g => ({ r: g, exacto: g.length === 15 }));
+    const unida = grupos.join('');
+    if (grupos.length > 1) corridas.push({ r: unida, exacto: false });
+    corridas.forEach(({ r, exacto }) => {
+      if (r.length < 14) { if (r.length >= 8 && datosTAC(r)) tacs.push(r.slice(0, 8) + '0000000'); return; }
+      if (r.length === 14 && datosTAC(r)) { tacs.push(r + '0'); return; }
+      for (let i = 0; i + 15 <= r.length; i++) {
+        const c = r.substr(i, 15);
+        if (imeiValido(c)) { if (!vistos.has(c)) { vistos.add(c); validos.push({ imei: c, exacto: exacto && i === 0 }); } }
+        else if (datosTAC(c)) tacs.push(c);
+      }
+    });
+  });
+  return { validos, tacs };
+}
+
+// Escala de grises con contraste estirado; "invertir" ayuda con letras claras sobre fondo oscuro.
+function prepararImagenOCR(fuente, sx, sy, sw, sh, anchoMax, invertir, rotar) {
+  const f = Math.min(2.5, anchoMax / sw);
+  const w = Math.max(1, Math.round(sw * f)), h = Math.max(1, Math.round(sh * f));
+  lienzoOCR.width = rotar ? h : w; lienzoOCR.height = rotar ? w : h;
+  ctxOCR.save();
+  if (rotar) { ctxOCR.translate(h, 0); ctxOCR.rotate(Math.PI / 2); }
+  ctxOCR.drawImage(fuente, sx, sy, sw, sh, 0, 0, w, h);
+  ctxOCR.restore();
+  const img = ctxOCR.getImageData(0, 0, lienzoOCR.width, lienzoOCR.height), d = img.data;
+  let min = 255, max = 0;
+  for (let i = 0; i < d.length; i += 16) { const y = (d[i] * 299 + d[i + 1] * 587 + d[i + 2] * 114) / 1000; if (y < min) min = y; if (y > max) max = y; }
+  const rango = Math.max(40, max - min);
+  for (let i = 0; i < d.length; i += 4) {
+    let y = ((d[i] * 299 + d[i + 1] * 587 + d[i + 2] * 114) / 1000 - min) * 255 / rango;
+    y = y < 0 ? 0 : y > 255 ? 255 : y; if (invertir) y = 255 - y;
+    d[i] = d[i + 1] = d[i + 2] = y;
+  }
+  ctxOCR.putImageData(img, 0, 0);
+  return lienzoOCR;
+}
+
+async function textoOCR(lienzo) {
+  const w = await cargarMotorOCR(); if (!w) return '';
+  try { const r = await w.recognize(lienzo); return (r && r.data && r.data.text) || ''; } catch (e) { return ''; }
+}
+
+// Cuando ve un TAC conocido, pone el modelo enseguida aunque el IMEI todavía no se lea completo.
+function avisarModeloOCR(candidato, sesion) {
+  const tac = candidato.slice(0, 8), modelo = nombreModeloTAC(candidato);
+  if (!modelo || sesion !== sesionEscaner) return;
+  if (!tacsAplicadosOCR[tac]) {
+    tacsAplicadosOCR[tac] = true;
+    try { consultarTACRemoto(candidato, scannerTargetInput === 'saleImei' ? 'venta' : 'reparacion'); } catch (e) {}
+  }
+  mensajeEscaner('Modelo: ' + modelo + ' · mantén quieto para leer el IMEI completo…', 'ok');
+}
+
+async function cicloOCR(sesion) {
+  const w = await cargarMotorOCR();
+  if (!w || sesion !== sesionEscaner) return;
+  if (!TAC_INDICE) cargarBaseTAC();
+  let n = 0;
+  while (sesion === sesionEscaner && streamEscaner && videoEscaner && !codigoDetectado) {
+    const v = videoEscaner;
+    if (v.readyState >= 2 && v.videoWidth) {
+      const vw = v.videoWidth, vh = v.videoHeight, cw = v.clientWidth || vw, ch = v.clientHeight || vh;
+      const esc = Math.max(cw / vw, ch / vh), visW = cw / esc, visH = ch / esc, x0 = (vw - visW) / 2, y0 = (vh - visH) / 2;
+      // Franja del recuadro; cada 3 vueltas se prueba con colores invertidos (pantallas en modo oscuro).
+      const lienzo = prepararImagenOCR(v, x0 + visW * 0.03, y0 + visH * 0.2, visW * 0.94, visH * 0.6, 1300, n % 3 === 2, false);
+      const texto = await textoOCR(lienzo);
+      if (sesion !== sesionEscaner || codigoDetectado) return;
+      const { validos, tacs } = imeisEnTextoOCR(texto);
+      for (const c of validos) {
+        vistosOCR[c.imei] = (vistosOCR[c.imei] || 0) + 1;
+        // Se acepta al instante si son 15 dígitos seguidos con TAC conocido; si no, debe leerse igual dos veces.
+        if ((c.exacto && datosTAC(c.imei)) || vistosOCR[c.imei] >= 2) { aceptarImeiCamara(c.imei, 'número'); return; }
+      }
+      const conTac = validos.map(c => c.imei).concat(tacs).find(c => datosTAC(c));
+      if (conTac) avisarModeloOCR(conTac, sesion);
+      else if (/\d{6,}/.test(texto.replace(/\s/g, ''))) mensajeEscaner('Leyendo el número… acércalo, recto y con buena luz.');
+      n++;
+    }
+    await new Promise(r => setTimeout(r, 80));
+  }
+}
+
+// Foto sin código de barras: se lee el número escrito (normal, invertido y girado).
+async function imeiPorOCRFoto(imagen) {
+  if (!(await cargarMotorOCR())) return { imei: null };
+  if (!TAC_INDICE) await Promise.race([cargarBaseTAC(), new Promise(r => setTimeout(r, 6000))]);
+  let tacVisto = null;
+  const pruebas = [[false, false], [true, false], [false, true]];
+  for (const [inv, rot] of pruebas) {
+    const lienzo = prepararImagenOCR(imagen, 0, 0, imagen.width, imagen.height, 1800, inv, rot);
+    const { validos, tacs } = imeisEnTextoOCR(await textoOCR(lienzo));
+    const orden = validos.slice().sort((a, b) => (datosTAC(b.imei) ? 2 : 0) + (b.exacto ? 1 : 0) - (datosTAC(a.imei) ? 2 : 0) - (a.exacto ? 1 : 0));
+    if (orden.length && (datosTAC(orden[0].imei) || orden[0].exacto)) return { imei: orden[0].imei };
+    tacVisto = tacVisto || validos.map(c => c.imei).concat(tacs).find(c => datosTAC(c)) || null;
+  }
+  return { imei: null, tac: tacVisto };
+}
+
 function decodificarZXingJS(lienzo, n = 0) {
   const Z = window.ZXing, lector = lectorZXing(); if (!lector) return [];
   try {
@@ -1227,13 +1442,19 @@ function aplicarResultadosCamara(resultados) {
     }
     return false;
   }
+  return aceptarImeiCamara(codigo, 'código');
+}
+
+function aceptarImeiCamara(codigo, origen) {
+  if (codigoDetectado) return false;
   codigoDetectado = true;
   if (!colocarImei(codigo)) { codigoDetectado = false; return false; }
   const box = elEscaner('scannerContainer'); if (box) box.classList.add('scan-ok');
   const seg = ((Date.now() - inicioEscaneo) / 1000).toFixed(1);
-  mensajeEscaner('✓ IMEI detectado: ' + codigo + ' (' + seg + ' s)', 'ok');
+  const modelo = nombreModeloTAC(codigo);
+  mensajeEscaner('✓ IMEI ' + codigo + (modelo ? ' · ' + modelo : '') + ' (' + seg + ' s)', 'ok');
   sonidoOk();
-  setTimeout(() => { detenerEscaner().finally(() => { codigoDetectado = false; }); }, 650);
+  setTimeout(() => { detenerEscaner().finally(() => { codigoDetectado = false; }); }, modelo ? 1100 : 650);
   return true;
 }
 
@@ -1341,7 +1562,7 @@ async function iniciarEscaner(targetId = 'imeiInput', deviceIdForzado) {
   }
   mensajeEscaner('Abriendo cámara…');
   // Se cargan los lectores mientras abre la cámara (en paralelo, sin esperar).
-  prepararDetectorNativo(); cargarMotorWasm();
+  prepararDetectorNativo(); cargarMotorWasm(); cargarMotorOCR(); cargarBaseTAC();
   const guardada = deviceIdForzado || localStorage.getItem(CAMARA_GUARDADA_KEY) || '';
   let { stream, error } = await abrirStream(guardada || null);
   if (!stream && guardada) { localStorage.removeItem(CAMARA_GUARDADA_KEY); ({ stream, error } = await abrirStream(null)); }
@@ -1378,8 +1599,9 @@ async function iniciarEscaner(targetId = 'imeiInput', deviceIdForzado) {
   container.classList.add('scanning');
   mensajeEscaner(TEXTO_AYUDA_ESCANER);
   configurarExtrasCamara(s);
-  inicioEscaneo = Date.now();
+  inicioEscaneo = Date.now(); vistosOCR = {}; tacsAplicadosOCR = {};
   cicloEscaner(sesion);
+  cicloOCR(sesion);
   // Si ningún motor carga (sin internet), se avisa sin detener la cámara.
   Promise.all([prepararDetectorNativo(), cargarMotorWasm()]).then(([n, w]) => {
     if (!n && !w && sesion === sesionEscaner) {
@@ -1408,10 +1630,11 @@ async function leerImeiDesdeFoto(targetId, file) {
   if (!box) return;
   box.style.display = 'block';
   mensajeEscaner('Analizando la foto…');
-  let codigo = null;
+  let codigo = null, tacFoto = null;
   try {
     const imagen = await createImageBitmap(file);
     const maxLado = Math.max(imagen.width, imagen.height);
+    var imagenFoto = imagen;
     for (const lado of [2000, 3200, 1200]) {
       if (codigo) break;
       if (lado > maxLado && lado !== 2000) continue;
@@ -1422,12 +1645,22 @@ async function leerImeiDesdeFoto(targetId, file) {
       codigo = elegirImei(await leerCodigos(lienzo, lienzo.width, lienzo.height, { esperarMotor: true }), 'arriba');
       if (!codigo && !motorWasm && (await cargarZXingJS())) codigo = elegirImei(decodificarZXingJS(lienzo, 0).concat(decodificarZXingJS(lienzo, 1)), 'arriba');
     }
+    if (!codigo) {
+      mensajeEscaner('No tiene código de barras. Leyendo el número escrito…');
+      const r = await imeiPorOCRFoto(imagenFoto);
+      codigo = r.imei;
+      if (!codigo && r.tac) tacFoto = r.tac;
+    }
   } catch (e) { console.warn('Foto IMEI:', e); }
   if (codigo && colocarImei(codigo)) {
     box.classList.add('scan-ok');
-    mensajeEscaner('✓ IMEI detectado: ' + codigo, 'ok');
+    const modelo = nombreModeloTAC(codigo);
+    mensajeEscaner('✓ IMEI ' + codigo + (modelo ? ' · ' + modelo : ''), 'ok');
     sonidoOk();
     setTimeout(() => detenerEscaner(), 900);
+  } else if (tacFoto) {
+    try { consultarTACRemoto(tacFoto, targetId === 'saleImei' ? 'venta' : 'reparacion'); } catch (e) {}
+    mensajeEscaner('Modelo: ' + nombreModeloTAC(tacFoto) + '. No pude leer el IMEI completo: toma otra foto más de cerca o escríbelo.', 'warn');
   } else {
     mensajeEscaner('No encontré un IMEI en la foto. Tómala de cerca, recta y con buena luz.', 'warn');
   }
@@ -1685,7 +1918,7 @@ const PREF_REGISTROS_KEY = 'lifox_pref_registros';
 const ORDEN_ESTADO = { 'recibido': 0, 'en proceso': 1, 'listo': 2, 'entregado': 3 };
 function prefsRegistros() {
   let p = {}; try { p = JSON.parse(localStorage.getItem(PREF_REGISTROS_KEY) || '{}') || {}; } catch (e) {}
-  return { orden: p.orden || 'recientes', filtro: p.filtro || 'todos', vista: p.vista || 'compacta' };
+  return { orden: p.orden || 'recientes', filtro: p.filtro || 'todos', vista: p.vista || 'compacta', agrupar: p.agrupar || 'anio-mes', periodo: p.periodo || 'todo' };
 }
 function guardarPrefsRegistros(cambios) {
   localStorage.setItem(PREF_REGISTROS_KEY, JSON.stringify({ ...prefsRegistros(), ...cambios }));
@@ -1732,9 +1965,10 @@ function pasaFiltro(it, filtro) {
 
 function listaFiltrada() {
   const f = String(searchBox.value || '').trim().toLowerCase();
-  const { orden, filtro } = prefsRegistros();
+  const { orden, filtro, periodo } = prefsRegistros();
   const lista = inventory.filter(it => {
     if (!pasaFiltro(it, filtro)) return false;
+    if (!pasaPeriodo(it, periodo)) return false;
     if (!f) return true;
     return [it.client, it.phone, it.technician, it.name, it.imei, it.type, it.note, it.color, it.estado].some(v => String(v || '').toLowerCase().includes(f));
   });
@@ -1754,16 +1988,101 @@ function prepararControlesRegistros() {
   if (so) { so.value = p.orden; so.addEventListener('change', () => { guardarPrefsRegistros({ orden: so.value }); displayItems(); }); }
   if (sf) { sf.value = p.filtro; sf.addEventListener('change', () => { guardarPrefsRegistros({ filtro: sf.value }); displayItems(); }); }
   document.querySelectorAll('.vista-btn').forEach(b => b.addEventListener('click', () => { guardarPrefsRegistros({ vista: b.dataset.vista }); displayItems(); }));
+  const sg = document.getElementById('agruparRegistros'), sp = document.getElementById('periodoRegistros');
+  if (sg) { sg.value = p.agrupar; sg.addEventListener('change', () => { guardarPrefsRegistros({ agrupar: sg.value }); displayItems(); }); }
+  if (sp) { sp.addEventListener('change', () => { guardarPrefsRegistros({ periodo: sp.value }); displayItems(); }); }
+  document.querySelectorAll('.grupo-btn').forEach(b => b.addEventListener('click', () => {
+    const abrir = b.dataset.grupos === 'abrir', estado = estadoGrupos();
+    document.querySelectorAll('#inventoryTable details.reg-grupo').forEach(d => { d.open = abrir; estado[d.dataset.grupo] = abrir; });
+    guardarEstadoGrupos(estado);
+  }));
+  const tabla = document.getElementById('inventoryTable');
+  if (tabla) {
+    // Recuerda qué meses/años dejaste abiertos o cerrados.
+    tabla.addEventListener('click', e => {
+      const sum = e.target.closest('summary'); const d = sum && sum.parentElement;
+      if (!d || !d.matches('details.reg-grupo')) return;
+      const estado = estadoGrupos(); estado[d.dataset.grupo] = !d.open; guardarEstadoGrupos(estado);
+    });
+    // Vista mini: tocar un registro muestra sus botones.
+    tabla.addEventListener('click', e => {
+      if (!tabla.classList.contains('vista-mini') || e.target.closest('button, a, input, select')) return;
+      const card = e.target.closest('.rep-card'); if (card) card.classList.toggle('abierta');
+    });
+  }
+}
+
+// ---- Agrupar por año / mes / quincena / semana / día ----
+const GRUPOS_KEY = 'lifox_grupos_abiertos';
+const MESES_LARGOS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const DIAS_LARGOS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const NIVELES_GRUPO = { 'anio-mes': ['anio', 'mes'], mes: ['mes'], anio: ['anio'], quincena: ['quincena'], semana: ['semana'], dia: ['dia'], ninguno: [] };
+function estadoGrupos() { try { return JSON.parse(localStorage.getItem(GRUPOS_KEY) || '{}') || {}; } catch (e) { return {}; } }
+function guardarEstadoGrupos(o) { try { localStorage.setItem(GRUPOS_KEY, JSON.stringify(o)); } catch (e) {} }
+const dos = n => String(n).padStart(2, '0');
+function grupoDe(it, modo) {
+  const f = fechaRegistro(it);
+  if (!f) return { k: modo + ':sin', t: 'Sin fecha', s: -1 };
+  const y = f.getFullYear(), m = f.getMonth(), d = f.getDate(), hoy = new Date();
+  const mesAct = hoy.getFullYear() === y && hoy.getMonth() === m;
+  if (modo === 'anio') return { k: 'a:' + y, t: String(y), s: new Date(y, 0, 1).getTime(), tag: hoy.getFullYear() === y ? 'Este año' : '' };
+  if (modo === 'mes') return { k: 'm:' + y + '-' + dos(m + 1), t: MESES_LARGOS[m], sub: String(y), s: new Date(y, m, 1).getTime(), tag: mesAct ? 'Este mes' : '' };
+  if (modo === 'quincena') {
+    const q = d <= 15 ? 1 : 2, ult = new Date(y, m + 1, 0).getDate();
+    const act = mesAct && (hoy.getDate() <= 15 ? 1 : 2) === q;
+    return { k: 'q:' + y + '-' + dos(m + 1) + '-' + q, t: (q === 1 ? '1 al 15' : '16 al ' + ult) + ' de ' + MESES_LARGOS[m].toLowerCase(), sub: String(y), s: new Date(y, m, q === 1 ? 1 : 16).getTime(), tag: act ? 'Esta quincena' : '' };
+  }
+  if (modo === 'semana') {
+    const lun = new Date(y, m, d - ((f.getDay() + 6) % 7)), dom = new Date(lun.getFullYear(), lun.getMonth(), lun.getDate() + 6);
+    const lunHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - ((hoy.getDay() + 6) % 7));
+    const corto = x => x.getDate() + ' ' + MESES_LARGOS[x.getMonth()].slice(0, 3).toLowerCase();
+    return { k: 's:' + lun.getFullYear() + '-' + dos(lun.getMonth() + 1) + '-' + dos(lun.getDate()), t: 'Semana ' + corto(lun) + ' – ' + corto(dom), sub: String(dom.getFullYear()), s: lun.getTime(), tag: lun.getTime() === lunHoy.getTime() ? 'Esta semana' : '' };
+  }
+  const t0 = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).getTime(), dif = Math.round((t0 - f.getTime()) / 864e5);
+  return { k: 'd:' + y + '-' + dos(m + 1) + '-' + dos(d), t: DIAS_LARGOS[f.getDay()] + ' ' + d + ' de ' + MESES_LARGOS[m].toLowerCase(), sub: String(y), s: f.getTime(), tag: dif === 0 ? 'Hoy' : dif === 1 ? 'Ayer' : '' };
+}
+function pasaPeriodo(it, periodo) {
+  if (!periodo || periodo === 'todo') return true;
+  const modo = periodo.startsWith('a:') ? 'anio' : 'mes';
+  return grupoDe(it, modo).k === periodo;
+}
+// Llena "Período" con los años y meses que tienen registros.
+function llenarPeriodos(sel, actual) {
+  const anios = {};
+  inventory.forEach(it => { const f = fechaRegistro(it); if (!f) return; (anios[f.getFullYear()] = anios[f.getFullYear()] || new Set()).add(f.getMonth()); });
+  const lista = Object.keys(anios).map(Number).sort((a, b) => b - a);
+  const firma = lista.map(y => y + ':' + [...anios[y]].sort().join(',')).join('|');
+  if (sel.dataset.firma !== firma) {
+    sel.dataset.firma = firma;
+    sel.innerHTML = '<option value="todo">Todo</option>' + lista.map(y => '<optgroup label="' + y + '"><option value="a:' + y + '">Todo ' + y + '</option>'
+      + [...anios[y]].sort((a, b) => b - a).map(m => '<option value="m:' + y + '-' + dos(m + 1) + '">' + MESES_LARGOS[m] + ' ' + y + '</option>').join('') + '</optgroup>').join('');
+  }
+  const existe = [...sel.options].some(o => o.value === actual);
+  sel.value = existe ? actual : 'todo';
+  return sel.value;
+}
+function resumenGrupo(items) {
+  let cobrado = 0, porCobrar = 0, pend = 0, gan = 0;
+  items.forEach(it => { const v = Number(it.pCliente || 0); if (estaPagado(it)) { cobrado += v; gan += Number(it.profit || 0); } else { pend++; porCobrar += v; } });
+  return '<span class="rg-stat"><b>' + items.length + '</b> ' + (items.length === 1 ? 'registro' : 'registros') + '</span>'
+    + '<span class="rg-stat verde">Cobrado <b>' + money(cobrado) + '</b></span>'
+    + (pend ? '<span class="rg-stat ambar">' + pend + ' sin pagar · <b>' + money(porCobrar) + '</b></span>' : '')
+    + '<span class="rg-stat azul solo-admin">Ganancia <b>' + money(gan) + '</b></span>';
 }
 
 function displayItems() {
   const lista = listaFiltrada();
   const tbody = document.getElementById('inventoryTable');
-  const { vista, filtro } = prefsRegistros();
+  const { vista, filtro, agrupar, orden } = prefsRegistros();
   tbody.classList.toggle('vista-lista', vista === 'lista');
+  tbody.classList.toggle('vista-mini', vista === 'mini');
   document.querySelectorAll('.vista-btn').forEach(b => { const on = b.dataset.vista === vista; b.classList.toggle('activa', on); b.setAttribute('aria-pressed', on); });
   const contador = document.getElementById('contadorRegistros');
-  if (contador) contador.textContent = lista.length + (lista.length === 1 ? ' registro' : ' registros') + (filtro !== 'todos' || searchBox.value.trim() ? ' (filtrado de ' + inventory.length + ')' : '');
+  const selPeriodo = document.getElementById('periodoRegistros');
+  const periodo = selPeriodo ? llenarPeriodos(selPeriodo, prefsRegistros().periodo) : 'todo';
+  if (contador) contador.textContent = lista.length + (lista.length === 1 ? ' registro' : ' registros') + (filtro !== 'todos' || periodo !== 'todo' || searchBox.value.trim() ? ' (filtrado de ' + inventory.length + ')' : '');
+  const niveles = NIVELES_GRUPO[agrupar] || NIVELES_GRUPO['anio-mes'];
+  const ga = document.getElementById('grupoAcciones'); if (ga) ga.style.display = niveles.length ? '' : 'none';
 
   let cobrado = 0, porCobrar = 0, pendientes = 0, gananciaNeta = 0;
   lista.forEach(it => {
@@ -1780,14 +2099,14 @@ function displayItems() {
   document.getElementById('totWinder').textContent = money(prod.winder);
   document.getElementById('totalesBox').classList.toggle('activo', lista.length > 0);
 
-  if (!lista.length) { tbody.innerHTML = '<p class="vacio">Sin registros.</p>'; return; }
+  if (!lista.length) { tbody.classList.remove('agrupado'); tbody.innerHTML = '<p class="vacio">Sin registros.</p>'; return; }
 
   const escR = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const idJs = v => escR(String(v ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
   const mesesR = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
   const diasR = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
   const claseEstado = e => 'est-' + textoOrden(e || 'Recibido').replace(/\s+/g, '-');
-  tbody.innerHTML = lista.map(it => {
+  const tarjeta = it => {
     const pagado = estaPagado(it);
     const f = fechaRegistro(it);
     const hora = limpiarHoraVisual(it.time);
@@ -1802,6 +2121,7 @@ function displayItems() {
       + '<div class="rc-equipo"><b>📱 ' + escR(dispositivoVisible(it) || '-') + '</b>' + (it.color ? '<span class="rc-color">' + escR(it.color) + '</span>' : '') + (it.imei ? '<code title="IMEI">' + escR(it.imei) + '</code>' : '') + '</div>'
       + '<div class="rc-detalle"><span title="Servicios">🔧 ' + escR(it.type || '-') + '</span><span title="Técnico">👤 ' + escR(it.technician || '-') + '</span></div>'
       + (nota ? '<div class="rc-nota" title="' + escR(nota) + '">📝 ' + escR(nota) + '</div>' : '')
+      + '<div class="rc-mini-estado"><span class="badge ' + (pagado ? 'pag-si' : 'pag-no') + '">' + (pagado ? 'Pagado' : 'Sin pagar') + '</span><span class="badge rep-estado ' + claseEstado(it.estado) + '">' + escR(it.estado || 'Recibido') + '</span></div>'
       + '<div class="rc-precios"><span>Compra <b>' + money(it.pCompra) + '</b></span><span class="rc-cli">Cliente <b>' + money(it.pCliente) + '</b></span><span class="solo-admin rc-gan">Ganancia <b>' + (pagado ? money(it.profit) : '—') + '</b></span></div>'
       + '<div class="rep-acciones solo-admin">'
         + '<button class="mini azul" title="Editar" onclick="editarRegistro(\'' + idJs(it.id) + '\')">✏️ Editar</button>'
@@ -1810,7 +2130,32 @@ function displayItems() {
         + '<button class="mini rojo" title="Borrar" onclick="borrar(\'' + idJs(it.id) + '\')">🗑</button>'
       + '</div>'
       + '</article>';
-  }).join('');
+  };
+
+  // Sin agrupar: igual que antes.
+  if (!niveles.length) { tbody.classList.remove('agrupado'); tbody.innerHTML = lista.map(tarjeta).join(''); return; }
+
+  // Agrupado: secciones plegables (el período más reciente queda abierto).
+  const estado = estadoGrupos();
+  const abrirTodo = !!searchBox.value.trim() || periodo !== 'todo';
+  const asc = orden === 'antiguos';
+  const pintar = (items, nivel, prefijo, primeroPadre) => {
+    const modo = niveles[nivel], mapa = new Map();
+    items.forEach(it => { const g = grupoDe(it, modo); if (!mapa.has(g.k)) mapa.set(g.k, { g, items: [] }); mapa.get(g.k).items.push(it); });
+    const grupos = [...mapa.values()].sort((a, b) => asc ? (a.g.s < 0 ? 1 : b.g.s < 0 ? -1 : a.g.s - b.g.s) : b.g.s - a.g.s);
+    return grupos.map(({ g, items: its }, i) => {
+      const clave = prefijo + g.k, guardado = estado[clave];
+      const abierto = abrirTodo || (guardado === undefined ? (primeroPadre && i === 0) : guardado);
+      const interior = nivel + 1 < niveles.length ? pintar(its, nivel + 1, clave + '>', primeroPadre && i === 0) : '<div class="rep-cards">' + its.map(tarjeta).join('') + '</div>';
+      const sub = g.sub && !(nivel > 0 && niveles[nivel - 1] === 'anio') ? '<small>' + escR(g.sub) + '</small>' : '';
+      return '<details class="reg-grupo" data-grupo="' + escR(clave) + '"' + (abierto ? ' open' : '') + '>'
+        + '<summary><span class="rg-flecha" aria-hidden="true">▶</span><span class="rg-titulo">' + escR(g.t) + sub + '</span>' + (g.tag ? '<span class="rg-tag">' + g.tag + '</span>' : '')
+        + '<span class="rg-stats">' + resumenGrupo(its) + '</span></summary>'
+        + '<div class="rg-cuerpo">' + interior + '</div></details>';
+    }).join('');
+  };
+  tbody.classList.add('agrupado');
+  tbody.innerHTML = pintar(lista, 0, '', true);
 }
 
 async function alternarPago(id){
@@ -2116,6 +2461,153 @@ function exportarExcel() {
   }
 }
 document.getElementById('btnExportar').addEventListener('click', exportarExcel);
+
+// ---- Informe PDF del período elegido (mes, año o todo) ----
+function datosInforme() {
+  const p = prefsRegistros();
+  const lista = listaFiltrada();
+  const per = p.periodo || 'todo';
+  let titulo = 'Todos los registros', archivo = 'todo', esMes = false;
+  if (per.startsWith('m:')) { const [y, m] = per.slice(2).split('-').map(Number); titulo = MESES_LARGOS[m - 1] + ' ' + y; archivo = MESES_LARGOS[m - 1].toLowerCase() + '-' + y; esMes = true; }
+  else if (per.startsWith('a:')) { titulo = 'Año ' + per.slice(2); archivo = per.slice(2); }
+  const filtros = [];
+  const sf = document.getElementById('filtroRegistros');
+  if (p.filtro !== 'todos' && sf) filtros.push('Mostrando: ' + sf.options[sf.selectedIndex].text);
+  if (searchBox.value.trim()) filtros.push('Búsqueda: "' + searchBox.value.trim() + '"');
+  const sumar = items => {
+    let cobrado = 0, porCobrar = 0, pagados = 0, ganancia = 0;
+    items.forEach(it => { const v = Number(it.pCliente || 0); if (estaPagado(it)) { pagados++; cobrado += v; ganancia += Number(it.profit || 0); } else porCobrar += v; });
+    return { registros: items.length, pagados, sinPagar: items.length - pagados, cobrado, porCobrar, ganancia };
+  };
+  const total = sumar(lista), prod = calcularProduccion(lista);
+  // Meses (más reciente primero, o al revés si se eligió "Más antiguos").
+  const mapa = new Map();
+  lista.forEach(it => { const g = grupoDe(it, 'mes'); if (!mapa.has(g.k)) mapa.set(g.k, { g, items: [] }); mapa.get(g.k).items.push(it); });
+  const asc = p.orden === 'antiguos';
+  const meses = [...mapa.values()].sort((a, b) => asc ? a.g.s - b.g.s : b.g.s - a.g.s)
+    .map(x => ({ nombre: x.g.s < 0 ? 'Sin fecha' : x.g.t + ' ' + x.g.sub, items: x.items, ...sumar(x.items) }));
+  return { titulo, archivo: 'lifox-informe-' + archivo + '.pdf', esMes, filtros, lista, total, prod, meses };
+}
+function filaRegistroInforme(it) {
+  const f = fechaRegistro(it), pag = estaPagado(it);
+  return [f ? dos(f.getDate()) + '/' + dos(f.getMonth() + 1) + '/' + f.getFullYear() : (it.date || '-'), it.client || 'Sin nombre', it.phone || '-',
+    dispositivoVisible(it) || '-', it.type || '-', it.technician || '-', it.estado || 'Recibido', pag ? 'Pagado' : 'Sin pagar',
+    money(it.pCompra), money(it.pCliente), pag ? money(it.profit) : '-'];
+}
+const COLUMNAS_INFORME = ['Fecha', 'Cliente', 'Teléfono', 'Equipo', 'Servicio', 'Técnico', 'Estado', 'Pago', 'Compra', 'Cliente $', 'Ganancia'];
+
+function descargarInformePDF() {
+  if (!isAdmin) { alert('Inicia sesión como administrador para descargar el informe.'); return; }
+  const d = datosInforme();
+  if (!d.lista.length) { alert('No hay registros en el período elegido.'); return; }
+  const jsPDF = window.jspdf && window.jspdf.jsPDF;
+  if (!jsPDF || !jsPDF.API.autoTable) { informeImprimible(d); return; }
+
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
+  const W = doc.internal.pageSize.getWidth(), M = 32;
+  const AZUL = [29, 78, 216], OSCURO = [17, 24, 39], GRIS = [100, 116, 139], VERDE = [5, 150, 105], AMBAR = [217, 119, 6];
+
+  // Encabezado
+  doc.setFillColor(...OSCURO); doc.rect(0, 0, W, 78, 'F');
+  let xTexto = M;
+  try {
+    const img = document.getElementById('logoImagen');
+    if (img && img.src.startsWith('data:image') && img.naturalWidth) {
+      const h = 42, w = Math.min(130, h * img.naturalWidth / img.naturalHeight);
+      const c = document.createElement('canvas'); c.width = Math.round(w * 3); c.height = Math.round(h * 3);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      doc.setFillColor(255, 255, 255); doc.roundedRect(M - 6, 12, w + 12, h + 12, 6, 6, 'F');
+      doc.addImage(c.toDataURL('image/png'), 'PNG', M, 18, w, h); xTexto = M + w + 22;
+    }
+  } catch (e) {}
+  doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
+  doc.text('Informe de reparaciones', xTexto, 36);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(191, 219, 254);
+  doc.text('LIFOX TECH  ·  ' + d.titulo, xTexto, 54);
+  doc.setFontSize(9); doc.setTextColor(203, 213, 225);
+  const ahora = new Date();
+  doc.text('Generado: ' + ahora.toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' }) + ' ' + ahora.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' }), W - M, 36, { align: 'right' });
+  if (d.filtros.length) doc.text(d.filtros.join('   ·   '), W - M, 52, { align: 'right' });
+
+  // Tarjetas de totales
+  const t = d.total;
+  const tarjetas = [
+    ['Registros', String(t.registros), OSCURO], ['Pagados', String(t.pagados), VERDE], ['Sin pagar', String(t.sinPagar), AMBAR],
+    ['Cobrado', money(t.cobrado), VERDE], ['Por cobrar', money(t.porCobrar), AMBAR], ['Ganancia neta', money(t.ganancia), AZUL],
+    ['Prod. Ymark', money(d.prod.ymark), AZUL], ['Prod. Winder', money(d.prod.winder), AZUL]
+  ];
+  const gap = 8, cw = (W - 2 * M - gap * (tarjetas.length - 1)) / tarjetas.length, ty = 94;
+  tarjetas.forEach(([et, val, col], i) => {
+    const x = M + i * (cw + gap);
+    doc.setFillColor(248, 250, 252); doc.setDrawColor(226, 232, 240); doc.roundedRect(x, ty, cw, 46, 5, 5, 'FD');
+    doc.setFillColor(...col); doc.rect(x, ty + 6, 3, 34, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(...GRIS); doc.text(et.toUpperCase(), x + 10, ty + 17);
+    doc.setFontSize(12.5); doc.setTextColor(...col); doc.text(val, x + 10, ty + 35);
+  });
+  let y = ty + 64;
+
+  const alinearCabecera = (cols) => c => { if ((c.section === 'head' || c.section === 'foot') && cols[c.column.index] && c.cell.colSpan === 1) c.cell.styles.halign = cols[c.column.index]; };
+  const estiloBase = { theme: 'grid', margin: { left: M, right: M, top: 40, bottom: 36 }, styles: { font: 'helvetica', fontSize: 8, cellPadding: 4, lineColor: [226, 232, 240], lineWidth: 0.5, textColor: [30, 41, 59] }, headStyles: { fillColor: OSCURO, textColor: 255, fontStyle: 'bold' }, alternateRowStyles: { fillColor: [248, 250, 252] } };
+
+  // Resumen por mes (para año o todo)
+  if (!d.esMes && d.meses.length > 1) {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(...OSCURO); doc.text('Resumen por mes', M, y); y += 6;
+    doc.autoTable({ ...estiloBase, startY: y,
+      head: [['Mes', 'Registros', 'Pagados', 'Sin pagar', 'Cobrado', 'Por cobrar', 'Ganancia']],
+      body: d.meses.map(m => [m.nombre, m.registros, m.pagados, m.sinPagar, money(m.cobrado), money(m.porCobrar), money(m.ganancia)]),
+      foot: [['Total', t.registros, t.pagados, t.sinPagar, money(t.cobrado), money(t.porCobrar), money(t.ganancia)]],
+      footStyles: { fillColor: [226, 232, 240], textColor: OSCURO, fontStyle: 'bold' },
+      columnStyles: { 0: { fontStyle: 'bold' }, 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'right' }, 5: { halign: 'right' }, 6: { halign: 'right' } },
+      didParseCell: alinearCabecera({ 1: 'center', 2: 'center', 3: 'center', 4: 'right', 5: 'right', 6: 'right' }) });
+    y = doc.lastAutoTable.finalY + 22;
+  }
+
+  // Detalle de registros (con separador por mes cuando hay varios)
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(...OSCURO); doc.text('Detalle de registros', M, y); y += 6;
+  const varios = d.meses.length > 1, H0 = doc.internal.pageSize.getHeight();
+  const alinear = alinearCabecera({ 8: 'right', 9: 'right', 10: 'right' });
+  d.meses.forEach((m, i) => {
+    if (i > 0) { y = doc.lastAutoTable.finalY + 12; if (y + 70 > H0 - 36) { doc.addPage(); y = 40; } }
+    const head = [COLUMNAS_INFORME];
+    if (varios) head.unshift([{ content: m.nombre + '   ·   ' + m.registros + (m.registros === 1 ? ' registro' : ' registros') + '   ·   Cobrado ' + money(m.cobrado) + (m.sinPagar ? '   ·   Por cobrar ' + money(m.porCobrar) : '') + '   ·   Ganancia ' + money(m.ganancia), colSpan: COLUMNAS_INFORME.length, styles: { fillColor: [219, 234, 254], textColor: [30, 58, 138], fontStyle: 'bold', fontSize: 8.5 } }]);
+    doc.autoTable({ ...estiloBase, startY: y, head, body: m.items.map(filaRegistroInforme), showHead: 'everyPage',
+      columnStyles: { 0: { cellWidth: 56 }, 1: { fontStyle: 'bold', cellWidth: 82 }, 2: { cellWidth: 66 }, 3: { cellWidth: 112 }, 4: { cellWidth: 72 }, 5: { cellWidth: 48 }, 6: { cellWidth: 56 }, 7: { cellWidth: 50 }, 8: { halign: 'right', cellWidth: 60 }, 9: { halign: 'right', cellWidth: 62 }, 10: { halign: 'right', cellWidth: 'auto' } },
+      didParseCell: c => {
+        alinear(c);
+        if (c.section !== 'body' || c.column.index !== 7) return;
+        c.cell.styles.fontStyle = 'bold'; c.cell.styles.textColor = c.cell.raw === 'Pagado' ? VERDE : AMBAR;
+      } });
+  });
+
+  // Pie con número de página
+  const n = doc.internal.getNumberOfPages(), H = doc.internal.pageSize.getHeight();
+  for (let i = 1; i <= n; i++) {
+    doc.setPage(i); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...GRIS);
+    doc.text('LIFOX TECH  ·  Garantía, Calidad y Confianza  ·  ' + d.titulo, M, H - 16);
+    doc.text('Página ' + i + ' de ' + n, W - M, H - 16, { align: 'right' });
+  }
+  doc.save(d.archivo);
+}
+
+// Sin internet (librería PDF no cargada): abre el informe listo para "Guardar como PDF".
+function informeImprimible(d) {
+  const w = window.open('', '_blank');
+  if (!w) { alert('Permite las ventanas emergentes para ver el informe.'); return; }
+  const e = v => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const t = d.total;
+  const tot = [['Registros', t.registros], ['Pagados', t.pagados], ['Sin pagar', t.sinPagar], ['Cobrado', money(t.cobrado)], ['Por cobrar', money(t.porCobrar)], ['Ganancia neta', money(t.ganancia)], ['Prod. Ymark', money(d.prod.ymark)], ['Prod. Winder', money(d.prod.winder)]];
+  const resumen = !d.esMes && d.meses.length > 1 ? '<h2>Resumen por mes</h2><table><tr><th>Mes</th><th>Registros</th><th>Pagados</th><th>Sin pagar</th><th>Cobrado</th><th>Por cobrar</th><th>Ganancia</th></tr>'
+    + d.meses.map(m => '<tr><td><b>' + e(m.nombre) + '</b></td><td>' + m.registros + '</td><td>' + m.pagados + '</td><td>' + m.sinPagar + '</td><td class="r">' + money(m.cobrado) + '</td><td class="r">' + money(m.porCobrar) + '</td><td class="r">' + money(m.ganancia) + '</td></tr>').join('') + '</table>' : '';
+  const filas = d.meses.map(m => (d.meses.length > 1 ? '<tr class="mes"><td colspan="11">' + e(m.nombre) + ' · ' + m.registros + ' registros · Cobrado ' + money(m.cobrado) + '</td></tr>' : '')
+    + m.items.map(it => '<tr>' + filaRegistroInforme(it).map((v, i) => '<td' + (i >= 8 ? ' class="r"' : '') + '>' + e(v) + '</td>').join('') + '</tr>').join('')).join('');
+  w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>' + e(d.archivo.replace('.pdf', '')) + '</title><style>@page{size:letter landscape;margin:12mm}body{font-family:Arial,sans-serif;color:#1e293b;font-size:11px}h1{margin:0;font-size:20px}h2{font-size:14px;margin:16px 0 6px}.sub{color:#475569;margin:2px 0 12px}.tot{display:flex;gap:6px;flex-wrap:wrap}.tot div{border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;background:#f8fafc}.tot small{display:block;color:#64748b;font-size:9px;text-transform:uppercase;font-weight:bold}.tot b{font-size:14px}table{width:100%;border-collapse:collapse;margin-top:4px}th{background:#111827;color:#fff;text-align:left}th,td{padding:4px 5px;border:1px solid #e2e8f0}.r{text-align:right}tr.mes td{background:#dbeafe;color:#1e3a8a;font-weight:bold}tr{break-inside:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style></head><body>'
+    + '<h1>Informe de reparaciones · LIFOX TECH</h1><p class="sub">' + e(d.titulo) + (d.filtros.length ? ' · ' + e(d.filtros.join(' · ')) : '') + ' · Generado ' + e(new Date().toLocaleString('es-DO')) + '</p>'
+    + '<div class="tot">' + tot.map(([a, b]) => '<div><small>' + a + '</small><b>' + b + '</b></div>').join('') + '</div>' + resumen
+    + '<h2>Detalle de registros</h2><table><tr>' + COLUMNAS_INFORME.map(c => '<th>' + c + '</th>').join('') + '</tr>' + filas + '</table>'
+    + '<script>window.onload=function(){setTimeout(function(){window.print()},300)}<\/script></body></html>');
+  w.document.close();
+}
+document.getElementById('btnPdf').addEventListener('click', descargarInformePDF);
 
 const SALES_KEY = 'lifox_sales_cache';
 let sales = [];
