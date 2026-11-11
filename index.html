@@ -741,6 +741,7 @@ th,td{padding:6px 8px}
     </div>
 
     <textarea id="itemNote" placeholder="Nota..."></textarea>
+    <label style="display:block;font-size:12px;color:var(--text-muted);margin:8px 0 4px">🕒 Fecha y hora de entrada (opcional — déjalo vacío para usar la hora actual)</label><input type="datetime-local" id="itemFechaManual">
 
     <div class="acciones-form">
       <button type="submit" id="btnSubmit">Registrar en la Nube</button>
@@ -852,7 +853,7 @@ th,td{padding:6px 8px}
         <input type="number" id="salePrice" placeholder="Precio de venta ($)" step="0.01" min="0" required>
         <input type="text" id="saleItem" placeholder="Detalle adicional (ej. cargador, funda...)" maxlength="120">
       </div>
-      <textarea id="saleNote" placeholder="Nota del recibo (opcional)"></textarea>
+      <textarea id="saleNote" placeholder="Nota del recibo (opcional)"></textarea><label style="display:block;font-size:12px;color:var(--text-muted);margin:8px 0 4px">🕒 Fecha y hora de la venta (opcional — déjalo vacío para usar la hora actual)</label><input type="datetime-local" id="saleFechaManual">
       <div class="acciones-form">
         <button type="submit" id="btnGuardarVenta" class="azul">Guardar venta</button>
         <button type="button" id="btnCancelarVenta" class="gris">Limpiar</button>
@@ -2653,6 +2654,8 @@ document.getElementById('priceForm').addEventListener('submit', async (e) => {
     note: document.getElementById('itemNote').value,
     color: colorSeleccionado()
   };
+  const fechaElegida = fechaManualDe('itemFechaManual');
+  if (fechaElegida) Object.assign(payload, camposFechaManual(fechaElegida));
 
   const action = isEditing ? 'update' : 'create';
 
@@ -2669,14 +2672,17 @@ document.getElementById('priceForm').addEventListener('submit', async (e) => {
       alert('Error al guardar en la nube: ' + (res.message || ''));
     }
   } catch(e) {
-    alert('Error de red.');
+    if (!payload.fechaManual) payload.fechaManual = camposFechaManual(new Date()).fechaManual;
+    encolarPendiente(action, payload);
+    limpiarFormularioReparacion();
+    alert('Sin conexión: el registro se guardó en este equipo y se enviará solo cuando vuelva el internet (con la hora en que lo registraste).');
   }
 });
 
 function verificarPassword() {
   const u = document.getElementById('adminUserInput').value;
   const p = document.getElementById('adminPasswordInput').value;
-  fetch(WEB_APP_URL + '?action=verifyAdmin&user=' + encodeURIComponent(u) + '&pass=' + encodeURIComponent(p))
+  fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'verifyAdmin', user: u, pass: p }) })
     .then(r => r.json())
     .then(d => {
       if (d.success) {
@@ -2687,8 +2693,9 @@ function verificarPassword() {
         document.getElementById('adminModal').style.display = 'none';
         actualizarAccesoModulos();
         displayItems();
+        enviarColaPendiente();
       } else {
-        alert('Credenciales incorrectas.');
+        alert(d.message || 'Credenciales incorrectas.');
       }
     });
 }
@@ -2721,7 +2728,7 @@ function ejecutarCambioPass() {
   const nueva = document.getElementById('passNueva').value;
   if (!actual || !nueva) { alert('Complete ambos campos.'); return; }
 
-  fetch(WEB_APP_URL + '?action=cambiarPass&token=' + encodeURIComponent(sessionStorage.getItem('adminToken')) + '&actual=' + encodeURIComponent(actual) + '&nueva=' + encodeURIComponent(nueva))
+  fetch(WEB_APP_URL + '?action=cambiarPass&token=' + encodeURIComponent(sessionStorage.getItem('adminToken')), { method: 'POST', body: JSON.stringify({ action: 'cambiarPass', actual, nueva }) })
     .then(r => r.json())
     .then(d => {
       if (d.success) {
@@ -3235,8 +3242,10 @@ document.getElementById('salesForm').addEventListener('submit', async function(e
   const imeiVenta = document.getElementById('saleImei').value.replace(/\D/g, '');
   if (!buyer || !phone || !model || price === '') { alert('Completa comprador, teléfono, modelo/artículo y precio.'); return; }
   if (imeiVenta && !imeiValidoFront(imeiVenta) && !confirm('El IMEI no parece válido (15 dígitos). ¿Guardar igual?')) return;
-  const now = new Date(Date.now() + desfaseServidor);
+  const now = fechaManualDe('saleFechaManual') || new Date(Date.now() + desfaseServidor);
   const venta = { deviceType: document.getElementById('saleDeviceType').value, buyer, phone, imei: imeiVenta, model: modeloComercial(model), color: document.getElementById('saleColor').value, capacity: document.getElementById('saleCapacity').value, item: document.getElementById('saleItem').value.trim(), seller: vendedorSeleccionado(), price: Number(price), note: document.getElementById('saleNote').value.trim(), date: now.toLocaleDateString('es-DO'), time: now.toLocaleTimeString('es-DO', { hour:'numeric', minute:'2-digit' }) };
+  const fmVenta = fechaManualDe('saleFechaManual');
+  if (fmVenta) venta.fechaManual = camposFechaManual(fmVenta).fechaManual;
   try {
     if (editSaleIndex !== null) {
       venta.id = sales[editSaleIndex].id || sales[editSaleIndex]._id || '';
@@ -3260,7 +3269,17 @@ document.getElementById('salesForm').addEventListener('submit', async function(e
       imprimirRecibo(sales.length - 1);
     }
   } catch (err) {
-    alert('La venta no se guardó en la hoja de ventas. Verifica la conexión con Google Apps Script.');
+    if (err instanceof TypeError) {
+      if (!venta.fechaManual) venta.fechaManual = camposFechaManual(now).fechaManual;
+      encolarPendiente(editSaleIndex !== null ? 'updateSale' : 'createSale', venta);
+      if (editSaleIndex !== null) sales[editSaleIndex] = venta; else sales.push(venta);
+      localStorage.setItem(SALES_KEY, JSON.stringify(sales));
+      renderSales();
+      limpiarFormularioVenta();
+      alert('Sin conexión: la venta se guardó en este equipo y se enviará sola cuando vuelva el internet.');
+      return;
+    }
+    alert('La venta no se guardó: ' + (err.message || 'verifica la conexión.'));
   }
 });
 document.getElementById('btnCancelarVenta').addEventListener('click', limpiarFormularioVenta);
@@ -3281,7 +3300,46 @@ function actualizarAccesoModulos() {
   }
 }
 
+function fechaManualDe(id){const v=(document.getElementById(id)||{}).value;if(!v)return null;const d=new Date(v);return isNaN(d)?null:d;}
+function camposFechaManual(d){const p=n=>String(n).padStart(2,'0');return{date:p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear(),time:d.toLocaleTimeString('es-DO',{hour:'numeric',minute:'2-digit'}),fechaManual:d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())};}
+// ===== Cola sin internet: guarda en el equipo y reenvía al volver la conexión =====
+const COLA_KEY = 'lifox_cola_pendiente';
+function leerCola() { try { return JSON.parse(localStorage.getItem(COLA_KEY) || '[]'); } catch (e) { return []; } }
+function guardarCola(c) { localStorage.setItem(COLA_KEY, JSON.stringify(c)); pintarAvisoCola(); }
+function encolarPendiente(action, payload) { const c = leerCola(); c.push({ action, payload }); guardarCola(c); }
+function pintarAvisoCola() {
+  let el = document.getElementById('avisoCola'); const n = leerCola().length;
+  if (!el) { el = document.createElement('div'); el.id = 'avisoCola'; el.style.cssText = 'position:fixed;bottom:12px;left:12px;z-index:9999;background:#f59e0b;color:#111;padding:8px 12px;border-radius:10px;font:600 13px Arial;box-shadow:0 4px 12px rgba(0,0,0,.4);cursor:pointer'; el.onclick = () => enviarColaPendiente(); document.body.appendChild(el); }
+  el.textContent = '⏳ ' + n + ' registro' + (n === 1 ? '' : 's') + ' pendiente' + (n === 1 ? '' : 's') + ' de enviar (toca para reintentar)';
+  el.style.display = n ? '' : 'none';
+}
+let enviandoCola = false;
+async function enviarColaPendiente() {
+  const token = sessionStorage.getItem('adminToken');
+  if (enviandoCola || !token || !leerCola().length) { pintarAvisoCola(); return; }
+  enviandoCola = true; let enviados = 0;
+  try {
+    let cola = leerCola();
+    while (cola.length) {
+      const item = cola[0]; let res;
+      try {
+        const r = await fetch(WEB_APP_URL + '?action=' + item.action + '&token=' + encodeURIComponent(token), { method: 'POST', body: JSON.stringify(item.payload) });
+        res = await r.json();
+      } catch (e) { break; } // sigue sin internet
+      if (res && res.message === 'Sesión expirada') break;
+      if (!res || res.success !== true) alert('No se pudo enviar un registro pendiente (' + ((item.payload && (item.payload.client || item.payload.buyer)) || '') + '): ' + ((res && res.message) || 'error'));
+      else enviados++;
+      cola.shift(); guardarCola(cola);
+    }
+  } finally { enviandoCola = false; pintarAvisoCola(); }
+  if (enviados) { try { cargarDatos(); } catch (e) {} }
+}
+window.addEventListener('online', enviarColaPendiente);
+window.addEventListener('load', () => { pintarAvisoCola(); enviarColaPendiente(); });
+setInterval(enviarColaPendiente, 60000);
+
 function limpiarFormularioReparacion() {
+  const fm=document.getElementById('itemFechaManual'); if(fm) fm.value='';
   borrarBorrador('priceForm');
   const f = document.getElementById('priceForm');
   f.reset();
@@ -3821,6 +3879,7 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     $('stockDeviceTypeValue').value = tipoStock;
     document.querySelectorAll('.stock-type-option').forEach(b => b.classList.toggle('activa', b.dataset.stockType === tipoStock));
     $('stockIphoneRow').style.display = tipoStock === 'iPhone' ? '' : 'none';
+    $('stockModel').style.display = tipoStock === 'iPhone' ? 'none' : '';
     $('stockSpecsTitle').textContent = tipoStock === 'iPhone' ? '3 · DATOS DEL IPHONE (EDITABLES)' : tipoStock === 'PC' ? '3 · DATOS DE LA PC / LAPTOP (EDITABLES)' : '3 · DATOS DEL TELÉFONO (EDITABLES)';
     $('stockModel').placeholder = tipoStock === 'PC' ? 'Modelo de la PC o laptop' : tipoStock === 'iPhone' ? 'Modelo del iPhone' : 'Modelo del teléfono';
     $('stockBrand').placeholder = tipoStock === 'PC' ? 'Marca (HP, Dell, Lenovo…)' : 'Marca';
