@@ -1,8 +1,9 @@
-// LIFOXTECH · Service worker v3
+// LifoxTech · Service worker v4
 // - Páginas: primero internet (siempre la versión nueva), sin internet usa la copia guardada.
-// - Base de modelos (tac-db.json), lector de códigos, lector del número escrito, Excel y PDF: se guardan para abrir rápido y funcionar sin internet.
-const CACHE_NAME = 'lifoxtech-cache-v2';
-const RECURSOS = /\/tac-db\.json|cdn\.jsdelivr\.net\/npm\/zxing-wasm@|fastly\.jsdelivr\.net\/npm\/zxing-wasm@|unpkg\.com\/@zxing\/library@|(cdn|fastly)\.jsdelivr\.net\/npm\/(tesseract\.js|tesseract\.js-core|@tesseract\.js-data)|tessdata\.projectnaptha\.com|cdnjs\.cloudflare\.com\/ajax\/libs\/(xlsx|jspdf|jspdf-autotable)\//;
+// - Base de modelos (tac-db.json), lector de códigos, lector del número escrito, Excel, PDF y los generadores de QR y código de barras
+//   (recibos, notas y etiquetas del stock): se guardan para abrir rápido y funcionar sin internet.
+const CACHE_NAME = 'lifoxtech-cache-v3';
+const RECURSOS = /\/tac-db\.json|cdn\.jsdelivr\.net\/npm\/zxing-wasm@|fastly\.jsdelivr\.net\/npm\/zxing-wasm@|unpkg\.com\/@zxing\/library@|(cdn|fastly)\.jsdelivr\.net\/npm\/(tesseract\.js|tesseract\.js-core|@tesseract\.js-data)|tessdata\.projectnaptha\.com|cdnjs\.cloudflare\.com\/ajax\/libs\/(xlsx|jspdf|jspdf-autotable)\/|(cdn|fastly)\.jsdelivr\.net\/npm\/(qrcode-generator|jsbarcode)@/;
 
 self.addEventListener('install', () => {
   self.skipWaiting();
