@@ -310,6 +310,23 @@ td.celda-acc button { white-space: nowrap; width: 100%; padding: 5px 4px; }
 .tabs-principales.bloqueadas .tab-principal { cursor:not-allowed; }
 #salesPanel { display:none; }
 #salesPanel.activo { display:block; }
+#stockPanel { display:none; }
+#stockPanel.activo { display:block; }
+.stock-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px; }
+.stock-stats div { background:#121214; border:1px solid var(--border-color); border-radius:10px; padding:10px 12px; }
+.stock-stats span { display:block; font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; font-weight:700; }
+.stock-stats b { font-size:22px; }
+.stock-subtabs { display:flex; gap:6px; flex-wrap:wrap; margin:14px 0 10px; }
+.stock-subtabs button { flex:1; background:#121214; color:#94a3b8; border:1px solid var(--border-color); font-weight:700; }
+.stock-subtabs button.activa { background:#1d4ed8; color:#fff; border-color:#3b82f6; }
+.stock-vista { display:none; } .stock-vista.activa { display:block; }
+.stock-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:10px; font-weight:800; }
+.stock-badge.agotado { background:rgba(239,68,68,.15); color:#f87171; }
+.stock-badge.bajo { background:rgba(245,158,11,.15); color:#fbbf24; }
+.stock-badge.ok { background:rgba(16,185,129,.15); color:#34d399; }
+.stock-pedido { white-space:pre-wrap; background:#121214; border:1px solid var(--border-color); border-radius:8px; padding:12px; font-size:13px; min-height:80px; }
+#stockPanel input[type=number].stock-n { width:70px; text-align:center; }
+@media (max-width:640px){ .stock-stats { grid-template-columns:repeat(2,1fr); } }
 #salesForm { display:flex; }
 .sales-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
 .sales-heading h2 { margin:0; font-size:17px; color:#f8fafc; }
@@ -545,6 +562,7 @@ td.celda-acc button { white-space: nowrap; width: 100%; padding: 5px 4px; }
   <div class="tabs-principales bloqueadas" id="tabsPrincipales" role="tablist" aria-label="Módulos de la aplicación">
     <button type="button" class="tab-principal activa" id="tabReparaciones" role="tab" disabled>🔧 Reparaciones</button>
     <button type="button" class="tab-principal" id="tabVentas" role="tab" disabled>🧾 Ventas / Caja</button>
+    <button type="button" class="tab-principal" id="tabStock" role="tab" disabled>📦 Stock</button>
   </div>
 
   <!-- FORMULARIO DE REPARACIÓN -->
@@ -823,6 +841,109 @@ td.celda-acc button { white-space: nowrap; width: 100%; padding: 5px 4px; }
     </div>
   </section>
 
+
+  <!-- STOCK DE TELÉFONOS (por IMEI) -->
+  <section id="stockPanel" aria-labelledby="stockTitle">
+    <div class="sales-heading">
+      <div><h2 id="stockTitle">Stock de teléfonos</h2><p>Registra por IMEI los teléfonos en venta, mira los agotados y arma tu pedido.</p></div>
+      <button type="button" class="mini gris" id="btnRecargarStock">🔄 Recargar</button>
+    </div>
+    <div class="stock-stats">
+      <div><span>En venta</span><b id="stkNumVenta" style="color:#60a5fa">0</b></div>
+      <div><span>Vendidos</span><b id="stkNumVendidos" style="color:#34d399">0</b></div>
+      <div><span>Modelos agotados</span><b id="stkNumAgotados" style="color:#f87171">0</b></div>
+      <div><span>En el pedido</span><b id="stkNumPedido" style="color:#fbbf24">0</b></div>
+    </div>
+
+    <div class="stock-subtabs">
+      <button type="button" class="activa" data-stock-vista="venta">📱 En venta</button>
+      <button type="button" data-stock-vista="vendidos">✅ Vendidos</button>
+      <button type="button" data-stock-vista="agotados">⛔ Agotados</button>
+      <button type="button" data-stock-vista="pedir">📦 Pedir teléfonos</button>
+    </div>
+
+    <div class="stock-vista activa" id="stockVistaVenta">
+      <form id="stockForm" autocomplete="off" novalidate>
+        <div class="sales-device-type">
+          <div class="sales-type-title">1 · IMEI DEL TELÉFONO — ESCRIBE O ESCANEA Y SE COMPLETA SOLO</div>
+          <div style="display:flex;gap:8px;align-items:center"><input type="text" id="stockImei" placeholder="IMEI del teléfono (15 dígitos)" maxlength="15" inputmode="numeric" style="flex:1"><button type="button" class="mini azul" id="btnEscanearStock">📷 Código de barras</button></div>
+          <div id="tacStockStatus" style="font-size:10px;color:var(--text-muted);margin-top:4px;min-height:14px"></div>
+          <div id="scannerContainerStock" class="scanner-box">
+            <div class="scanner-head"><span class="scanner-title"><span class="scanner-dot"></span>Escáner de IMEI</span><span class="scanner-tip">Código de barras o número escrito</span></div>
+            <div class="scan-stage">
+              <div id="qrReaderStock" aria-label="Lector de códigos de barras para el stock"></div>
+              <div class="scan-idle"><div class="scan-bars"></div><span>Toca «Abrir cámara» o elige una foto</span></div>
+              <div class="scan-frame"><i></i><i></i><i></i><i></i><div class="scan-laser"></div></div>
+            </div>
+            <div class="scan-zoom" id="zoomBoxStock" hidden><span>🔍 Zoom</span><input type="range" id="zoomImeiStock" min="1" max="1" step="0.1" value="1" aria-label="Zoom de la cámara"></div>
+            <div id="scannerHintStock" class="scanner-hint">Pon el código de barras o el número del IMEI dentro del recuadro, horizontal y a unos 10–15 cm.</div>
+            <div class="scanner-actions">
+              <button type="button" class="azul scan-main" id="btnAbrirCamaraStock">📷 Abrir cámara</button>
+              <button type="button" class="gris" id="btnLinternaStock" hidden>🔦 Linterna</button>
+              <button type="button" class="gris" id="btnCambiarCamaraStock" hidden>🔄 Cambiar cámara</button>
+              <button type="button" class="gris" id="btnFotoImeiStock">🖼️ Desde foto</button>
+              <button type="button" class="rojo" id="btnCerrarCamaraStock">✕ Cerrar</button>
+              <input type="file" id="fotoImeiStock" accept="image/*" hidden>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <input type="text" id="stockModel" placeholder="Modelo del teléfono" maxlength="100" list="stockModelos">
+          <input type="text" id="stockBrand" placeholder="Marca" maxlength="60">
+          <datalist id="stockModelos"></datalist>
+        </div>
+        <div class="form-row">
+          <select id="stockColor"><option value="">Color del teléfono</option><option>Negro</option><option>Blanco</option><option>Azul</option><option>Rojo</option><option>Verde</option><option>Morado</option><option>Rosa</option><option>Plata</option><option>Dorado</option><option>Gris</option><option>Otro</option></select>
+          <select id="stockCapacity"><option value="">Capacidad</option><option>16 GB</option><option>32 GB</option><option>64 GB</option><option>128 GB</option><option>256 GB</option><option>512 GB</option><option>1 TB</option></select>
+        </div>
+        <div class="form-row">
+          <input type="number" id="stockCost" placeholder="Costo ($)" step="0.01" min="0">
+          <input type="number" id="stockPrice" placeholder="Precio de venta ($)" step="0.01" min="0">
+        </div>
+        <textarea id="stockNote" placeholder="Nota (opcional)"></textarea>
+        <div class="acciones-form">
+          <button type="submit" id="btnGuardarStock" class="azul">Guardar en stock</button>
+          <button type="button" id="btnLimpiarStock" class="gris">Limpiar</button>
+        </div>
+      </form>
+      <input type="text" id="stockBuscarVenta" placeholder="Buscar por IMEI o modelo" style="margin:12px 0 8px">
+      <div class="table-responsive"><table><thead><tr><th>IMEI</th><th>Modelo</th><th>Detalle</th><th>Costo</th><th>Precio</th><th>Ingreso</th><th>Acciones</th></tr></thead><tbody id="stockTablaVenta"></tbody></table></div>
+    </div>
+
+    <div class="stock-vista" id="stockVistaVendidos">
+      <input type="text" id="stockBuscarVendidos" placeholder="Buscar por IMEI o modelo" style="margin-bottom:8px">
+      <div class="table-responsive"><table><thead><tr><th>IMEI</th><th>Modelo</th><th>Detalle</th><th>Costo</th><th>Precio</th><th>Vendido</th><th>Acciones</th></tr></thead><tbody id="stockTablaVendidos"></tbody></table></div>
+    </div>
+
+    <div class="stock-vista" id="stockVistaAgotados">
+      <p style="font-size:12px;color:var(--text-muted)">Modelos que vendes y que están agotados o por debajo del mínimo que quieres tener.</p>
+      <div class="table-responsive"><table><thead><tr><th>Modelo</th><th>Estado</th><th>En venta</th><th>Mínimo</th><th>Vendidos</th><th></th></tr></thead><tbody id="stockTablaAgotados"></tbody></table></div>
+    </div>
+
+    <div class="stock-vista" id="stockVistaPedir">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <p style="margin:0;font-size:12px;color:var(--text-muted)">Los modelos que vendes. Marca los que faltan para pedirlos.</p>
+        <button type="button" class="mini gris" id="btnMarcarFaltan">☑️ Marcar todos los que faltan</button>
+      </div>
+      <div class="table-responsive"><table><thead><tr><th>Pedir</th><th>Modelo</th><th>En venta</th><th>Mínimo</th><th>Cantidad</th><th></th></tr></thead><tbody id="stockTablaPedir"></tbody></table></div>
+      <div class="form-row" style="margin-top:10px">
+        <input type="text" id="stockNuevoModelo" placeholder="Nuevo modelo que vendes" maxlength="100">
+        <input type="text" id="stockNuevaMarca" placeholder="Marca" maxlength="60">
+        <input type="number" id="stockNuevoMin" placeholder="Mínimo" min="0" value="1" class="stock-n">
+        <button type="button" class="azul" id="btnAgregarModelo">＋ Añadir</button>
+      </div>
+      <h3 style="font-size:14px;margin:16px 0 6px">Lista de pedido</h3>
+      <div class="stock-pedido" id="stockPedidoTexto"></div>
+      <div class="acciones-form" style="margin-top:8px">
+        <button type="button" class="azul" id="btnGuardarPedido">💾 Guardar pedido</button>
+        <button type="button" class="gris" id="btnCopiarPedido">📋 Copiar</button>
+        <button type="button" class="verde" id="btnWhatsPedido">💬 WhatsApp</button>
+        <button type="button" class="gris" id="btnImprimirPedido">🖨️ Imprimir</button>
+        <button type="button" class="rojo" id="btnVaciarPedido">Vaciar pedido</button>
+      </div>
+    </div>
+  </section>
+
   <div class="admin-footer-area">
     <div class="watermark">
       <span class="wm-label">Desarrollado y Gestionado por</span>
@@ -922,7 +1043,7 @@ function pedirAgregarTAC(tac, destino, estado) {
 
 "use strict";
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXl6vlj3UF6J2jZLfvoB-N_8L5gzEz0TRUzZ6lN8PDgGV_0YOVUcRCZHxQvMK812YqFA/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz6obXFYEE_W5HR4weYQF3bVG7j4qvkNyCngFzafhHFT7RGhoEMdeaSfQqjd_V9du0hjA/exec";
 let desfaseServidor = 0;
 
 function fetchConTiempo(url, opciones = {}, limite = 8000) {
@@ -1104,7 +1225,8 @@ let lectorZX = null, promesaZXJS = null;
 const lienzoEscaner = document.createElement('canvas');
 const ctxEscaner = lienzoEscaner.getContext('2d', { willReadFrequently: true });
 
-function sufijoEscaner(t) { return t === 'saleImei' ? 'Venta' : ''; }
+function sufijoEscaner(t) { return t === 'saleImei' ? 'Venta' : t === 'stockImei' ? 'Stock' : ''; }
+function destinoTAC(t) { return t === 'saleImei' ? 'venta' : t === 'stockImei' ? 'stock' : 'reparacion'; }
 function elEscaner(base, t = scannerTargetInput) { return document.getElementById(base + sufijoEscaner(t)); }
 
 function imeiValido(d) {
@@ -1160,7 +1282,7 @@ function colocarImei(codigo) {
   input.dispatchEvent(new Event('input', { bubbles: true }));
   // Busca el modelo al instante (sin esperar a que el usuario deje de escribir).
   try { clearTimeout(tacTimer); } catch (e) {}
-  consultarTACRemoto(codigo, scannerTargetInput === 'saleImei' ? 'venta' : 'reparacion');
+  consultarTACRemoto(codigo, destinoTAC(scannerTargetInput));
   return true;
 }
 
@@ -1310,7 +1432,7 @@ function avisarModeloOCR(candidato, sesion) {
   if (!modelo || sesion !== sesionEscaner) return;
   if (!tacsAplicadosOCR[tac]) {
     tacsAplicadosOCR[tac] = true;
-    try { consultarTACRemoto(candidato, scannerTargetInput === 'saleImei' ? 'venta' : 'reparacion'); } catch (e) {}
+    try { consultarTACRemoto(candidato, destinoTAC(scannerTargetInput)); } catch (e) {}
   }
   mensajeEscaner('Modelo: ' + modelo + ' · mantén quieto para leer el IMEI completo…', 'ok');
 }
@@ -1659,7 +1781,7 @@ async function leerImeiDesdeFoto(targetId, file) {
     sonidoOk();
     setTimeout(() => detenerEscaner(), 900);
   } else if (tacFoto) {
-    try { consultarTACRemoto(tacFoto, targetId === 'saleImei' ? 'venta' : 'reparacion'); } catch (e) {}
+    try { consultarTACRemoto(tacFoto, destinoTAC(targetId)); } catch (e) {}
     mensajeEscaner('Modelo: ' + nombreModeloTAC(tacFoto) + '. No pude leer el IMEI completo: toma otra foto más de cerca o escríbelo.', 'warn');
   } else {
     mensajeEscaner('No encontré un IMEI en la foto. Tómala de cerca, recta y con buena luz.', 'warn');
@@ -1673,7 +1795,7 @@ async function detenerEscaner() {
   streamEscaner = null; trackEscaner = null;
   if (videoEscaner) { try { videoEscaner.srcObject = null; videoEscaner.remove(); } catch (e) {} }
   videoEscaner = null;
-  ['', 'Venta'].forEach(s => {
+  ['', 'Venta', 'Stock'].forEach(s => {
     const c = document.getElementById('scannerContainer' + s);
     if (c) { c.style.display = 'none'; c.classList.remove('scanning', 'scan-ok'); }
     const l = document.getElementById('btnLinterna' + s); if (l) { l.hidden = true; l.classList.remove('activa'); }
@@ -1696,7 +1818,7 @@ function normalizarCampoImei(input, final) {
   const limpiar = () => { const x = input.value; if (!extraerImei(x) && /\D/.test(x)) { input.value = x.replace(/\D/g, '').slice(0, 15); input.dispatchEvent(new Event('input', { bubbles: true })); } };
   if (final) limpiar(); else temporizadoresImei[input.id] = setTimeout(limpiar, 600);
 }
-['imeiInput', 'saleImei'].forEach(t => {
+['imeiInput', 'saleImei', 'stockImei'].forEach(t => {
   const s = sufijoEscaner(t);
   const input = document.getElementById(t);
   if (input) {
@@ -1706,7 +1828,7 @@ function normalizarCampoImei(input, final) {
       if (e.key !== 'Enter') return;
       e.preventDefault();
       normalizarCampoImei(input, true);
-      if (input.value.length >= 8) { try { clearTimeout(tacTimer); } catch (er) {} consultarTACRemoto(input.value, t === 'saleImei' ? 'venta' : 'reparacion'); }
+      if (input.value.length >= 8) { try { clearTimeout(tacTimer); } catch (er) {} consultarTACRemoto(input.value, destinoTAC(t)); }
     });
   }
   const f = document.getElementById('fotoImei' + s), b = document.getElementById('btnFotoImei' + s);
@@ -2722,7 +2844,12 @@ function aplicarTACLocal(d, destino, estado, tac) {
   const esApple = /iphone/i.test(texto) || /^apple$/i.test(brand);
   let mostrado = modeloComercial(texto, brand);
   try {
-    if (destino === 'venta') {
+    if (destino === 'stock') {
+      if (esApple && /iphone/i.test(texto)) mostrado = modeloIphoneDesdeTexto(texto);
+      const m = document.getElementById('stockModel'), b = document.getElementById('stockBrand');
+      if (m && !m.value) m.value = mostrado;
+      if (b && !b.value) b.value = esApple ? 'Apple' : brand;
+    } else if (destino === 'venta') {
       const tipo = esApple ? 'iPhone' : (/\b(pc|laptop|computer|notebook)\b/i.test(texto) ? 'PC' : 'Android');
       seleccionarTipoVentaAutomatico(tipo);
       const campo = document.getElementById('saleModel');
@@ -2760,7 +2887,7 @@ function mostrarTACNoEncontrado(tac, destino, estado) {
 
 async function buscarTACDirecto(imei, destino) {
   const tac = String(imei || '').replace(/\D/g, '').substring(0, 8);
-  const estado = destino === 'venta' ? document.getElementById('tacVentaStatus') : document.getElementById('tacReparacionStatus');
+  const estado = destino === 'venta' ? document.getElementById('tacVentaStatus') : destino === 'stock' ? document.getElementById('tacStockStatus') : document.getElementById('tacReparacionStatus');
   if (tac.length < 8) { if (estado) estado.textContent = tac.length ? 'Escribe al menos 8 dígitos.' : ''; return; }
   const pedido = ++tacRequest;
   const personal = window.TAC_EMBEDDED[tac];
@@ -2930,11 +3057,13 @@ function actualizarAccesoModulos() {
   const ventasActivas = document.getElementById('salesPanel').classList.contains('activo');
   tabs.classList.toggle('bloqueadas', !isAdmin);
   botones.forEach(b => b.disabled = !isAdmin);
+  const stockActivo = document.getElementById('stockPanel').classList.contains('activo');
   if (!isAdmin) {
     document.querySelectorAll('.repair-only').forEach(el => el.style.display = 'none');
     document.getElementById('salesPanel').classList.remove('activo');
+    document.getElementById('stockPanel').classList.remove('activo');
   } else {
-    document.querySelectorAll('.repair-only:not(#priceForm)').forEach(el => el.style.display = ventasActivas ? 'none' : '');
+    document.querySelectorAll('.repair-only:not(#priceForm)').forEach(el => el.style.display = (ventasActivas || stockActivo) ? 'none' : '');
   }
 }
 
@@ -2953,20 +3082,25 @@ function limpiarFormularioReparacion() {
 function cambiarPestana(nombre, limpiar) {
   if (!isAdmin) return;
   const ventas = nombre === 'ventas';
+  const stock = nombre === 'stock';
   const estabaEnVentas = document.getElementById('salesPanel').classList.contains('activo');
-  if (limpiar !== false && ventas !== estabaEnVentas) {
+  if (limpiar !== false && !stock && ventas !== estabaEnVentas) {
     if (ventas) limpiarFormularioReparacion(); else limpiarFormularioVenta();
   }
-  sessionStorage.setItem('lifox_pestana', ventas ? 'ventas' : 'reparaciones');
+  sessionStorage.setItem('lifox_pestana', stock ? 'stock' : ventas ? 'ventas' : 'reparaciones');
   document.getElementById('salesPanel').classList.toggle('activo', ventas);
-  document.querySelectorAll('.repair-only:not(#priceForm)').forEach(el => el.style.display = ventas ? 'none' : '');
-  if (ventas) document.getElementById('priceForm').style.display = 'none';
+  document.getElementById('stockPanel').classList.toggle('activo', stock);
+  document.querySelectorAll('.repair-only:not(#priceForm)').forEach(el => el.style.display = (ventas || stock) ? 'none' : '');
+  if (ventas || stock) document.getElementById('priceForm').style.display = 'none';
   document.getElementById('tabVentas').classList.toggle('activa', ventas);
-  document.getElementById('tabReparaciones').classList.toggle('activa', !ventas);
+  document.getElementById('tabStock').classList.toggle('activa', stock);
+  document.getElementById('tabReparaciones').classList.toggle('activa', !ventas && !stock);
   if (ventas) renderSales();
+  if (stock && typeof cargarStock === 'function') cargarStock();
 }
 document.getElementById('tabReparaciones').addEventListener('click', () => cambiarPestana('reparaciones'));
 document.getElementById('tabVentas').addEventListener('click', () => cambiarPestana('ventas'));
+document.getElementById('tabStock').addEventListener('click', () => cambiarPestana('stock'));
 
 ['filtroAnio','filtroMes'].forEach(id=>document.getElementById(id)?.addEventListener('change',renderResumenQuincenal));
 function cerrarMenuPagos(){const p=document.getElementById('resumenQuincenal');if(p)p.style.display='none';}
@@ -3032,6 +3166,7 @@ async function iniciar() {
   if (isAdmin) document.body.classList.add('admin');
   actualizarAccesoModulos();
   if (isAdmin && sessionStorage.getItem('lifox_pestana') === 'ventas') cambiarPestana('ventas', false);
+  if (isAdmin && sessionStorage.getItem('lifox_pestana') === 'stock') cambiarPestana('stock', false);
   cargarVentasDesdeNube();
   cargarDatos().then(()=>mostrarAvisoPagoQuincena());
 }
@@ -3217,5 +3352,218 @@ input.usb-recibido{border-color:#22c55e!important;box-shadow:0 0 0 4px rgba(34,1
 })();
 </script>
 
+<script>
+// ===================== STOCK DE TELÉFONOS (por IMEI) =====================
+(function () {
+  "use strict";
+  let stockUnidades = [], stockCatalogo = [], stockMarcas = {}, stockCargando = false;
+  const $ = (id) => document.getElementById(id);
+  const esc = (x) => String(x == null ? '' : x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+  const dinero = (n) => Number(n) ? money(n) : '—';
+
+  async function llamarStock(action, datos) {
+    const r = await fetch(WEB_APP_URL + '?action=' + action + '&token=' + encodeURIComponent(sessionStorage.getItem('adminToken') || '') + '&t=' + Date.now(), {
+      method: 'POST', body: JSON.stringify(Object.assign({ action: action }, datos || {}))
+    });
+    const res = await r.json();
+    if (!res || res.success !== true) throw new Error((res && res.message) || 'No se pudo completar');
+    return res;
+  }
+
+  function filasCatalogo() {
+    return stockCatalogo.map(item => {
+      const k = norm(item.model);
+      const mismos = stockUnidades.filter(u => norm(u.model) === k);
+      const disponibles = mismos.filter(u => u.status === 'En venta').length;
+      const vendidos = mismos.filter(u => u.status === 'Vendido').length;
+      const min = Math.max(0, Number(item.min) || 0);
+      const faltan = Math.max(min - disponibles, 0);
+      const estado = disponibles === 0 ? 'Agotado' : disponibles < min ? 'Bajo' : 'OK';
+      return { item, disponibles, vendidos, faltan, estado, sugerido: Math.max(faltan, 1) };
+    });
+  }
+  const badge = (e) => e === 'Agotado' ? '<span class="stock-badge agotado">Agotado</span>' : e === 'Bajo' ? '<span class="stock-badge bajo">Quedan pocos</span>' : '<span class="stock-badge ok">Hay stock</span>';
+
+  function textoPedido() {
+    const lineas = filasCatalogo().map(f => ({ f, m: stockMarcas[f.item.id] || { order: f.item.order, qty: f.item.qty } }))
+      .filter(x => x.m.order && x.m.qty > 0).map(x => '• ' + x.m.qty + ' × ' + x.f.item.model);
+    if (!lineas.length) return '';
+    return ['Pedido LIFOX TECH — ' + new Date().toLocaleDateString('es-DO'), ''].concat(lineas).join('\n');
+  }
+
+  function tablaUnidades(estado, cuerpoId, buscarId) {
+    const q = norm($(buscarId).value);
+    const lista = stockUnidades.filter(u => u.status === estado)
+      .filter(u => !q || norm([u.imei, u.model, u.brand, u.color, u.capacity].join(' ')).includes(q))
+      .sort((a, b) => String(estado === 'Vendido' ? b.soldAt : b.addedAt).localeCompare(String(estado === 'Vendido' ? a.soldAt : a.addedAt)));
+    $(cuerpoId).innerHTML = lista.length ? lista.map(u => '<tr>'
+      + '<td style="font-family:monospace">' + esc(u.imei) + '</td>'
+      + '<td><b>' + esc(u.model) + '</b><br><small style="color:var(--text-muted)">' + esc(u.brand) + '</small></td>'
+      + '<td><small>' + esc([u.color, u.capacity].filter(Boolean).join(' · ') || '—') + (u.note ? '<br><i>' + esc(u.note) + '</i>' : '') + '</small></td>'
+      + '<td>' + dinero(u.cost) + '</td><td><b>' + dinero(u.price) + '</b></td>'
+      + '<td><small>' + esc(estado === 'Vendido' ? (u.soldAt || '—') : u.addedAt) + '</small></td>'
+      + '<td style="white-space:nowrap">'
+      + (estado === 'En venta'
+        ? '<button type="button" class="mini verde" data-stk-estado="Vendido" data-id="' + esc(u.id) + '">Vendido</button> '
+        : '<button type="button" class="mini gris" data-stk-estado="En venta" data-id="' + esc(u.id) + '">Devolver</button> ')
+      + '<button type="button" class="mini rojo" data-stk-borrar="' + esc(u.id) + '">🗑</button></td></tr>').join('')
+      : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">' + (estado === 'En venta' ? 'No hay teléfonos en venta registrados.' : 'Todavía no hay teléfonos vendidos.') + '</td></tr>';
+  }
+
+  function pintarStock() {
+    const filas = filasCatalogo();
+    const enVenta = stockUnidades.filter(u => u.status === 'En venta').length;
+    $('stkNumVenta').textContent = enVenta;
+    $('stkNumVendidos').textContent = stockUnidades.length - enVenta;
+    $('stkNumAgotados').textContent = filas.filter(f => f.estado === 'Agotado').length;
+    $('stkNumPedido').textContent = filas.filter(f => f.item.order).length;
+    $('stockModelos').innerHTML = stockCatalogo.map(c => '<option value="' + esc(c.model) + '">').join('');
+    tablaUnidades('En venta', 'stockTablaVenta', 'stockBuscarVenta');
+    tablaUnidades('Vendido', 'stockTablaVendidos', 'stockBuscarVendidos');
+
+    const faltan = filas.filter(f => f.estado !== 'OK').sort((a, b) => a.disponibles - b.disponibles);
+    $('stockTablaAgotados').innerHTML = faltan.length ? faltan.map(f => '<tr><td><b>' + esc(f.item.model) + '</b></td><td>' + badge(f.estado) + '</td><td>' + f.disponibles + '</td><td>' + f.item.min + '</td><td>' + f.vendidos + '</td><td>'
+      + (f.item.order ? '<span style="color:#34d399">✓ En el pedido (' + f.item.qty + ')</span>' : '<button type="button" class="mini azul" data-stk-pedir="' + esc(f.item.id) + '" data-qty="' + f.sugerido + '">Pedir ' + f.sugerido + '</button>')
+      + '</td></tr>').join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">No hay modelos agotados. ¡Todo en orden!</td></tr>';
+
+    pintarPedir();
+  }
+
+  function pintarPedir() {
+    const filas = filasCatalogo().sort((a, b) => a.disponibles - b.disponibles || a.item.model.localeCompare(b.item.model));
+    $('stockTablaPedir').innerHTML = filas.length ? filas.map(f => {
+      const m = stockMarcas[f.item.id] || { order: f.item.order, qty: f.item.qty };
+      return '<tr><td><input type="checkbox" data-stk-marca="' + esc(f.item.id) + '" data-sug="' + f.sugerido + '"' + (m.order ? ' checked' : '') + ' style="width:18px;height:18px"></td>'
+        + '<td><b>' + esc(f.item.model) + '</b><br>' + badge(f.estado) + '</td>'
+        + '<td><b>' + f.disponibles + '</b></td>'
+        + '<td><input type="number" min="0" class="stock-n" data-stk-min="' + esc(f.item.id) + '" value="' + f.item.min + '"></td>'
+        + '<td><input type="number" min="0" class="stock-n" data-stk-qty="' + esc(f.item.id) + '" value="' + (m.qty || '') + '"' + (m.order ? '' : ' disabled') + '></td>'
+        + '<td><button type="button" class="mini rojo" data-stk-quitar="' + esc(f.item.id) + '">🗑</button></td></tr>';
+    }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Añade abajo los modelos que vendes. También se añaden solos al registrar un teléfono.</td></tr>';
+    const t = textoPedido();
+    $('stockPedidoTexto').textContent = t || 'Marca modelos para armar el pedido.';
+  }
+
+  async function cargarStock() {
+    if (stockCargando) return;
+    stockCargando = true;
+    $('stockTablaVenta').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted)">Cargando stock…</td></tr>';
+    try {
+      const res = await llamarStock('stockList');
+      stockUnidades = res.units || []; stockCatalogo = res.catalog || []; stockMarcas = {};
+      pintarStock();
+    } catch (e) { alert('No se pudo cargar el stock: ' + e.message); }
+    finally { stockCargando = false; }
+  }
+  window.cargarStock = cargarStock;
+
+  async function accion(action, datos, ok) {
+    try { await llamarStock(action, datos); stockCargando = false; await cargarStock(); return true; }
+    catch (e) { alert(e.message); return false; }
+  }
+
+  function limpiarStock() {
+    $('stockForm').reset();
+    $('tacStockStatus').textContent = '';
+  }
+
+  // ---- Subpestañas ----
+  document.querySelectorAll('[data-stock-vista]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-stock-vista]').forEach(x => x.classList.toggle('activa', x === b));
+    const v = b.getAttribute('data-stock-vista');
+    ['venta', 'vendidos', 'agotados', 'pedir'].forEach(n => $('stockVista' + n.charAt(0).toUpperCase() + n.slice(1)).classList.toggle('activa', n === v));
+  }));
+
+  // ---- Escáner (el mismo de Reparaciones y Ventas) ----
+  $('btnEscanearStock').addEventListener('click', () => iniciarEscaner('stockImei'));
+  $('btnAbrirCamaraStock').addEventListener('click', () => iniciarEscaner('stockImei'));
+  $('btnCerrarCamaraStock').addEventListener('click', detenerEscaner);
+  let tacStockTimer = null;
+  $('stockImei').addEventListener('input', () => {
+    const v = $('stockImei').value.replace(/\D/g, '');
+    clearTimeout(tacStockTimer);
+    if (v.length >= 8) tacStockTimer = setTimeout(() => consultarTACRemoto(v, 'stock'), 350);
+    else $('tacStockStatus').textContent = '';
+  });
+
+  // ---- Guardar teléfono ----
+  $('stockForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const imei = $('stockImei').value.replace(/\D/g, '');
+    if (!/^\d{15}$/.test(imei)) return alert('El IMEI debe tener 15 dígitos.');
+    if (!imeiValido(imei) && !confirm('El último dígito del IMEI no cuadra. ¿Guardarlo igual?')) return;
+    if (stockUnidades.some(u => u.imei === imei && u.status === 'En venta')) return alert('Ese IMEI ya está registrado en venta.');
+    const model = $('stockModel').value.trim();
+    if (!model) return alert('Escribe el modelo del teléfono.');
+    const btn = $('btnGuardarStock'); btn.disabled = true; btn.textContent = 'Guardando…';
+    const ok = await accion('stockAdd', {
+      imei, model, brand: $('stockBrand').value.trim(), color: $('stockColor').value, capacity: $('stockCapacity').value,
+      cost: Number($('stockCost').value) || 0, price: Number($('stockPrice').value) || 0, note: $('stockNote').value.trim()
+    });
+    btn.disabled = false; btn.textContent = 'Guardar en stock';
+    if (ok) limpiarStock();
+  });
+  $('btnLimpiarStock').addEventListener('click', limpiarStock);
+  $('btnRecargarStock').addEventListener('click', () => cargarStock());
+  $('stockBuscarVenta').addEventListener('input', () => tablaUnidades('En venta', 'stockTablaVenta', 'stockBuscarVenta'));
+  $('stockBuscarVendidos').addEventListener('input', () => tablaUnidades('Vendido', 'stockTablaVendidos', 'stockBuscarVendidos'));
+
+  // ---- Botones de las tablas ----
+  $('stockPanel').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.stkEstado) accion('stockStatus', { id: b.dataset.id, status: b.dataset.stkEstado });
+    else if (b.dataset.stkBorrar) { if (confirm('¿Eliminar este teléfono del stock?')) accion('stockDelete', { id: b.dataset.stkBorrar }); }
+    else if (b.dataset.stkPedir) accion('stockOrders', { marks: [{ id: b.dataset.stkPedir, order: true, qty: Number(b.dataset.qty) || 1 }] });
+    else if (b.dataset.stkQuitar) { if (confirm('¿Quitar este modelo de tu lista?')) accion('stockCatalogDelete', { id: b.dataset.stkQuitar }); }
+  });
+  $('stockTablaPedir').addEventListener('change', (e) => {
+    const el = e.target;
+    if (el.dataset.stkMarca) {
+      const id = el.dataset.stkMarca, item = stockCatalogo.find(c => c.id === id) || {};
+      const cur = stockMarcas[id] || { order: item.order, qty: item.qty };
+      stockMarcas[id] = { order: el.checked, qty: el.checked && !cur.qty ? Number(el.dataset.sug) || 1 : cur.qty };
+      pintarPedir();
+    } else if (el.dataset.stkQty) {
+      const id = el.dataset.stkQty, item = stockCatalogo.find(c => c.id === id) || {};
+      const cur = stockMarcas[id] || { order: item.order, qty: item.qty };
+      stockMarcas[id] = { order: cur.order, qty: Math.max(0, Math.floor(Number(el.value) || 0)) };
+      pintarPedir();
+    } else if (el.dataset.stkMin) {
+      const item = stockCatalogo.find(c => c.id === el.dataset.stkMin); if (!item) return;
+      accion('stockCatalogSave', Object.assign({}, item, { min: Math.max(0, Math.floor(Number(el.value) || 0)) }));
+    }
+  });
+  $('btnMarcarFaltan').addEventListener('click', () => {
+    filasCatalogo().forEach(f => { if (f.estado !== 'OK') { const cur = stockMarcas[f.item.id] || { qty: f.item.qty }; stockMarcas[f.item.id] = { order: true, qty: Math.max(cur.qty || 0, f.sugerido) }; } });
+    pintarPedir();
+  });
+  $('btnAgregarModelo').addEventListener('click', async () => {
+    const model = $('stockNuevoModelo').value.trim(); if (!model) return alert('Escribe el modelo.');
+    if (stockCatalogo.some(c => norm(c.model) === norm(model))) return alert('Ese modelo ya está en tu lista.');
+    if (await accion('stockCatalogSave', { model, brand: $('stockNuevaMarca').value.trim(), min: Number($('stockNuevoMin').value) || 0, order: false, qty: 0, note: '' })) {
+      $('stockNuevoModelo').value = ''; $('stockNuevaMarca').value = ''; $('stockNuevoMin').value = '1';
+    }
+  });
+  $('btnGuardarPedido').addEventListener('click', () => {
+    const marks = Object.keys(stockMarcas).map(id => ({ id, order: stockMarcas[id].order, qty: stockMarcas[id].qty }));
+    if (!marks.length) return alert('No hay cambios en el pedido.');
+    accion('stockOrders', { marks });
+  });
+  $('btnVaciarPedido').addEventListener('click', () => {
+    const marks = stockCatalogo.filter(c => c.order || c.qty).map(c => ({ id: c.id, order: false, qty: 0 }));
+    if (marks.length && confirm('¿Vaciar el pedido?')) accion('stockOrders', { marks });
+  });
+  $('btnCopiarPedido').addEventListener('click', () => { const t = textoPedido(); if (!t) return alert('El pedido está vacío.'); navigator.clipboard.writeText(t).then(() => alert('Pedido copiado.')); });
+  $('btnWhatsPedido').addEventListener('click', () => { const t = textoPedido(); if (!t) return alert('El pedido está vacío.'); window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank'); });
+  $('btnImprimirPedido').addEventListener('click', () => {
+    const t = textoPedido(); if (!t) return alert('El pedido está vacío.');
+    const w = window.open('', '_blank'); if (!w) return;
+    w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Pedido</title></head><body style="font-family:Arial,sans-serif;padding:24px"><img src="' + logoSrc() + '" style="width:160px"><pre style="font-size:15px;white-space:pre-wrap">' + esc(t) + '</pre><script>window.onload=()=>window.print()<\/script></body></html>');
+    w.document.close();
+  });
+})();
+
+</script>
 </body>
 </html>
