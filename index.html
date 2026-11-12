@@ -146,6 +146,7 @@ textarea { resize: vertical; height: 60px; }
 .chip button { background: none; border: none; color: #9fc4ff; cursor: pointer; font-size: 14px; padding: 0 2px; }
 button { padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
 button:focus { outline: none; }
+button:focus-visible, a:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid #60a5fa; outline-offset: 2px; }
 #btnSubmit { background: var(--success); color: #fff; font-size: 14px; }
 button.mini { padding: 5px 10px; font-size: 11px; border-radius: 5px; }
 button.rojo { background: var(--danger); color: #fff; }
@@ -558,6 +559,54 @@ th,td{padding:6px 8px}
 .od-icono svg{width:22px;height:22px}
 .scanner-box video,.scan-video{max-height:240px;object-fit:cover}
 @media (max-width:640px){body{padding:8px!important}.container{padding:12px}h1{font-size:16px!important}}
+
+/* ===== v4 · Cambio rápido de estado, botones que no se cortan, accesibilidad ===== */
+.rc-estados-wrap { container-type:inline-size; }
+.rc-estados { display:grid; grid-template-columns:repeat(2,1fr); gap:4px; padding:3px; background:#0f0f12; border:1px solid #232328; border-radius:9px; }
+@container (min-width:330px) { .rc-estados { grid-template-columns:repeat(4,1fr); } }
+.rc-estados button { display:flex; align-items:center; justify-content:center; gap:5px; min-height:34px; padding:4px 6px; border-radius:7px; background:transparent; color:#a1a1aa; font-size:12px; font-weight:700; white-space:nowrap; border:1px solid transparent; }
+.rc-estados button::before { content:""; width:8px; height:8px; border-radius:50%; background:currentColor; opacity:.55; flex:none; }
+.rc-estados button:hover { background:#1c1c22; color:#e5e7eb; }
+.rc-estados button[aria-pressed="true"] { cursor:default; }
+.rc-estados button[aria-pressed="true"]::before { opacity:1; }
+.rc-estados button.e-recibido[aria-pressed="true"] { background:#3b2f0b; color:#fcd34d; border-color:#78350f; }
+.rc-estados button.e-proceso[aria-pressed="true"] { background:#172554; color:#93c5fd; border-color:#1e40af; }
+.rc-estados button.e-listo[aria-pressed="true"] { background:#052e16; color:#86efac; border-color:#166534; }
+.rc-estados button.e-entregado[aria-pressed="true"] { background:#27272a; color:#e4e4e7; border-color:#52525b; }
+.rep-card.guardando .rc-estados, .rep-card.guardando .rep-acciones { opacity:.6; pointer-events:none; }
+/* Los botones ahora bajan a otra línea en vez de cortarse (arregla WhatsApp) */
+.rep-acciones, .vista-lista .rep-acciones, .vista-mini .rep-acciones { display:flex !important; flex-wrap:wrap; gap:5px; grid-template-columns:none; }
+.vista-mini .rep-card:not(.abierta) .rep-acciones, .vista-mini .rep-card:not(.abierta) .rc-estados-wrap { display:none !important; }
+.vista-mini .rc-estados-wrap { grid-column:1 / -1; }
+.vista-lista .rc-estados-wrap { grid-column:1 / -1; }
+.vista-lista .rep-acciones { grid-column:1 / -1 !important; justify-content:flex-end; }
+.vista-lista .rep-acciones button, .vista-lista .rep-acciones a { flex:0 0 auto; }
+.vista-lista .rep-acciones .solo-icono { flex:0 0 40px; }
+@media (min-width:900px) { .vista-lista .rc-estados { max-width:560px; } .vista-lista .rc-estados-wrap { grid-column:1 / 4; } .vista-lista .rep-acciones { grid-column:4 / -1 !important; align-self:center; } }
+.rep-acciones button, .rep-acciones a { flex:1 1 auto; display:inline-flex; align-items:center; justify-content:center; gap:4px; min-height:36px; padding:6px 10px; font-size:12px; border-radius:8px; white-space:nowrap; text-decoration:none; font-weight:600; }
+.rep-acciones .solo-icono { flex:0 0 40px; padding:6px 0; }
+a.mini.verde { background:var(--success); color:#fff; }
+a.mini.verde:hover { background:#059669; }
+.rc-badges .badge { font-size:10px; }
+.rc-precios { color:#94a3b8; }
+.rc-cuando { color:#a1a1aa; }
+/* Aviso flotante con deshacer / avisar */
+#lfxAviso { position:fixed; left:50%; bottom:16px; transform:translateX(-50%) translateY(20px); z-index:10000; display:flex; align-items:center; gap:8px; max-width:calc(100vw - 24px); padding:8px 8px 8px 14px; border-radius:12px; background:#18181b; color:#f4f4f5; border:1px solid #3f3f46; box-shadow:0 10px 30px rgba(0,0,0,.55); font-size:13px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .18s, transform .18s; }
+#lfxAviso.visible { opacity:1; transform:translateX(-50%); pointer-events:auto; }
+#lfxAviso button { padding:7px 10px; min-height:34px; font-size:12px; border-radius:8px; }
+/* Botón de guardar bloqueado mientras se envía */
+button[aria-busy="true"] { opacity:.65; cursor:progress; }
+/* Teléfono: todo más compacto */
+@media (max-width:640px) {
+  .tabs-principales { margin-bottom:12px; padding:4px; gap:4px; }
+  .tabs-principales .tab-principal { padding:8px 6px; font-size:12px; }
+  .search-box { padding:10px 12px; font-size:14px; }
+  .reg-ctrl select { padding:6px 8px 6px 2px; font-size:12px; }
+  .reg-grupo .reg-grupo .rg-cuerpo, .reg-grupo .rg-cuerpo { padding:6px; }
+  .rc-cliente strong { font-size:13.5px; }
+  .rep-card { padding:10px; }
+}
+@media (prefers-reduced-motion:reduce) { *, *::before, *::after { transition:none !important; animation:none !important; } }
 </style>
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
@@ -2197,19 +2246,128 @@ function ponerMarcaPC(texto) {
 
 // ===== WhatsApp al cliente y página de estado =====
 function urlEstado(id) { return new URL('estado.html?id=' + encodeURIComponent(id), location.href).href; }
-function telWhats(t) { let d = String(t || '').replace(/\D/g, ''); if (d.length === 10) d = '1' + d; return d; }
-function whatsCliente(id) {
-  const it = inventory.find(x => String(x.id) === String(id)); if (!it) return;
+function telWhats(t) {
+  let d = String(t || '').replace(/\D/g, '');
+  if (d.startsWith('00')) d = d.slice(2);
+  if (d.length === 10) d = '1' + d;               // RD / EE. UU. sin el 1
+  if (d.length === 11 && d[0] === '1') return d;
+  return d.length >= 8 ? d : '';
+}
+function mensajeWhats(it) {
   const nombre = String(it.client || '').trim().split(/\s+/)[0] || '';
-  const equipo = String(it.name || 'tu equipo').split('/')[0].trim();
+  const equipo = String(dispositivoVisible(it) || it.name || 'tu equipo').split('/')[0].trim() || 'tu equipo';
   const est = String(it.estado || 'Recibido');
   const total = Number(it.pCliente || 0) ? ' El total es ' + money(it.pCliente) + '.' : '';
   let msg;
   if (/entregado/i.test(est)) msg = '¡Gracias por confiar en LifoxTech, ' + nombre + '! Si tienes cualquier problema con tu ' + equipo + ', escríbenos.';
   else if (/listo|terminad|reparado/i.test(est)) msg = 'Hola ' + nombre + ', tu ' + equipo + ' ya está listo para recoger en LifoxTech.' + total + ' Recuerda que tienes 15 días para retirarlo.';
+  else if (/proceso/i.test(est)) msg = 'Hola ' + nombre + ', ya estamos trabajando en tu ' + equipo + ' en LifoxTech. Te avisamos cuando esté listo.' + total;
   else msg = 'Hola ' + nombre + ', recibimos tu ' + equipo + ' en LifoxTech. Estado: ' + est + '.' + total;
-  msg += '\n\nPuedes ver el estado aquí: ' + urlEstado(it.id);
-  window.open('https://wa.me/' + telWhats(it.phone) + '?text=' + encodeURIComponent(msg), '_blank');
+  return msg + '\n\nPuedes ver el estado aquí: ' + urlEstado(it.id);
+}
+function enlaceWhats(it) {
+  const tel = telWhats(it.phone);
+  return 'https://wa.me/' + tel + '?text=' + encodeURIComponent(mensajeWhats(it));
+}
+// Se usa como enlace normal: así el navegador o la app instalada no lo bloquean.
+function abrirWhats(ev, id) {
+  const it = inventory.find(x => String(x.id) === String(id)); if (!it) { if (ev) ev.preventDefault(); return false; }
+  if (!telWhats(it.phone)) { if (ev) ev.preventDefault(); alert('El teléfono "' + (it.phone || '') + '" no es válido para WhatsApp. Corrígelo en Editar.'); return false; }
+  if (ev && ev.currentTarget) ev.currentTarget.href = enlaceWhats(it);   // mensaje con el estado más reciente
+  return true;
+}
+function whatsCliente(id) {
+  const it = inventory.find(x => String(x.id) === String(id)); if (!it) return;
+  if (!telWhats(it.phone)) return alert('El teléfono "' + (it.phone || '') + '" no es válido para WhatsApp. Corrígelo en Editar.');
+  const url = enlaceWhats(it);
+  const w = window.open(url, '_blank');
+  if (!w) location.href = url;
+}
+
+// ===== Cambio rápido de estado y pago (un toque) =====
+const ESTADOS_RAPIDOS = [
+  { v: 'Recibido', c: 'e-recibido' }, { v: 'En proceso', c: 'e-proceso' },
+  { v: 'Listo', c: 'e-listo' }, { v: 'Entregado', c: 'e-entregado' }
+];
+const guardandoIds = new Set();
+const colaGuardado = {};
+function categoriaDe(it) { return /^PC\b/i.test(String(it.name || '')) ? 'pc' : 'movil'; }
+function payloadRegistro(it) {
+  return { action:'update', id:it.id, client:it.client||'', phone:it.phone||'', technician:it.technician||'', name:it.name||'', imei:it.imei||'', category:categoriaDe(it), type:it.type||'', estado:it.estado||'Recibido', pagado:it.pagado||'No', pCompra:Number(it.pCompra||0), pCliente:Number(it.pCliente||0), note:it.note||'', color:it.color||'' };
+}
+// Guarda los cambios de un mismo registro uno detrás de otro (nunca se pisan).
+function guardarRegistroRapido(it) {
+  const id = String(it.id);
+  const payload = payloadRegistro(it);
+  guardandoIds.add(id); marcarTarjeta(id, true);
+  const tarea = (colaGuardado[id] || Promise.resolve()).catch(() => {}).then(async () => {
+    const r = await fetch(WEB_APP_URL + '?action=update&token=' + encodeURIComponent(sessionStorage.getItem('adminToken') || ''), { method:'POST', body: JSON.stringify(payload) });
+    const res = await r.json();
+    if (!res || res.success !== true) throw new Error((res && res.message) || 'No se pudo actualizar');
+    return res;
+  });
+  colaGuardado[id] = tarea;
+  tarea.finally(() => { if (colaGuardado[id] === tarea) { guardandoIds.delete(id); marcarTarjeta(id, false); } });
+  return tarea;
+}
+function marcarTarjeta(id, on) {
+  document.querySelectorAll('.rep-card[data-id]').forEach(c => { if (c.dataset.id === id) { c.classList.toggle('guardando', on); c.setAttribute('aria-busy', on); } });
+}
+function guardarCache() { try { localStorage.setItem('lifox_inventory_cache', JSON.stringify(inventory)); } catch (e) {} }
+async function cambiarEstado(id, nuevo) {
+  const it = inventory.find(x => String(x.id) === String(id)); if (!it) return;
+  const antes = it.estado || 'Recibido';
+  if (textoOrden(antes) === textoOrden(nuevo)) return;
+  it.estado = nuevo; displayItems(); guardarCache();
+  const acciones = [{ t: 'Deshacer', c: 'gris', f: () => cambiarEstado(id, antes) }];
+  if (/listo|entregado/i.test(nuevo) && telWhats(it.phone)) acciones.unshift({ t: '💬 Avisar', c: 'verde', f: () => whatsCliente(id) });
+  avisar('⏳ ' + nuevo + '…', acciones);
+  try {
+    await guardarRegistroRapido(it);
+    avisar('✓ ' + (it.client || 'Registro') + ' ahora está ' + nuevo, acciones);
+  } catch (e) {
+    it.estado = antes; displayItems(); guardarCache();
+    avisar('✕ No se guardó el estado: ' + (e.message || 'revisa la conexión'), []);
+  }
+}
+async function alternarPago(id){
+  const it=inventory.find(x=>String(x.id)===String(id)); if(!it)return;
+  const antes=it.pagado, antesProfit=it.profit;
+  const nuevo=estaPagado(it)?'No':'Sí';
+  if(nuevo==='No' && !confirm('¿Quitar el pago y dejarlo pendiente?'))return;
+  it.pagado=nuevo; it.profit=nuevo==='Sí'?(Number(it.pCliente||0)-Number(it.pCompra||0)):''; displayItems(); guardarCache();
+  avisar('Guardando pago…', []);
+  try { await guardarRegistroRapido(it); avisar(nuevo==='Sí' ? '✓ Marcado como pagado' : '↩ Pago quitado', nuevo==='Sí' ? [{ t:'Deshacer', c:'gris', f:()=>alternarPago(id) }] : []); }
+  catch(e){ it.pagado=antes; it.profit=antesProfit; displayItems(); guardarCache(); avisar('✕ No se pudo actualizar el pago: ' + (e.message || 'revisa la conexión'), []); }
+}
+let temporizadorAviso;
+function avisar(texto, acciones) {
+  let el = document.getElementById('lfxAviso');
+  if (!el) { el = document.createElement('div'); el.id = 'lfxAviso'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); document.body.appendChild(el); }
+  el.innerHTML = '';
+  const t = document.createElement('span'); t.textContent = texto; el.appendChild(t);
+  (acciones || []).forEach(a => { const b = document.createElement('button'); b.type = 'button'; b.className = a.c; b.textContent = a.t; b.onclick = () => { el.classList.remove('visible'); a.f(); }; el.appendChild(b); });
+  el.classList.add('visible');
+  clearTimeout(temporizadorAviso); temporizadorAviso = setTimeout(() => el.classList.remove('visible'), (acciones && acciones.length) ? 6000 : 3000);
+}
+
+// ===== Evitar registros duplicados (doble toque en Guardar / Registrar) =====
+function nuevoRequestId() { return (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2)); }
+function conCandado(fn) {
+  return async function (e) {
+    e.preventDefault();
+    const form = e.currentTarget || this;
+    if (form.dataset.enviando === '1') return;      // ya se está guardando: ignora el segundo toque
+    form.dataset.enviando = '1';
+    const btns = form.querySelectorAll('button[type="submit"]');
+    const textos = [...btns].map(b => b.textContent);
+    btns.forEach(b => { b.disabled = true; b.setAttribute('aria-busy', 'true'); b.textContent = '⏳ Guardando…'; });
+    try { await fn.call(form, e); }
+    finally {
+      delete form.dataset.enviando;
+      btns.forEach((b, i) => { b.disabled = false; b.removeAttribute('aria-busy'); if (b.textContent === '⏳ Guardando…') b.textContent = textos[i]; });
+    }
+  };
 }
 function imprimirNotaRegistro(id) {
   const it = inventory.find(x => String(x.id) === String(id));
@@ -2459,7 +2617,7 @@ function displayItems() {
         + '<div class="rc-cuando">' + diasR[f.getDay()] + (f.getFullYear() !== new Date().getFullYear() ? ' ' + f.getFullYear() : '') + (hora ? ' · ' + escR(hora) : '') + '</div>'
       : '<div class="rc-cuando">' + escR(it.date || 'Sin fecha') + (hora ? ' · ' + escR(hora) : '') + '</div>';
     const nota = String(it.note || '').trim();
-    return '<article class="rep-card' + (pagado ? '' : ' no-pagado') + '">'
+    return '<article class="rep-card' + (pagado ? '' : ' no-pagado') + (guardandoIds.has(String(it.id)) ? ' guardando' : '') + '" data-id="' + escR(it.id) + '">'
       + '<div class="rc-top">' + fecha + '<div class="rc-badges"><span class="badge ' + (pagado ? 'pag-si' : 'pag-no') + '">' + (pagado ? 'Pagado' : 'Sin pagar') + '</span><span class="badge rep-estado ' + claseEstado(it.estado) + '">' + escR(it.estado || 'Recibido') + '</span></div></div>'
       + '<div class="rc-cliente"><strong>' + escR(it.client || 'Sin nombre') + '</strong><span>📞 ' + escR(it.phone || '-') + '</span></div>'
       + '<div class="rc-equipo"><b>📱 ' + escR(dispositivoVisible(it) || '-') + '</b>' + (it.color ? '<span class="rc-color">' + escR(it.color) + '</span>' : '') + (it.imei ? '<code title="IMEI">' + escR(it.imei) + '</code>' : '') + '</div>'
@@ -2467,12 +2625,15 @@ function displayItems() {
       + (nota ? '<div class="rc-nota" title="' + escR(nota) + '">📝 ' + escR(nota) + '</div>' : '')
       + '<div class="rc-mini-estado"><span class="badge ' + (pagado ? 'pag-si' : 'pag-no') + '">' + (pagado ? 'Pagado' : 'Sin pagar') + '</span><span class="badge rep-estado ' + claseEstado(it.estado) + '">' + escR(it.estado || 'Recibido') + '</span></div>'
       + '<div class="rc-precios"><span>Compra <b>' + money(it.pCompra) + '</b></span><span class="rc-cli">Cliente <b>' + money(it.pCliente) + '</b></span><span class="solo-admin rc-gan">Ganancia <b>' + (pagado ? money(it.profit) : '—') + '</b></span></div>'
+      + '<div class="rc-estados-wrap solo-admin"><div class="rc-estados" role="group" aria-label="Cambiar estado de ' + escR(it.client || 'este equipo') + '">'
+        + ESTADOS_RAPIDOS.map(e => { const on = textoOrden(it.estado || 'Recibido') === textoOrden(e.v); return '<button type="button" class="' + e.c + '" aria-pressed="' + on + '" title="Cambiar a ' + e.v + '" onclick="cambiarEstado(\'' + idJs(it.id) + '\',\'' + e.v + '\')">' + e.v + '</button>'; }).join('')
+      + '</div></div>'
       + '<div class="rep-acciones solo-admin">'
-        + '<button class="mini azul" title="Editar" onclick="editarRegistro(\'' + idJs(it.id) + '\')">✏️ Editar</button>'
-        + '<button class="mini ' + (pagado ? 'gris' : 'verde') + '" title="' + (pagado ? 'Quitar pago' : 'Marcar pagado') + '" onclick="alternarPago(\'' + idJs(it.id) + '\')">' + (pagado ? '↩ Quitar pago' : '✓ Pagado') + '</button>'
-        + '<button class="mini gris" title="Imprimir nota" onclick="imprimirNotaRegistro(\'' + idJs(it.id) + '\')">🖨</button>'
-        + (it.phone ? '<button class="mini verde" title="Avisar por WhatsApp" onclick="whatsCliente(\'' + idJs(it.id) + '\')">💬 WhatsApp</button>' : '')
-        + '<button class="mini rojo" title="Borrar" onclick="borrar(\'' + idJs(it.id) + '\')">🗑</button>'
+        + (it.phone ? '<a class="mini verde" href="' + escR(enlaceWhats(it)) + '" target="_blank" rel="noopener" aria-label="Avisar a ' + escR(it.client || 'cliente') + ' por WhatsApp" onclick="return abrirWhats(event,\'' + idJs(it.id) + '\')">💬 WhatsApp</a>' : '')
+        + '<button type="button" class="mini azul" onclick="editarRegistro(\'' + idJs(it.id) + '\')">✏️ Editar</button>'
+        + '<button type="button" class="mini ' + (pagado ? 'gris' : 'verde') + '" onclick="alternarPago(\'' + idJs(it.id) + '\')">' + (pagado ? '↩ Quitar pago' : '✓ Pagado') + '</button>'
+        + '<button type="button" class="mini gris solo-icono" title="Imprimir nota" aria-label="Imprimir nota" onclick="imprimirNotaRegistro(\'' + idJs(it.id) + '\')">🖨</button>'
+        + '<button type="button" class="mini rojo solo-icono" title="Borrar registro" aria-label="Borrar registro de ' + escR(it.client || '') + '" onclick="borrar(\'' + idJs(it.id) + '\')">🗑</button>'
       + '</div>'
       + '</article>';
   };
@@ -2503,13 +2664,6 @@ function displayItems() {
   tbody.innerHTML = pintar(lista, 0, '', true);
 }
 
-async function alternarPago(id){
-  const it=inventory.find(x=>String(x.id)===String(id)); if(!it)return;
-  const nuevo=estaPagado(it)?'No':'Sí';
-  if(!confirm(nuevo==='Sí'?'¿Marcar este registro como pagado?':'¿Quitar el pago y dejarlo pendiente?'))return;
-  const payload={action:'update',id:it.id,client:it.client||'',phone:it.phone||'',technician:it.technician||'',name:it.name||'',imei:it.imei||'',type:it.type||'',estado:it.estado||'Recibido',pagado:nuevo,pCompra:Number(it.pCompra||0),pCliente:Number(it.pCliente||0),note:it.note||'',color:it.color||''};
-  try{const r=await fetch(WEB_APP_URL+'?action=update&token='+encodeURIComponent(sessionStorage.getItem('adminToken')||''),{method:'POST',body:JSON.stringify(payload)});const res=await r.json();if(!res||res.success!==true)throw new Error('No se pudo actualizar');it.pagado=nuevo;it.profit=nuevo==='Sí'?(Number(it.pCliente||0)-Number(it.pCompra||0)):'';displayItems();}catch(e){alert('No se pudo actualizar el pago en la hoja.');}
-}
 
 function fechaRegistro(x){ const d=String(x.date||'').trim(); const m=d.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/); if(m)return new Date(+m[1],+m[2]-1,+m[3]); const m2=d.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/); return m2?new Date(+m2[3],+m2[2]-1,+m2[1]):null; }
 function renderResumenQuincenal(){
@@ -2630,8 +2784,7 @@ function imeiValidoFront(valor) {
   return (suma + Number(s[14])) % 10 === 0;
 }
 
-document.getElementById('priceForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
+document.getElementById('priceForm').addEventListener('submit', conCandado(async (e) => {
   const cliente = document.getElementById('clientName').value.trim();
   const telefono = document.getElementById('clientPhone').value.trim();
   const tecnico = document.getElementById('technicianName').value;
@@ -2675,6 +2828,7 @@ document.getElementById('priceForm').addEventListener('submit', async (e) => {
   if (fechaElegida) Object.assign(payload, camposFechaManual(fechaElegida));
 
   const action = isEditing ? 'update' : 'create';
+  payload.requestId = nuevoRequestId(); // el servidor ignora el mismo envío repetido
 
   try {
     const r = await fetch(WEB_APP_URL + '?action=' + action + '&token=' + sessionStorage.getItem('adminToken'), {
@@ -2694,7 +2848,7 @@ document.getElementById('priceForm').addEventListener('submit', async (e) => {
     limpiarFormularioReparacion();
     alert('Sin conexión: el registro se guardó en este equipo y se enviará solo cuando vuelva el internet (con la hora en que lo registraste).');
   }
-});
+}));
 
 function verificarPassword() {
   const u = document.getElementById('adminUserInput').value;
@@ -3250,8 +3404,7 @@ async function imprimirRecibo(index) {
 document.getElementById('saleSeller').addEventListener('change', function() {
   document.getElementById('saleOtherSeller').style.display = this.value === 'OTRA' ? 'block' : 'none';
 });
-document.getElementById('salesForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
+document.getElementById('salesForm').addEventListener('submit', conCandado(async function(e) {
   const buyer = document.getElementById('saleBuyer').value.trim();
   const phone = document.getElementById('salePhone').value.trim();
   const model = document.getElementById('saleModel').value.trim();
@@ -3262,6 +3415,7 @@ document.getElementById('salesForm').addEventListener('submit', async function(e
   const now = fechaManualDe('saleFechaManual') || new Date(Date.now() + desfaseServidor);
   const venta = { deviceType: document.getElementById('saleDeviceType').value, buyer, phone, imei: imeiVenta, model: modeloComercial(model), color: document.getElementById('saleColor').value, capacity: document.getElementById('saleCapacity').value, item: document.getElementById('saleItem').value.trim(), seller: vendedorSeleccionado(), price: Number(price), note: document.getElementById('saleNote').value.trim(), date: now.toLocaleDateString('es-DO'), time: now.toLocaleTimeString('es-DO', { hour:'numeric', minute:'2-digit' }) };
   const fmVenta = fechaManualDe('saleFechaManual');
+  venta.requestId = nuevoRequestId();
   if (fmVenta) venta.fechaManual = camposFechaManual(fmVenta).fechaManual;
   try {
     if (editSaleIndex !== null) {
@@ -3298,7 +3452,7 @@ document.getElementById('salesForm').addEventListener('submit', async function(e
     }
     alert('La venta no se guardó: ' + (err.message || 'verifica la conexión.'));
   }
-});
+}));
 document.getElementById('btnCancelarVenta').addEventListener('click', limpiarFormularioVenta);
 
 function actualizarAccesoModulos() {
