@@ -804,6 +804,9 @@ button.mini{min-height:34px;border-radius:8px}
 .cierre-acciones{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .cierre-acciones button{flex:1 1 160px}
 .cierre-aviso{font-size:11px;color:var(--text-muted);margin-top:6px;min-height:14px}
+.cierre-venta-nueva{display:grid;grid-template-columns:1fr 160px auto;gap:8px}
+@media (max-width:560px){.cierre-venta-nueva{grid-template-columns:1fr 1fr}.cierre-venta-nueva button{grid-column:1 / -1}}
+.cierre-tabla button.ci-quitar{padding:4px 9px;min-height:0}
 </style>
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
@@ -1124,7 +1127,7 @@ button.mini{min-height:34px;border-radius:8px}
   <!-- CIERRE DE CAJA -->
   <section id="cierrePanel" aria-labelledby="cierreTitle">
     <div class="sales-heading">
-      <div><h2 id="cierreTitle">Cierre de caja</h2><p>Revisa las ventas del día, cuenta las papeletas recibidas en pesos dominicanos y saca la factura de cierre.</p></div>
+      <div><h2 id="cierreTitle">Cierre de caja</h2><p>Anota las ventas del cierre, cuenta las papeletas recibidas en pesos dominicanos y saca la factura de cierre. No depende de la pestaña Ventas.</p></div>
     </div>
 
     <div class="sales-device-type">
@@ -1138,17 +1141,14 @@ button.mini{min-height:34px;border-radius:8px}
     </div>
 
     <div class="sales-device-type">
-      <div class="sales-type-title">2 · VENTAS REGISTRADAS EN EL DÍA</div>
-      <div class="cierre-stats">
-        <div><span>Ventas</span><b id="ciNumVentas">0</b></div>
-        <div><span>Teléfonos / equipos</span><b id="ciEquipos">RD$ 0.00</b></div>
-        <div><span>Accesorios</span><b id="ciAccesorios">RD$ 0.00</b></div>
-        <div><span>Total vendido</span><b id="ciTotalVentas" style="color:#34d399">RD$ 0.00</b></div>
+      <div class="sales-type-title">2 · VENTAS DEL CIERRE (SE ANOTAN AQUÍ, APARTE DE LA PESTAÑA VENTAS)</div>
+      <div class="cierre-venta-nueva">
+        <input type="text" id="ciVentaDesc" placeholder="Lo que se vendió (ej. Cargador tipo C, Samsung A15…)" maxlength="80">
+        <input type="number" id="ciVentaMonto" placeholder="Monto RD$" min="0" step="0.01" inputmode="decimal">
+        <button type="button" class="azul" id="btnAgregarVentaCierre">➕ Agregar</button>
       </div>
-      <div class="cierre-grid2">
-        <div class="table-responsive"><table class="cierre-tabla"><thead><tr><th>Artículo</th><th>Vendedor</th><th>Hora</th><th class="num">Precio</th></tr></thead><tbody id="ciListaVentas"></tbody></table></div>
-        <div class="table-responsive"><table class="cierre-tabla"><thead><tr><th>Vendedor</th><th class="num">Ventas</th><th class="num">Total</th></tr></thead><tbody id="ciPorVendedor"></tbody></table></div>
-      </div>
+      <div class="table-responsive" style="margin-top:10px"><table class="cierre-tabla"><thead><tr><th>#</th><th>Lo que se vendió</th><th class="num">Monto</th><th></th></tr></thead><tbody id="ciListaVentas"></tbody>
+        <tfoot><tr><td></td><td id="ciNumVentas">0 ventas</td><td class="num" id="ciTotalVentas">RD$ 0.00</td><td></td></tr></tfoot></table></div>
     </div>
 
     <div class="sales-device-type">
@@ -1175,7 +1175,7 @@ button.mini{min-height:34px;border-radius:8px}
 
     <div class="sales-device-type cierre-res">
       <div class="sales-type-title">5 · RESULTADO DEL CIERRE</div>
-      <div class="fila"><span>Total vendido (ventas registradas)</span><b id="crVentas">RD$ 0.00</b></div>
+      <div class="fila"><span>Total vendido (ventas anotadas)</span><b id="crVentas">RD$ 0.00</b></div>
       <div class="fila"><span>+ Otros ingresos</span><b id="crOtros">RD$ 0.00</b></div>
       <div class="fila fuerte"><span>= Total de ingresos del día</span><b id="crIngresos">RD$ 0.00</b></div>
       <div class="fila"><span>− Transferencias</span><b class="menos" id="crTransfer">RD$ 0.00</b></div>
@@ -3538,8 +3538,8 @@ function descargarInformePDF() {
 
 // Sin internet (librería PDF no cargada): abre el informe listo para "Guardar como PDF".
 function informeImprimible(d) {
-  const w = window.open('', '_blank');
-  if (!w) { alert('Permite las ventanas emergentes para ver el informe.'); return; }
+  const w = ventanaImpresionOculta();
+  w.document.open();
   const e = v => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const t = d.total;
   const tot = [['Registros', t.registros], ['Pagados', t.pagados], ['Sin pagar', t.sinPagar], ['Cobrado', money(t.cobrado)], ['Por cobrar', money(t.porCobrar)], ['Ganancia neta', money(t.ganancia)], ['Prod. Ymark', money(d.prod.ymark)], ['Prod. Winder', money(d.prod.winder)]];
@@ -3851,18 +3851,23 @@ function limpiarFormularioVenta() {
 }
 
 function logoSrc() { const i = document.getElementById('logoImagen'); return (i && i.src) || 'logo.png'; }
+// Imprime sin abrir pestañas nuevas: el documento se arma en un marco invisible dentro de esta misma página.
+function ventanaImpresionOculta() {
+  document.querySelectorAll('iframe.lfx-marco-impresion').forEach(f => { if (Date.now() - Number(f.dataset.creado || 0) > 5000) f.remove(); });
+  const fr = document.createElement('iframe');
+  fr.className = 'lfx-marco-impresion'; fr.dataset.creado = String(Date.now());
+  fr.setAttribute('aria-hidden', 'true'); fr.tabIndex = -1; fr.title = 'Impresión';
+  fr.style.cssText = 'position:fixed;left:-10000px;top:0;width:420px;height:1400px;border:0;opacity:0;pointer-events:none';
+  document.body.appendChild(fr);
+  return fr.contentWindow;
+}
+function marcoImpresionOculto() { const w = ventanaImpresionOculta(); return w && w.frameElement; }
 
 async function imprimirRecibo(index) {
   const v = sales[index];
   if (!v) return;
   if (window.LFXPrint) { window.LFXPrint.reciboVenta(v); return; }
-  // Se imprime dentro de la misma página (sin abrir otra pestaña).
-  const marcoRecibo = document.createElement('iframe');
-  marcoRecibo.setAttribute('aria-hidden', 'true');
-  marcoRecibo.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
-  document.body.appendChild(marcoRecibo);
-  setTimeout(() => { try { marcoRecibo.remove(); } catch (e) {} }, 120000);
-  const w = marcoRecibo.contentWindow;
+  const w = ventanaImpresionOculta(); // se imprime en la misma página, sin abrir otra pestaña
   w.document.open();
   const safe = (x) => String(x || '-').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
   w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Recibo LifoxTech</title><style>@page{size:80mm 260mm;margin:0}body{font-family:Arial,sans-serif;width:72mm;margin:0 auto;padding:3mm 0;color:#000}h1{text-align:center;font-size:18px;margin:0 0 4px}h2{text-align:center;font-size:13px;margin:0 0 18px;font-weight:normal}hr{border:0;border-top:1px dashed #777;margin:14px 0}.row{margin:9px 0;font-size:12px}.label{font-weight:bold;display:block;font-size:10px;text-transform:uppercase;color:#555}.total{font-size:17px;font-weight:bold;text-align:right;margin-top:18px}.foot{text-align:center;font-size:10px;color:#555;margin-top:24px}@media print{button{display:none}}</style></head><body><img src="${logoSrc()}" alt="LifoxTech" style="display:block;width:180px;height:auto;margin:0 auto 8px;object-fit:contain;"><h2>Recibo de venta</h2><hr><div class="row"><span class="label">Nombre del comprador</span>${safe(v.buyer)}</div><div class="row"><span class="label">Número de teléfono</span>${safe(v.phone)}</div><div class="row"><span class="label">IMEI del teléfono</span>${safe(v.imei)}</div><div class="row"><span class="label">Modelo del teléfono</span>${safe(v.model)}</div><div class="row"><span class="label">Detalle</span>${safe(v.item)}</div><div class="row"><span class="label">Vendedor/a</span>${safe(v.seller)}</div><div class="total">Total: ${safe(money(v.price))}</div><div class="row"><span class="label">Nota</span>${safe(v.note)}</div><hr><div class="foot">${safe(horaSinSegundos((v.date || '') + ' ' + (v.time || '')))}<br>Gracias por su compra</div><script>window.onload=()=>window.print()<\/script></body></html>`);
@@ -4096,8 +4101,9 @@ function imprimirNotaReparacion(reg){
   }
   if(!dispositivo) dispositivo=tipo || 'Dispositivo';
   if (window.LFXPrint) { const fr = reg && reg.date ? fechaRegistro(reg) : null; const fecha = fr ? (fr.toLocaleDateString('es-DO') + ' ' + (typeof limpiarHoraVisual === 'function' ? limpiarHoraVisual(reg.time) : (reg.time || ''))).trim() : ''; window.LFXPrint.notaReparacion({ cliente, telefono, imei, tipo, dispositivo, color, capacidad, nota, fecha, id: reg && reg.id }); return; }
-  const w=window.open('','_blank','width=430,height=700');
-  if(!w){alert('Permite las ventanas emergentes para imprimir la nota.');return;}
+  const w=ventanaImpresionOculta();
+  w.document.open();
+  setTimeout(()=>{try{w.focus();w.print();}catch(e){}},700);
   const esc=x=>String(x||'-').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const ahora=new Date().toLocaleString('es-DO',{dateStyle:'short',timeStyle:'short'});
   const iconoHtml = /iphone|apple/i.test(tipo+' '+dispositivo) ? '<div class=\"devicon\"><svg viewBox=\"0 0 32 32\"><path fill=\"currentColor\" d=\"M20.7 5.1c.8-1 1.4-2.4 1.2-3.8-1.3.1-2.8.9-3.7 1.9-.8.9-1.5 2.3-1.3 3.6 1.4.1 2.9-.7 3.8-1.7ZM25 17.1c0-3.1 2.5-4.7 2.6-4.8-1.4-2.1-3.6-2.4-4.4-2.4-1.9-.2-3.7 1.1-4.7 1.1-1 0-2.5-1.1-4.1-1.1-2.1 0-4 1.2-5.1 3.1-2.2 3.8-.6 9.5 1.5 12.6 1 1.5 2.2 3.2 3.8 3.1 1.5-.1 2.1-1 4-1s2.4 1 4 1c1.7 0 2.8-1.5 3.8-3.1 1.2-1.7 1.7-3.4 1.7-3.5-.1 0-3.1-1.2-3.1-5Z\"/></svg></div>' : /android/i.test(tipo) ? '<div class=\"devicon\"><svg viewBox=\"0 0 32 32\"><g fill=\"currentColor\"><path d=\"M10.1 12.1h11.8a3.1 3.1 0 0 1 3.1 3.1v8.7a3.1 3.1 0 0 1-3.1 3.1H10.1A3.1 3.1 0 0 1 7 23.9v-8.7a3.1 3.1 0 0 1 3.1-3.1Z\"/><path d=\"M10.1 11.7c.8-3.1 3.1-5 5.9-5s5.1 1.9 5.9 5H10.1Z\"/><rect x=\"3.9\" y=\"14\" width=\"3.1\" height=\"10.7\" rx=\"1.55\"/><rect x=\"25\" y=\"14\" width=\"3.1\" height=\"10.7\" rx=\"1.55\"/><rect x=\"10.2\" y=\"24\" width=\"3.4\" height=\"6\" rx=\"1.7\"/><rect x=\"18.4\" y=\"24\" width=\"3.4\" height=\"6\" rx=\"1.7\"/><path d=\"m11.7 7.7-1.8-3.1a.8.8 0 0 1 1.4-.8l1.8 3.1m7.2.8 1.8-3.1a.8.8 0 1 0-1.4-.8l-1.8 3.1\"/></g><circle cx=\"12.8\" cy=\"10.7\" r=\".8\" fill=\"#202024\"/><circle cx=\"19.2\" cy=\"10.7\" r=\".8\" fill=\"#202024\"/></svg></div>' : '<div class=\"devemoji\">💻</div>';
@@ -4844,7 +4850,7 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
   $('btnImprimirPedido').addEventListener('click', () => {
     const t = textoPedido(); if (!t) return alert('El pedido está vacío.');
     if (window.LFXPrint) return window.LFXPrint.pedido(t);
-    const w = window.open('', '_blank'); if (!w) return;
+    const w = ventanaImpresionOculta(); w.document.open();
     w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Pedido</title><style>@page{size:80mm 260mm;margin:0}</style></head><body style="font-family:Arial,sans-serif;width:72mm;margin:0 auto;padding:3mm 0"><img src="' + logoSrc() + '" style="width:60%"><pre style="font-size:15px;white-space:pre-wrap">' + esc(t) + '</pre><script>window.onload=()=>window.print()<\/script></body></html>');
     w.document.close();
   });
@@ -5267,10 +5273,10 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     capa.classList.add('visible');
     return { enPagina: true, marco: $('tcMarco') };
   }
+  // Nunca abre otra pestaña: el recibo se imprime desde un marco invisible de esta misma página.
   function abrirVentana() {
-    const w = window.open('', '_blank', 'width=440,height=720');
-    if (w) { try { w.document.write('<p style="font-family:Arial;padding:20px">Preparando recibo…</p>'); } catch (e) {} return w; }
-    return ventanaEnPagina();
+    const marco = (typeof marcoImpresionOculto === 'function') ? marcoImpresionOculto() : null;
+    return marco ? { enPagina: true, marco } : ventanaEnPagina();
   }
   function llenarVentana(ventana, html) {
     if (ventana && ventana.enPagina) { ventana.marco.srcdoc = html; setTimeout(() => { try { ventana.marco.focus(); } catch (e) {} }, 50); return; }
@@ -5284,7 +5290,7 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     let ventana = null;
     // La ventana se abre enseguida (si no, el navegador la bloquea) y luego se llena.
     if (cfg.modo === 'dialogo') {
-      ventana = opciones.enPagina ? ventanaEnPagina() : abrirVentana();
+      ventana = abrirVentana();
     } else {
       try {
         const datos = await escpos(lineas, { ancho: opciones.ancho, copias, cajon: !!opciones.cajon });
@@ -5293,7 +5299,7 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
         return true;
       } catch (e) {
         aviso((e.message === 'NOCONECTADA' ? 'La impresora no está conectada (toca 🖨️ Impresora → Conectar).' : 'No se pudo imprimir directo: ' + e.message) + ' Se abre la impresión normal.', true);
-        ventana = opciones.enPagina ? ventanaEnPagina() : abrirVentana();
+        ventana = abrirVentana();
       }
     }
     const html = await htmlTicket(lineas, { ancho: opciones.ancho, copias, titulo: opciones.titulo });
@@ -5460,7 +5466,8 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
   const claveDia = (d) => d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
   const hoy = () => claveDia(new Date(Date.now() + (typeof desfaseServidor !== 'undefined' ? desfaseServidor : 0)));
   const fechaBonita = (k) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(k || ''); return m ? m[3] + '/' + m[2] + '/' + m[1] : (k || ''); };
-  const esAcc = (v) => typeof esVentaAccesorio === 'function' ? esVentaAccesorio(v) : String(v && v.item || '').trim() === 'Accesorio';
+  // Ventas anotadas a mano en el cierre (no dependen de la pestaña Ventas).
+  let ventasCierre = [];
 
   function leerCierres() { try { return JSON.parse(localStorage.getItem(CIERRES_KEY) || '{}') || {}; } catch (e) { return {}; } }
   function guardarCierresLocal(c) { localStorage.setItem(CIERRES_KEY, JSON.stringify(c)); }
@@ -5473,23 +5480,12 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
   filasDenominacion(BILLETES, 'ciBilletes', 'b');
   filasDenominacion(MONEDAS, 'ciMonedas', 'm');
 
-  function ventasDelDia(fecha) {
-    const lista = (typeof sales !== 'undefined' && Array.isArray(sales)) ? sales : [];
-    return lista.filter(v => {
-      const d = typeof fechaRegistro === 'function' ? fechaRegistro(v) : null;
-      return d && claveDia(d) === fecha;
-    });
-  }
 
   // Lee todo lo que hay en pantalla y hace las cuentas.
   function calcular() {
     const fecha = $('cierreFecha').value || hoy();
-    const ventas = ventasDelDia(fecha);
-    const totalVentas = r2(ventas.reduce((a, v) => a + (Number(v.price) || 0), 0));
-    const acc = ventas.filter(esAcc);
-    const totalAcc = r2(acc.reduce((a, v) => a + (Number(v.price) || 0), 0));
-    const porVendedor = {};
-    ventas.forEach(v => { const k = String(v.seller || 'Sin vendedor'); porVendedor[k] = porVendedor[k] || { n: 0, total: 0 }; porVendedor[k].n++; porVendedor[k].total = r2(porVendedor[k].total + (Number(v.price) || 0)); });
+    const ventas = ventasCierre.map(v => ({ desc: String(v.desc || ''), monto: r2(v.monto) }));
+    const totalVentas = r2(ventas.reduce((a, v) => a + v.monto, 0));
     const conteo = {};
     let cantBilletes = 0, cantMonedas = 0, totalBilletes = 0, totalMonedas = 0;
     document.querySelectorAll('#cierrePanel input[data-den]').forEach(inp => {
@@ -5506,23 +5502,17 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     const resultado = Math.abs(diferencia) < 0.005 ? 'CUADRA' : diferencia > 0 ? 'SOBRANTE' : 'FALTANTE';
     return {
       fecha, responsable: $('cierreResponsable').value, nota: $('ciNota').value.trim(),
-      ventas, cantidadVentas: ventas.length, totalVentas, cantidadAccesorios: acc.length, totalAccesorios: totalAcc, totalEquipos: r2(totalVentas - totalAcc),
-      porVendedor, conteo, cantBilletes, cantMonedas, totalBilletes: r2(totalBilletes), totalMonedas: r2(totalMonedas), contado,
+      ventas, cantidadVentas: ventas.length, totalVentas, conteo, cantBilletes, cantMonedas, totalBilletes: r2(totalBilletes), totalMonedas: r2(totalMonedas), contado,
       ...mov, ingresos, efectivoVentas, esperado, diferencia, resultado, entregar: r2(contado - mov.fondo)
     };
   }
 
   function pintar() {
     const c = calcular();
-    $('ciNumVentas').textContent = fmtNum(c.cantidadVentas);
-    $('ciEquipos').textContent = rd(c.totalEquipos);
-    $('ciAccesorios').textContent = rd(c.totalAccesorios) + (c.cantidadAccesorios ? ' (' + c.cantidadAccesorios + ')' : '');
+    $('ciNumVentas').textContent = fmtNum(c.cantidadVentas) + ' venta' + (c.cantidadVentas === 1 ? '' : 's');
     $('ciTotalVentas').textContent = rd(c.totalVentas);
-    $('ciListaVentas').innerHTML = c.ventas.length ? c.ventas.map(v => '<tr><td><strong>' + esc(typeof nombreGuardadoCorto === 'function' ? nombreGuardadoCorto(v.model) : v.model) + '</strong>' + (esAcc(v) ? ' <small style="color:#f59e0b">· Accesorio</small>' : '') + '</td><td>' + esc(v.seller || '-') + '</td><td>' + esc(typeof horaSinSegundos === 'function' ? horaSinSegundos(v.time) : v.time) + '</td><td class="num">' + rd(v.price) + '</td></tr>').join('')
-      : '<tr><td colspan="4" class="vacio">No hay ventas registradas en este día.</td></tr>';
-    const pv = Object.keys(c.porVendedor);
-    $('ciPorVendedor').innerHTML = pv.length ? pv.map(k => '<tr><td>' + esc(k) + '</td><td class="num">' + c.porVendedor[k].n + '</td><td class="num">' + rd(c.porVendedor[k].total) + '</td></tr>').join('')
-      : '<tr><td colspan="3" class="vacio">—</td></tr>';
+    $('ciListaVentas').innerHTML = c.ventas.length ? c.ventas.map((v, i) => '<tr><td>' + (i + 1) + '</td><td><strong>' + esc(v.desc) + '</strong></td><td class="num">' + rd(v.monto) + '</td><td style="text-align:right"><button type="button" class="mini rojo ci-quitar" data-ci-quitar="' + i + '" aria-label="Quitar ' + esc(v.desc) + '">✕</button></td></tr>').join('')
+      : '<tr><td colspan="4" class="vacio">Anota aquí lo que se vendió para el cierre.</td></tr>';
     document.querySelectorAll('#cierrePanel [data-sub]').forEach(td => { const d = Number(td.dataset.sub); td.textContent = rd(d * (c.conteo[d] || 0)); });
     $('ciCantBilletes').textContent = fmtNum(c.cantBilletes) + ' papeleta' + (c.cantBilletes === 1 ? '' : 's');
     $('ciCantMonedas').textContent = fmtNum(c.cantMonedas) + ' moneda' + (c.cantMonedas === 1 ? '' : 's');
@@ -5541,7 +5531,7 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
   // Guardar lo que se va escribiendo para no perderlo.
   function guardarBorrador() {
     const b = leerBorradores(), f = $('cierreFecha').value || hoy();
-    const d = { responsable: $('cierreResponsable').value, nota: $('ciNota').value, conteo: {}, mov: {} };
+    const d = { responsable: $('cierreResponsable').value, nota: $('ciNota').value, conteo: {}, mov: {}, ventas: ventasCierre.slice() };
     document.querySelectorAll('#cierrePanel input[data-den]').forEach(i => { if (i.value !== '') d.conteo[i.dataset.den] = i.value; });
     Object.keys(MOV).forEach(k => { if ($(MOV[k]).value !== '') d.mov[k] = $(MOV[k]).value; });
     b[f] = d; localStorage.setItem(BORRADOR_KEY, JSON.stringify(b));
@@ -5552,12 +5542,15 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     document.querySelectorAll('#cierrePanel input[data-den]').forEach(i => i.value = '');
     Object.keys(MOV).forEach(k => $(MOV[k]).value = '');
     $('ciNota').value = '';
+    ventasCierre = [];
     if (borr) {
+      ventasCierre = Array.isArray(borr.ventas) ? borr.ventas.slice() : [];
       if (borr.responsable) $('cierreResponsable').value = borr.responsable;
       $('ciNota').value = borr.nota || '';
       document.querySelectorAll('#cierrePanel input[data-den]').forEach(i => { if (borr.conteo && borr.conteo[i.dataset.den] !== undefined) i.value = borr.conteo[i.dataset.den]; });
       Object.keys(MOV).forEach(k => { if (borr.mov && borr.mov[k] !== undefined) $(MOV[k]).value = borr.mov[k]; });
     } else if (guardado) {
+      ventasCierre = Array.isArray(guardado.ventas) ? guardado.ventas.map(v => ({ desc: v.desc, monto: v.monto })) : [];
       if (guardado.responsable) $('cierreResponsable').value = guardado.responsable;
       $('ciNota').value = guardado.nota || '';
       document.querySelectorAll('#cierrePanel input[data-den]').forEach(i => { const n = guardado.conteo && guardado.conteo[i.dataset.den]; if (n) i.value = n; });
@@ -5568,7 +5561,7 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
   }
 
   function resumenParaGuardar(c) {
-    const { ventas, ...resto } = c;
+    const resto = Object.assign({}, c);
     resto.guardado = new Date().toLocaleString('es-DO', { dateStyle: 'short', timeStyle: 'short' });
     return resto;
   }
@@ -5588,11 +5581,8 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     const L = [{ t: 'logo' }, { t: 'centro', txt: 'GARANTÍA, CALIDAD Y CONFIANZA', chico: true }, { t: 'centro', txt: 'CIERRE DE CAJA', grande: true }, { t: 'sep' },
       { t: 'par', a: 'Fecha', b: fechaBonita(c.fecha) }, { t: 'par', a: 'Responsable', b: c.responsable },
       { t: 'par', a: 'Impreso', b: new Date().toLocaleString('es-DO', { dateStyle: 'short', timeStyle: 'short' }) }, { t: 'sep' },
-      { t: 'texto', txt: 'VENTAS DEL DÍA', negrita: true },
-      { t: 'par', a: 'Cantidad de ventas', b: String(c.cantidadVentas) },
-      { t: 'par', a: 'Teléfonos / equipos', b: rd(c.totalEquipos) },
-      { t: 'par', a: 'Accesorios (' + (c.cantidadAccesorios || 0) + ')', b: rd(c.totalAccesorios) }];
-    Object.keys(c.porVendedor || {}).forEach(k => L.push({ t: 'par', a: '  ' + k + ' (' + c.porVendedor[k].n + ')', b: rd(c.porVendedor[k].total) }));
+      { t: 'texto', txt: 'VENTAS DEL DÍA (' + (c.cantidadVentas || 0) + ')', negrita: true }];
+    (c.ventas || []).forEach(v => L.push({ t: 'par', a: v.desc, b: rd(v.monto) }));
     L.push({ t: 'total', a: 'VENDIDO', b: rd(c.totalVentas) }, { t: 'sep' }, { t: 'texto', txt: 'PAPELETAS RECIBIDAS', negrita: true });
     BILLETES.forEach(d => { const n = (c.conteo || {})[d] || 0; if (n) L.push({ t: 'par', a: n + ' x ' + rd(d).replace(/\.00$/, ''), b: rd(d * n) }); });
     L.push({ t: 'par', a: 'Total papeletas: ' + (c.cantBilletes || 0), b: rd(c.totalBilletes) });
@@ -5642,8 +5632,22 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
   }
 
   // ---------- Eventos ----------
+  function agregarVentaCierre() {
+    const d = $('ciVentaDesc'), m = $('ciVentaMonto');
+    const desc = d.value.trim(), monto = Number(m.value);
+    if (!desc || m.value === '' || !(monto >= 0)) { alert('Escribe lo que se vendió y el monto.'); (desc ? m : d).focus(); return; }
+    ventasCierre.push({ desc, monto: r2(monto) });
+    d.value = ''; m.value = ''; d.focus();
+    pintar(); guardarBorrador();
+  }
+  $('btnAgregarVentaCierre').addEventListener('click', agregarVentaCierre);
+  ['ciVentaDesc', 'ciVentaMonto'].forEach(id => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (id === 'ciVentaDesc' && !$('ciVentaMonto').value) $('ciVentaMonto').focus(); else agregarVentaCierre(); } }));
+  $('ciListaVentas').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-ci-quitar]'); if (!b) return;
+    ventasCierre.splice(Number(b.dataset.ciQuitar), 1); pintar(); guardarBorrador();
+  });
   $('cierrePanel').addEventListener('input', (e) => {
-    if (e.target.id === 'cierreFecha') return;
+    if (e.target.id === 'cierreFecha' || e.target.id === 'ciVentaDesc' || e.target.id === 'ciVentaMonto') return;
     pintar(); guardarBorrador();
   });
   $('cierreResponsable').addEventListener('change', guardarBorrador);
@@ -5664,7 +5668,8 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
   });
   $('btnImprimirCierre').addEventListener('click', () => imprimirCierre(pintar()));
   $('btnLimpiarCierre').addEventListener('click', () => {
-    if (!confirm('¿Borrar el conteo de papeletas y los movimientos de este día?')) return;
+    if (!confirm('¿Borrar las ventas anotadas, el conteo de papeletas y los movimientos de este día?')) return;
+    ventasCierre = [];
     document.querySelectorAll('#cierrePanel input[data-den]').forEach(i => i.value = '');
     Object.keys(MOV).forEach(k => $(MOV[k]).value = '');
     $('ciNota').value = '';
@@ -5681,8 +5686,6 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     abrir: async function () {
       if (!$('cierreFecha').value) { $('cierreFecha').value = hoy(); cargarFormulario(hoy()); } else pintar();
       pintarHistorial();
-      try { if (typeof cargarVentasDesdeNube === 'function') await cargarVentasDesdeNube(); } catch (e) {}
-      pintar();
       bajarCierres();
     },
     _calcular: calcular, _lineas: lineasCierre
