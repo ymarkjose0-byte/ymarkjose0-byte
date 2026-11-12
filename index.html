@@ -807,6 +807,16 @@ button.mini{min-height:34px;border-radius:8px}
 .cierre-venta-nueva{display:grid;grid-template-columns:1fr 160px auto;gap:8px}
 @media (max-width:560px){.cierre-venta-nueva{grid-template-columns:1fr 1fr}.cierre-venta-nueva button{grid-column:1 / -1}}
 .cierre-tabla button.ci-quitar{padding:4px 9px;min-height:0}
+.cierre-bancos{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.cierre-bancos .sales-type-option{min-height:62px;padding:8px 6px;text-align:center}
+.cierre-bancos .sales-type-option b{font-size:12.5px}
+.cierre-bancos .sales-type-option span{font-size:10px;color:#94a3b8;font-weight:600;font-variant-numeric:tabular-nums}
+.cierre-bancos .sales-type-option.activa span{color:#bfdbfe}
+.cierre-depo{display:grid;grid-template-columns:1fr 190px auto;gap:8px;margin-top:10px;align-items:end}
+.cierre-depo .cuenta-elijida{font-size:11.5px;color:#cbd5e1;background:#1f1f24;border:1px solid #303038;border-radius:9px;padding:9px 10px;min-height:38px;display:flex;align-items:center;gap:5px}
+.cierre-depo .cuenta-elijida b{color:#f8fafc;font-variant-numeric:tabular-nums}
+.cierre-depo button{align-self:end}
+@media (max-width:700px){.cierre-depo{grid-template-columns:1fr 1fr}.cierre-depo button{grid-column:1 / -1}}
 </style>
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
@@ -1173,8 +1183,23 @@ button.mini{min-height:34px;border-radius:8px}
       </div>
     </div>
 
+    <div class="sales-device-type">
+      <div class="sales-type-title">5 · DEPÓSITO BANCARIO (DÓNDE SE MANDÓ EL DINERO)</div>
+      <div class="cierre-bancos" id="ciBancos" role="group" aria-label="Banco donde se hizo el depósito">
+        <button type="button" class="sales-type-option" data-banco="bhd" aria-pressed="false"><b>Banco BHD</b><span>Cuenta 29753470015</span></button>
+        <button type="button" class="sales-type-option" data-banco="banreserva-corriente" aria-pressed="false"><b>Banreserva</b><span>Corriente 9609575515</span></button>
+        <button type="button" class="sales-type-option" data-banco="banreserva-ahorro" aria-pressed="false"><b>Banreserva</b><span>Ahorro 9600948967</span></button>
+        <button type="button" class="sales-type-option" data-banco="ninguno" aria-pressed="true"><b>Sin depósito</b><span>El efectivo se queda en caja</span></button>
+      </div>
+      <div class="cierre-depo">
+        <div class="cuenta-elijida" id="ciDepoCuenta">🏦 Sin depósito: el efectivo se queda en caja.</div>
+        <label class="cierre-campo" for="ciDepoMonto">Monto depositado (RD$)<input type="number" id="ciDepoMonto" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></label>
+        <button type="button" class="gris" id="btnDepoUsarContado">Usar efectivo contado</button>
+      </div>
+    </div>
+
     <div class="sales-device-type cierre-res">
-      <div class="sales-type-title">5 · RESULTADO DEL CIERRE</div>
+      <div class="sales-type-title">6 · RESULTADO DEL CIERRE</div>
       <div class="fila"><span>Total vendido (ventas anotadas)</span><b id="crVentas">RD$ 0.00</b></div>
       <div class="fila"><span>+ Otros ingresos</span><b id="crOtros">RD$ 0.00</b></div>
       <div class="fila fuerte"><span>= Total de ingresos del día</span><b id="crIngresos">RD$ 0.00</b></div>
@@ -1198,7 +1223,7 @@ button.mini{min-height:34px;border-radius:8px}
 
     <div class="sales-device-type">
       <div class="sales-type-title">CIERRES GUARDADOS</div>
-      <div class="table-responsive"><table class="cierre-tabla"><thead><tr><th>Fecha</th><th>Responsable</th><th class="num">Vendido</th><th class="num">Contado</th><th class="num">Diferencia</th><th></th></tr></thead><tbody id="ciHistorial"></tbody></table></div>
+      <div class="table-responsive"><table class="cierre-tabla"><thead><tr><th>Fecha</th><th>Responsable</th><th>Depósito</th><th class="num">Vendido</th><th class="num">Contado</th><th class="num">Diferencia</th><th></th></tr></thead><tbody id="ciHistorial"></tbody></table></div>
     </div>
   </section>
 
@@ -5455,9 +5480,23 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
   if (!$('cierrePanel')) return;
   const CIERRES_KEY = 'lifox_cierres_v1';
   const BORRADOR_KEY = 'lifox_cierre_borrador_v1';
+  const ELIMINADOS_KEY = 'lifox_cierres_eliminados_v1';
+  function leerEliminados() { try { return JSON.parse(localStorage.getItem(ELIMINADOS_KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function marcarEliminado(f, si) { const x = leerEliminados(); if (si) x[f] = 1; else delete x[f]; localStorage.setItem(ELIMINADOS_KEY, JSON.stringify(x)); }
   const BILLETES = [2000, 1000, 500, 200, 100, 50];
   const MONEDAS = [25, 10, 5, 1];
   const MOV = { fondo: 'ciFondo', otros: 'ciOtros', transferencias: 'ciTransfer', tarjeta: 'ciTarjeta', gastos: 'ciGastos' };
+  // Bancos donde se puede mandar el depósito del día.
+  const BANCOS = {
+    'bhd': { nombre: 'Banco BHD', tipo: 'Cuenta', cuenta: '29753470015' },
+    'banreserva-corriente': { nombre: 'Banco Banreserva', tipo: 'Cuenta corriente', cuenta: '9609575515' },
+    'banreserva-ahorro': { nombre: 'Banco Banreserva', tipo: 'Cuenta de ahorro', cuenta: '9600948967' },
+    'ninguno': { nombre: 'Sin depósito', tipo: '', cuenta: '' }
+  };
+  let bancoSel = 'ninguno';
+  const cuentaElegida = (b) => b === 'ninguno' || !BANCOS[b]
+    ? '🏦 Sin depósito: el efectivo se queda en caja.'
+    : '🏦 ' + BANCOS[b].nombre + ' · ' + (BANCOS[b].tipo || 'Cuenta') + ' <b>' + BANCOS[b].cuenta + '</b>';
   const r2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
   const rd = (n) => 'RD$ ' + r2(n).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmtNum = (n) => Number(n || 0).toLocaleString('es-DO');
@@ -5494,6 +5533,8 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
       if (inp.dataset.tipo === 'b') { cantBilletes += n; totalBilletes += d * n; } else { cantMonedas += n; totalMonedas += d * n; }
     });
     const mov = {}; Object.keys(MOV).forEach(k => mov[k] = r2(Math.max(0, Number($(MOV[k]).value) || 0)));
+    const bco = BANCOS[bancoSel] || BANCOS.ninguno;
+    const depoMonto = r2(Math.max(0, Number($('ciDepoMonto').value) || 0));
     const contado = r2(totalBilletes + totalMonedas);
     const ingresos = r2(totalVentas + mov.otros);
     const efectivoVentas = r2(ingresos - mov.transferencias - mov.tarjeta);
@@ -5503,6 +5544,7 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     return {
       fecha, responsable: $('cierreResponsable').value, nota: $('ciNota').value.trim(),
       ventas, cantidadVentas: ventas.length, totalVentas, conteo, cantBilletes, cantMonedas, totalBilletes: r2(totalBilletes), totalMonedas: r2(totalMonedas), contado,
+      banco: bancoSel, bancoNombre: bco.nombre, bancoTipo: bco.tipo, bancoCuenta: bco.cuenta, bancoMonto: depoMonto,
       ...mov, ingresos, efectivoVentas, esperado, diferencia, resultado, entregar: r2(contado - mov.fondo)
     };
   }
@@ -5519,6 +5561,11 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     $('ciTotalBilletes').textContent = rd(c.totalBilletes);
     $('ciTotalMonedas').textContent = rd(c.totalMonedas);
     $('ciContado').textContent = rd(c.contado);
+    document.querySelectorAll('#ciBancos [data-banco]').forEach(btn => {
+      const on = btn.dataset.banco === bancoSel;
+      btn.classList.toggle('activa', on); btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    $('ciDepoCuenta').innerHTML = cuentaElegida(bancoSel);
     const set = (id, v) => { $(id).textContent = rd(v); };
     set('crVentas', c.totalVentas); set('crOtros', c.otros); set('crIngresos', c.ingresos); set('crTransfer', c.transferencias); set('crTarjeta', c.tarjeta);
     set('crEfectivoVentas', c.efectivoVentas); set('crFondo', c.fondo); set('crGastos', c.gastos); set('crEsperado', c.esperado); set('crContado', c.contado); set('crEntregar', c.entregar);
@@ -5531,7 +5578,7 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
   // Guardar lo que se va escribiendo para no perderlo.
   function guardarBorrador() {
     const b = leerBorradores(), f = $('cierreFecha').value || hoy();
-    const d = { responsable: $('cierreResponsable').value, nota: $('ciNota').value, conteo: {}, mov: {}, ventas: ventasCierre.slice() };
+    const d = { responsable: $('cierreResponsable').value, nota: $('ciNota').value, banco: bancoSel, depo: $('ciDepoMonto').value, conteo: {}, mov: {}, ventas: ventasCierre.slice() };
     document.querySelectorAll('#cierrePanel input[data-den]').forEach(i => { if (i.value !== '') d.conteo[i.dataset.den] = i.value; });
     Object.keys(MOV).forEach(k => { if ($(MOV[k]).value !== '') d.mov[k] = $(MOV[k]).value; });
     b[f] = d; localStorage.setItem(BORRADOR_KEY, JSON.stringify(b));
@@ -5542,6 +5589,8 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     document.querySelectorAll('#cierrePanel input[data-den]').forEach(i => i.value = '');
     Object.keys(MOV).forEach(k => $(MOV[k]).value = '');
     $('ciNota').value = '';
+    $('ciDepoMonto').value = '';
+    bancoSel = 'ninguno';
     ventasCierre = [];
     if (borr) {
       ventasCierre = Array.isArray(borr.ventas) ? borr.ventas.slice() : [];
@@ -5549,12 +5598,16 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
       $('ciNota').value = borr.nota || '';
       document.querySelectorAll('#cierrePanel input[data-den]').forEach(i => { if (borr.conteo && borr.conteo[i.dataset.den] !== undefined) i.value = borr.conteo[i.dataset.den]; });
       Object.keys(MOV).forEach(k => { if (borr.mov && borr.mov[k] !== undefined) $(MOV[k]).value = borr.mov[k]; });
+      if (borr.banco && BANCOS[borr.banco]) bancoSel = borr.banco;
+      if (borr.depo !== undefined && borr.depo !== null) $('ciDepoMonto').value = borr.depo;
     } else if (guardado) {
       ventasCierre = Array.isArray(guardado.ventas) ? guardado.ventas.map(v => ({ desc: v.desc, monto: v.monto })) : [];
       if (guardado.responsable) $('cierreResponsable').value = guardado.responsable;
       $('ciNota').value = guardado.nota || '';
       document.querySelectorAll('#cierrePanel input[data-den]').forEach(i => { const n = guardado.conteo && guardado.conteo[i.dataset.den]; if (n) i.value = n; });
       Object.keys(MOV).forEach(k => { if (Number(guardado[k])) $(MOV[k]).value = guardado[k]; });
+      if (guardado.banco && BANCOS[guardado.banco]) bancoSel = guardado.banco;
+      if (Number(guardado.bancoMonto)) $('ciDepoMonto').value = guardado.bancoMonto;
     }
     $('ciAviso').textContent = guardado ? 'Este día ya tiene un cierre guardado (' + (guardado.guardado || '') + '). Si lo guardas otra vez se reemplaza.' : '';
     pintar();
@@ -5572,8 +5625,9 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     $('ciHistorial').innerHTML = fechas.length ? fechas.map(f => {
       const x = c[f];
       const col = x.resultado === 'CUADRA' ? '#34d399' : x.resultado === 'SOBRANTE' ? '#fbbf24' : '#f87171';
-      return '<tr><td>' + esc(fechaBonita(f)) + '</td><td>' + esc(x.responsable || '-') + '</td><td class="num">' + rd(x.totalVentas) + '</td><td class="num">' + rd(x.contado) + '</td><td class="num" style="color:' + col + '">' + rd(x.diferencia) + '</td><td style="white-space:nowrap"><button type="button" class="mini azul" data-ci-ver="' + esc(f) + '">Ver</button> <button type="button" class="mini gris" data-ci-imp="' + esc(f) + '">🖨</button></td></tr>';
-    }).join('') : '<tr><td colspan="6" class="vacio">Todavía no hay cierres guardados.</td></tr>';
+      const depo = (!x.banco || x.banco === 'ninguno') ? '-' : esc(x.bancoNombre || '') + (x.bancoCuenta ? ' <span style="color:var(--text-muted)">(' + esc(x.bancoCuenta) + ')</span>' : '') + (Number(x.bancoMonto) ? ' <b>' + rd(x.bancoMonto) + '</b>' : '');
+      return '<tr><td>' + esc(fechaBonita(f)) + '</td><td>' + esc(x.responsable || '-') + '</td><td>' + depo + '</td><td class="num">' + rd(x.totalVentas) + '</td><td class="num">' + rd(x.contado) + '</td><td class="num" style="color:' + col + '">' + rd(x.diferencia) + '</td><td style="white-space:nowrap"><button type="button" class="mini azul" data-ci-ver="' + esc(f) + '">Ver</button> <button type="button" class="mini gris" data-ci-imp="' + esc(f) + '">🖨</button> <button type="button" class="mini rojo" data-ci-borrar="' + esc(f) + '" title="Eliminar cierre" aria-label="Eliminar cierre del ' + esc(fechaBonita(f)) + '">🗑</button></td></tr>';
+    }).join('') : '<tr><td colspan="7" class="vacio">Todavía no hay cierres guardados.</td></tr>';
   }
 
   // ---------- Factura de cierre (usa la misma configuración de la impresora) ----------
@@ -5603,6 +5657,12 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
       { t: 'total', a: 'DIFERENCIA', b: rd(c.diferencia) },
       { t: 'centro', txt: c.resultado === 'CUADRA' ? 'LA CAJA CUADRA' : c.resultado === 'SOBRANTE' ? 'SOBRANTE EN CAJA' : 'FALTANTE EN CAJA', negrita: true, grande: true });
     if (c.fondo) L.push({ t: 'par', a: 'Efectivo a entregar', b: rd(c.entregar) });
+    if (c.banco && c.banco !== 'ninguno') {
+      L.push({ t: 'sep' }, { t: 'texto', txt: 'DEP\u00d3SITO BANCARIO', negrita: true },
+        { t: 'par', a: 'Banco', b: c.bancoNombre || '' },
+        { t: 'par', a: (c.bancoTipo || 'Cuenta') + ' N\u00b0', b: c.bancoCuenta || '' },
+        { t: 'total', a: 'MONTO DEPOSITADO', b: rd(c.bancoMonto) });
+    }
     L.push({ t: 'sep' });
     if (c.nota) L.push({ t: 'nota', txt: c.nota });
     L.push({ t: 'texto', txt: ' ' }, { t: 'centro', txt: '______________________' }, { t: 'centro', txt: 'Firma del responsable', chico: true });
@@ -5625,10 +5685,32 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
       const r = await fetch(WEB_APP_URL + '?action=cierres&token=' + encodeURIComponent(token()) + '&t=' + Date.now());
       const res = await r.json();
       if (!res || res.success !== true || !Array.isArray(res.cierres)) return;
-      const c = leerCierres();
-      res.cierres.forEach(x => { if (x && x.fecha) c[x.fecha] = Object.assign({}, c[x.fecha] || {}, x); });
+      const c = leerCierres(), elim = leerEliminados();
+      res.cierres.forEach(x => {
+        if (!x || !x.fecha) return;
+        if (elim[x.fecha]) { borrarCierreNube(x.fecha).then(ok => { if (ok) marcarEliminado(x.fecha, false); }).catch(() => {}); return; }
+        c[x.fecha] = Object.assign({}, c[x.fecha] || {}, x);
+      });
       guardarCierresLocal(c); pintarHistorial();
     } catch (e) { /* sin conexión: se usan los cierres del equipo */ }
+  }
+
+  async function borrarCierreNube(fecha) {
+    const r = await fetch(WEB_APP_URL + '?action=deleteCierre&token=' + encodeURIComponent(token()), { method: 'POST', body: JSON.stringify({ action: 'deleteCierre', fecha }) });
+    const res = await r.json();
+    return !!(res && res.success === true);
+  }
+  async function eliminarCierre(fecha) {
+    const todos = leerCierres(); if (!todos[fecha]) return;
+    if (!confirm('¿Eliminar el cierre del ' + fechaBonita(fecha) + '? Esto no se puede deshacer.')) return;
+    delete todos[fecha]; guardarCierresLocal(todos);
+    marcarEliminado(fecha, true);
+    pintarHistorial();
+    $('ciAviso').textContent = 'Eliminando cierre del ' + fechaBonita(fecha) + '…';
+    let enNube = false;
+    try { enNube = await borrarCierreNube(fecha); } catch (e) {}
+    if (enNube) marcarEliminado(fecha, false);
+    $('ciAviso').textContent = enNube ? '✓ Cierre del ' + fechaBonita(fecha) + ' eliminado (también de la hoja «Cierres»).' : '✓ Cierre del ' + fechaBonita(fecha) + ' eliminado de este equipo. (Para borrarlo también de Google Sheets, actualiza el código del servidor.)';
   }
 
   // ---------- Eventos ----------
@@ -5650,13 +5732,30 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     if (e.target.id === 'cierreFecha' || e.target.id === 'ciVentaDesc' || e.target.id === 'ciVentaMonto') return;
     pintar(); guardarBorrador();
   });
+  $('ciBancos').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-banco]'); if (!b) return;
+    bancoSel = b.dataset.banco;
+    if (bancoSel === 'ninguno') $('ciDepoMonto').value = '';
+    pintar(); guardarBorrador();
+  });
+  $('btnDepoUsarContado').addEventListener('click', () => {
+    const c = pintar();
+    $('ciDepoMonto').value = c.contado ? r2(c.contado) : '';
+    if (!c.contado) { $('ciAviso').textContent = 'Cuenta primero las papeletas para usar el efectivo contado.'; return; }
+    $('ciAviso').textContent = '';
+    if (bancoSel === 'ninguno') {
+      const ok = confirm('\u00bfDepositar ' + rd(c.contado) + '? Elige el banco arriba para que quede en la factura.\n\nAceptar = usar el efectivo contado como monto depositado.');
+      if (ok) $('ciDepoMonto').value = r2(c.contado);
+    }
+    guardarBorrador();
+  });
   $('cierreResponsable').addEventListener('change', guardarBorrador);
   $('cierreFecha').addEventListener('change', () => cargarFormulario($('cierreFecha').value || hoy()));
   $('btnGuardarCierre').addEventListener('click', async () => {
     const c = pintar();
     if (!c.contado && !c.cantidadVentas && !confirm('No hay ventas ni papeletas contadas. ¿Guardar el cierre igual?')) return;
     const datos = resumenParaGuardar(c);
-    const todos = leerCierres(); todos[c.fecha] = datos; guardarCierresLocal(todos);
+    const todos = leerCierres(); todos[c.fecha] = datos; guardarCierresLocal(todos); marcarEliminado(c.fecha, false);
     const b = leerBorradores(); delete b[c.fecha]; localStorage.setItem(BORRADOR_KEY, JSON.stringify(b));
     pintarHistorial();
     const btn = $('btnGuardarCierre'); btn.disabled = true; btn.textContent = 'Guardando…';
@@ -5673,11 +5772,14 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     document.querySelectorAll('#cierrePanel input[data-den]').forEach(i => i.value = '');
     Object.keys(MOV).forEach(k => $(MOV[k]).value = '');
     $('ciNota').value = '';
+    $('ciDepoMonto').value = '';
+    bancoSel = 'ninguno';
     const b = leerBorradores(); delete b[$('cierreFecha').value || hoy()]; localStorage.setItem(BORRADOR_KEY, JSON.stringify(b));
     pintar();
   });
   $('ciHistorial').addEventListener('click', (e) => {
-    const ver = e.target.closest('[data-ci-ver]'), imp = e.target.closest('[data-ci-imp]');
+    const ver = e.target.closest('[data-ci-ver]'), imp = e.target.closest('[data-ci-imp]'), del = e.target.closest('[data-ci-borrar]');
+    if (del) { eliminarCierre(del.dataset.ciBorrar); return; }
     if (ver) { $('cierreFecha').value = ver.dataset.ciVer; cargarFormulario(ver.dataset.ciVer); $('cierrePanel').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     if (imp) { const x = leerCierres()[imp.dataset.ciImp]; if (x) imprimirCierre(x); }
   });
