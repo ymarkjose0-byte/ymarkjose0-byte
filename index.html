@@ -950,6 +950,9 @@ button.mini{min-height:34px;border-radius:8px}
       <select id="itemPagado">
         <option value="No">💤 Sin pagar</option><option value="Sí">✅ Pagado</option>
       </select>
+      <select id="itemMetodoPago" aria-label="Tipo de pago" style="display:none">
+        <option value="">💰 ¿Cómo pagó?</option><option value="Efectivo">💵 Efectivo</option><option value="Transferencia">🏦 Transferencia</option><option value="Tarjeta">💳 Tarjeta</option>
+      </select>
     </div>
 
     <textarea id="itemNote" placeholder="Nota..."></textarea>
@@ -2465,7 +2468,7 @@ const guardandoIds = new Set();
 const colaGuardado = {};
 function categoriaDe(it) { return /^PC\b/i.test(String(it.name || '')) ? 'pc' : 'movil'; }
 function payloadRegistro(it) {
-  return { action:'update', id:it.id, client:it.client||'', phone:it.phone||'', technician:it.technician||'', name:it.name||'', imei:it.imei||'', category:categoriaDe(it), type:it.type||'', estado:it.estado||'Recibido', pagado:it.pagado||'No', pCompra:Number(it.pCompra||0), pCliente:Number(it.pCliente||0), note:it.note||'', color:it.color||'', email:it.email||'' };
+  return { action:'update', id:it.id, client:it.client||'', phone:it.phone||'', technician:it.technician||'', name:it.name||'', imei:it.imei||'', category:categoriaDe(it), type:it.type||'', estado:it.estado||'Recibido', pagado:it.pagado||'No', pCompra:Number(it.pCompra||0), pCliente:Number(it.pCliente||0), note:it.note||'', color:it.color||'', email:it.email||'', metodoPago:estaPagado(it)?(it.metodoPago||''):'' };
 }
 // Guarda los cambios de un mismo registro uno detrás de otro (nunca se pisan).
 function guardarRegistroRapido(it) {
@@ -2504,15 +2507,43 @@ async function cambiarEstado(id, nuevo) {
     avisar('✕ No se guardó el estado: ' + (e.message || 'revisa la conexión'), []);
   }
 }
+// ===== Tipo de pago (Efectivo, Transferencia o Tarjeta) =====
+const METODOS_PAGO = [['Efectivo','💵'],['Transferencia','🏦'],['Tarjeta','💳']];
+function mostrarMetodoPago() {
+  const pag = document.getElementById('itemPagado'), met = document.getElementById('itemMetodoPago');
+  if (!pag || !met) return;
+  const si = pag.value === 'Sí';
+  met.style.display = si ? '' : 'none'; met.required = si;
+  if (!si) met.value = '';
+}
+document.addEventListener('change', e => { if (e.target && e.target.id === 'itemPagado') mostrarMetodoPago(); });
+function elegirMetodoPago(cliente) {
+  return new Promise(resolve => {
+    const capa = document.createElement('div');
+    capa.className = 'modal-overlay'; capa.style.display = 'flex';
+    capa.setAttribute('role', 'dialog'); capa.setAttribute('aria-modal', 'true'); capa.setAttribute('aria-label', 'Tipo de pago');
+    capa.innerHTML = '<div class="modal-box"><h3>¿Cómo pagó' + (cliente ? ' ' + String(cliente).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) : '') + '?</h3><p style="font-size:12px;color:var(--text-muted);margin:0 0 14px">Elige el tipo de pago</p>'
+      + METODOS_PAGO.map(m => '<button type="button" class="verde" data-metodo="' + m[0] + '" style="width:100%;margin-bottom:8px;padding:12px;font-size:15px">' + m[1] + ' ' + m[0] + '</button>').join('')
+      + '<button type="button" class="gris" data-metodo="" style="width:100%;padding:10px">Cancelar</button></div>';
+    const cerrar = v => { document.removeEventListener('keydown', tecla); capa.remove(); resolve(v); };
+    const tecla = e => { if (e.key === 'Escape') cerrar(null); };
+    capa.addEventListener('click', e => { const b = e.target.closest('[data-metodo]'); if (b) cerrar(b.dataset.metodo || null); else if (e.target === capa) cerrar(null); });
+    document.addEventListener('keydown', tecla);
+    document.body.appendChild(capa);
+    const primero = capa.querySelector('[data-metodo]'); if (primero) primero.focus();
+  });
+}
 async function alternarPago(id){
   const it=inventory.find(x=>String(x.id)===String(id)); if(!it)return;
-  const antes=it.pagado, antesProfit=it.profit;
+  const antes=it.pagado, antesProfit=it.profit, antesMetodo=it.metodoPago||'';
   const nuevo=estaPagado(it)?'No':'Sí';
   if(nuevo==='No' && !confirm('¿Quitar el pago y dejarlo pendiente?'))return;
-  it.pagado=nuevo; it.profit=nuevo==='Sí'?(Number(it.pCliente||0)-Number(it.pCompra||0)):''; displayItems(); guardarCache();
+  let metodo='';
+  if(nuevo==='Sí'){ metodo=await elegirMetodoPago(it.client); if(!metodo) return; }
+  it.pagado=nuevo; it.metodoPago=metodo; it.profit=nuevo==='Sí'?(Number(it.pCliente||0)-Number(it.pCompra||0)):''; displayItems(); guardarCache();
   avisar('Guardando pago…', []);
-  try { await guardarRegistroRapido(it); avisar(nuevo==='Sí' ? '✓ Marcado como pagado' : '↩ Pago quitado', nuevo==='Sí' ? [{ t:'Deshacer', c:'gris', f:()=>alternarPago(id) }] : []); }
-  catch(e){ it.pagado=antes; it.profit=antesProfit; displayItems(); guardarCache(); avisar('✕ No se pudo actualizar el pago: ' + (e.message || 'revisa la conexión'), []); }
+  try { await guardarRegistroRapido(it); avisar(nuevo==='Sí' ? '✓ Pagado con ' + metodo : '↩ Pago quitado', nuevo==='Sí' ? [{ t:'Deshacer', c:'gris', f:()=>alternarPago(id) }] : []); }
+  catch(e){ it.pagado=antes; it.profit=antesProfit; it.metodoPago=antesMetodo; displayItems(); guardarCache(); avisar('✕ No se pudo actualizar el pago: ' + (e.message || 'revisa la conexión'), []); }
 }
 let temporizadorAviso;
 function avisar(texto, acciones) {
@@ -2792,12 +2823,12 @@ function displayItems() {
       : '<div class="rc-cuando">' + escR(it.date || 'Sin fecha') + (hora ? ' · ' + escR(hora) : '') + '</div>';
     const nota = String(it.note || '').trim();
     return '<article class="rep-card' + (pagado ? '' : ' no-pagado') + (guardandoIds.has(String(it.id)) ? ' guardando' : '') + '" data-id="' + escR(it.id) + '">'
-      + '<div class="rc-top">' + fecha + '<div class="rc-badges"><span class="badge ' + (pagado ? 'pag-si' : 'pag-no') + '">' + (pagado ? 'Pagado' : 'Sin pagar') + '</span><span class="badge rep-estado ' + claseEstado(it.estado) + '">' + escR(it.estado || 'Recibido') + '</span></div></div>'
+      + '<div class="rc-top">' + fecha + '<div class="rc-badges"><span class="badge ' + (pagado ? 'pag-si' : 'pag-no') + '">' + (pagado ? 'Pagado' + (it.metodoPago ? ' · ' + escR(it.metodoPago) : '') : 'Sin pagar') + '</span><span class="badge rep-estado ' + claseEstado(it.estado) + '">' + escR(it.estado || 'Recibido') + '</span></div></div>'
       + '<div class="rc-cliente"><strong>' + escR(it.client || 'Sin nombre') + '</strong><span>📞 ' + escR(it.phone || '-') + '</span></div>'
       + '<div class="rc-equipo"><b>' + (/^PC\b/i.test(it.name||'') ? '💻 ' : (/iphone/i.test(it.name||'') ? '📱 ' : '🤖 ')) + escR(dispositivoVisible(it) || '-') + '</b>' + (it.color ? '<span class="rc-color">' + escR(it.color) + '</span>' : '') + (it.imei ? '<code title="IMEI">' + escR(it.imei) + '</code>' : '') + '</div>'
       + '<div class="rc-detalle"><span title="Servicios">🔧 ' + escR(it.type || '-') + '</span><span title="Técnico">👤 ' + escR(it.technician || '-') + '</span></div>'
       + (nota ? '<div class="rc-nota" title="' + escR(nota) + '">📝 ' + escR(nota) + '</div>' : '')
-      + '<div class="rc-mini-estado"><span class="badge ' + (pagado ? 'pag-si' : 'pag-no') + '">' + (pagado ? 'Pagado' : 'Sin pagar') + '</span><span class="badge rep-estado ' + claseEstado(it.estado) + '">' + escR(it.estado || 'Recibido') + '</span></div>'
+      + '<div class="rc-mini-estado"><span class="badge ' + (pagado ? 'pag-si' : 'pag-no') + '">' + (pagado ? 'Pagado' + (it.metodoPago ? ' · ' + escR(it.metodoPago) : '') : 'Sin pagar') + '</span><span class="badge rep-estado ' + claseEstado(it.estado) + '">' + escR(it.estado || 'Recibido') + '</span></div>'
       + '<div class="rc-precios"><span>Compra <b>' + money(it.pCompra) + '</b></span><span class="rc-cli">Cliente <b>' + money(it.pCliente) + '</b></span><span class="solo-admin rc-gan">Ganancia <b>' + (pagado ? money(it.profit) : '—') + '</b></span></div>'
       + '<div class="rc-estados-wrap solo-admin"><div class="rc-estados" role="group" aria-label="Cambiar estado de ' + escR(it.client || 'este equipo') + '">'
         + ESTADOS_RAPIDOS.map(e => { const on = textoOrden(it.estado || 'Recibido') === textoOrden(e.v); return '<button type="button" class="' + e.c + '" aria-pressed="' + on + '" title="Cambiar a ' + e.v + '" onclick="cambiarEstado(\'' + idJs(it.id) + '\',\'' + e.v + '\')">' + (e.l || e.v) + '</button>'; }).join('')
@@ -2979,6 +3010,7 @@ function editarRegistro(id) {
   poner('itemCliente', numeroCampo(it.pCliente));
   asegurarOpcion('itemEstado', it.estado || 'Recibido');
   poner('itemPagado', estaPagado(it) ? 'Sí' : 'No');
+  mostrarMetodoPago(); poner('itemMetodoPago', estaPagado(it) ? (it.metodoPago || '') : '');
   poner('itemNote', it.note);
   const fm = document.getElementById('itemFechaManual');
   if (fm) { const v = fechaParaCampo(it.date, it.time); fm.value = v; fm.dataset.original = v; }
@@ -3024,6 +3056,10 @@ document.getElementById('priceForm').addEventListener('submit', conCandado(async
   const correoCliente = (document.getElementById('clientEmail')?.value || '').trim();
   if (correoCliente && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correoCliente)) { alert('El correo del cliente no parece válido. Revísalo o déjalo vacío.'); return; }
 
+  const pagadoForm = document.getElementById('itemPagado').value;
+  const metodoForm = pagadoForm === 'Sí' ? (document.getElementById('itemMetodoPago')?.value || '') : '';
+  if (pagadoForm === 'Sí' && !metodoForm) { alert('Elige cómo pagó: Efectivo, Transferencia o Tarjeta.'); document.getElementById('itemMetodoPago')?.focus(); return; }
+
   const editId = document.getElementById('editId').value;
   const isEditing = Boolean(editId);
   const cat = document.getElementById('deviceCategory').value;
@@ -3055,6 +3091,7 @@ document.getElementById('priceForm').addEventListener('submit', conCandado(async
     type: Array.from(seleccionados).join(', '),
     estado: document.getElementById('itemEstado').value,
     pagado: document.getElementById('itemPagado').value,
+    metodoPago: metodoForm,
     pCompra: document.getElementById('itemCompra').value,
     pCliente: document.getElementById('itemCliente').value,
     note: document.getElementById('itemNote').value,
@@ -3178,6 +3215,7 @@ function abrirFormularioRep(titulo) {
   f.style.display = 'flex';
   document.body.classList.add('form-rep-abierto');
   f.scrollTop = 0;
+  mostrarMetodoPago(); setTimeout(mostrarMetodoPago, 120);
   setTimeout(() => { const i = document.getElementById(titulo ? 'clientName' : 'imeiInput'); if (i) i.focus({ preventScroll: true }); }, 60);
 }
 document.getElementById('btnNueva').addEventListener('click', () => {
@@ -3223,6 +3261,7 @@ function exportarExcel() {
     'Servicios': it.type || '',
     'Estado': it.estado || 'Recibido',
     'Pago': estaPagado(it) ? 'Pagado' : 'Sin pagar',
+    'Método de pago': estaPagado(it) ? (it.metodoPago || '') : '',
     'Compra': Number(it.pCompra || 0),
     'Cliente $': Number(it.pCliente || 0),
     'Ganancia': Number(it.profit || 0),
@@ -3824,6 +3863,7 @@ function limpiarFormularioReparacion() {
   borrarBorrador('priceForm');
   const f = document.getElementById('priceForm');
   f.reset();
+  mostrarMetodoPago();
   document.getElementById('editId').value = '';
   seleccionados.clear();
   reiniciarSeleccionEquipo();
@@ -3907,7 +3947,7 @@ function imprimirNotaReparacion(reg){
   const esc=x=>String(x||'-').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const ahora=new Date().toLocaleString('es-DO',{dateStyle:'short',timeStyle:'short'});
   const iconoHtml = /iphone|apple/i.test(tipo+' '+dispositivo) ? '<div class=\"devicon\"><svg viewBox=\"0 0 32 32\"><path fill=\"currentColor\" d=\"M20.7 5.1c.8-1 1.4-2.4 1.2-3.8-1.3.1-2.8.9-3.7 1.9-.8.9-1.5 2.3-1.3 3.6 1.4.1 2.9-.7 3.8-1.7ZM25 17.1c0-3.1 2.5-4.7 2.6-4.8-1.4-2.1-3.6-2.4-4.4-2.4-1.9-.2-3.7 1.1-4.7 1.1-1 0-2.5-1.1-4.1-1.1-2.1 0-4 1.2-5.1 3.1-2.2 3.8-.6 9.5 1.5 12.6 1 1.5 2.2 3.2 3.8 3.1 1.5-.1 2.1-1 4-1s2.4 1 4 1c1.7 0 2.8-1.5 3.8-3.1 1.2-1.7 1.7-3.4 1.7-3.5-.1 0-3.1-1.2-3.1-5Z\"/></svg></div>' : /android/i.test(tipo) ? '<div class=\"devicon\"><svg viewBox=\"0 0 32 32\"><g fill=\"currentColor\"><path d=\"M10.1 12.1h11.8a3.1 3.1 0 0 1 3.1 3.1v8.7a3.1 3.1 0 0 1-3.1 3.1H10.1A3.1 3.1 0 0 1 7 23.9v-8.7a3.1 3.1 0 0 1 3.1-3.1Z\"/><path d=\"M10.1 11.7c.8-3.1 3.1-5 5.9-5s5.1 1.9 5.9 5H10.1Z\"/><rect x=\"3.9\" y=\"14\" width=\"3.1\" height=\"10.7\" rx=\"1.55\"/><rect x=\"25\" y=\"14\" width=\"3.1\" height=\"10.7\" rx=\"1.55\"/><rect x=\"10.2\" y=\"24\" width=\"3.4\" height=\"6\" rx=\"1.7\"/><rect x=\"18.4\" y=\"24\" width=\"3.4\" height=\"6\" rx=\"1.7\"/><path d=\"m11.7 7.7-1.8-3.1a.8.8 0 0 1 1.4-.8l1.8 3.1m7.2.8 1.8-3.1a.8.8 0 1 0-1.4-.8l-1.8 3.1\"/></g><circle cx=\"12.8\" cy=\"10.7\" r=\".8\" fill=\"#202024\"/><circle cx=\"19.2\" cy=\"10.7\" r=\".8\" fill=\"#202024\"/></svg></div>' : '<div class=\"devemoji\">💻</div>';
-  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Nota LifoxTech</title><style>@page{size:80mm 300mm;margin:0}body{font-family:Arial,sans-serif;margin:0;padding:3mm 0;color:#000;font-size:12px}.ticket{width:72mm;margin:auto;border:0;padding:0}.logo{display:block;width:60%;max-height:90px;object-fit:contain;margin:0 auto 3px}.devicon{display:block;width:34px;height:34px;margin:2px auto 4px}.devicon svg{width:34px;height:34px}.devemoji{text-align:center;font-size:28px;margin:0 auto 4px}.title{text-align:center;font-size:18px;font-weight:700;margin-bottom:4px}.sub{text-align:center;color:#555;font-size:11px;margin-bottom:3px}.line{border-top:1px solid #bbb;margin:12px 0}.row{display:flex;gap:8px;margin:7px 0}.label{font-weight:700;min-width:105px}.note{border:1px solid #bbb;padding:10px;min-height:55px;white-space:pre-wrap}.legal{font-size:10px;color:#555;margin-top:18px;line-height:1.35}button{margin-top:16px;padding:9px 14px;background:#111;color:#fff;border:0;border-radius:5px}@media print{button{display:none}.ticket{border:0}}</style></head><body><div class="ticket"><img class="logo" src="'+logoSrc()+'">'+'<div class="sub">GARANTÍA, CALIDAD Y CONFIANZA</div>'+iconoHtml+ '<div class="line"><div class="row"><span class="label">Cliente:</span><span>'+esc(cliente)+'</span></div><div class="row"><span class="label">Teléfono:</span><span>'+esc(telefono)+'</span></div><div class="row"><span class="label">Dispositivo:</span><span>'+esc(dispositivo)+'</span></div><div class="row"><span class="label">Tipo:</span><span>'+esc(tipo)+'</span></div><div class="row"><span class="label">IMEI:</span><span>'+esc(imei)+'</span></div>'+(color?'<div class="row"><span class="label">Color:</span><span>'+esc(color)+'</span></div>':'')+(capacidad?'<div class="row"><span class="label">Capacidad:</span><span>'+esc(capacidad)+'</span></div>':'')+'<div class="row"><span class="label">Fecha:</span><span>'+esc(ahora)+'</span></div></div><div class="row"><span class="label">Nota:</span></div><div class="note">'+esc(nota)+'</div>'+(reg&&reg.id?'<div style="text-align:center;margin-top:14px"><img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data='+encodeURIComponent(urlEstado(reg.id))+'" width="120" height="120" alt="QR"><div style="font-size:11px;color:#555">Escanea para ver el estado de tu equipo</div></div>':'')+'<div class="legal">Todo dispositivo después de reparado tendrá un plazo de 15 días para ser recogido. De lo contrario, no nos hacemos responsables de pérdidas.</div><button onclick="window.print()">Imprimir</button></div></body></html>');
+  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Nota LifoxTech</title><style>@page{size:80mm 300mm;margin:0}body{font-family:Arial,sans-serif;margin:0;padding:3mm 0;color:#000;font-size:12px}.ticket{width:72mm;margin:auto;border:0;padding:0}.logo{display:block;width:60%;max-height:90px;object-fit:contain;margin:0 auto 3px}.devicon{display:block;width:34px;height:34px;margin:2px auto 4px}.devicon svg{width:34px;height:34px}.devemoji{text-align:center;font-size:28px;margin:0 auto 4px}.title{text-align:center;font-size:18px;font-weight:700;margin-bottom:4px}.sub{text-align:center;color:#555;font-size:11px;margin-bottom:3px}.line{border-top:1px solid #bbb;margin:12px 0}.row{display:flex;gap:8px;margin:7px 0}.label{font-weight:700;min-width:105px}.note{border:1px solid #bbb;padding:10px;min-height:55px;white-space:pre-wrap}.legal{font-size:10px;color:#555;margin-top:18px;line-height:1.35}button{margin-top:16px;padding:9px 14px;background:#111;color:#fff;border:0;border-radius:5px}@media print{button{display:none}.ticket{border:0}}</style></head><body><div class="ticket"><img class="logo" src="'+logoSrc()+'">'+'<div class="sub">GARANTÍA, CALIDAD Y CONFIANZA</div>'+iconoHtml+ '<div class="line"><div class="row"><span class="label">Cliente:</span><span>'+esc(cliente)+'</span></div><div class="row"><span class="label">Teléfono:</span><span>'+esc(telefono)+'</span></div><div class="row"><span class="label">Dispositivo:</span><span>'+esc(dispositivo)+'</span></div><div class="row"><span class="label">Tipo:</span><span>'+esc(tipo)+'</span></div><div class="row"><span class="label">IMEI:</span><span>'+esc(imei)+'</span></div>'+(color?'<div class="row"><span class="label">Color:</span><span>'+esc(color)+'</span></div>':'')+(capacidad?'<div class="row"><span class="label">Capacidad:</span><span>'+esc(capacidad)+'</span></div>':'')+'<div class="row"><span class="label">Fecha:</span><span>'+esc(ahora)+'</span></div></div><div class="row"><span class="label">Nota:</span></div><div class="note">'+esc(nota)+'</div>'+(reg&&reg.id?'<div style="text-align:center;margin-top:14px"><img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data='+encodeURIComponent(urlEstado(reg.id))+'" width="120" height="120" alt="QR"><div style="font-size:11px;color:#555">Escanea para ver el estado de tu equipo</div><div style="font-size:14px;font-weight:700;margin-top:6px">Código: '+esc(reg.id)+'</div><div style="font-size:10px;color:#555">o escríbelo en '+esc(urlEstado(reg.id).split('?')[0].replace(/^https?:\/\//,''))+'</div></div>':'')+'<div class="legal">Todo dispositivo después de reparado tendrá un plazo de 15 días para ser recogido. De lo contrario, no nos hacemos responsables de pérdidas.</div><button onclick="window.print()">Imprimir</button></div></body></html>');
   w.document.close();
 }
 
@@ -5135,6 +5175,7 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     L.push({ t: 'par', a: 'Fecha', b: d.fecha || fechaCorta() }, { t: 'sep' }, { t: 'nota', txt: d.nota || '' });
     if (cfg.qr && d.id && typeof urlEstado === 'function') L.push({ t: 'qr', data: urlEstado(d.id), txt: 'Escanea con la cámara para ver el estado de tu equipo' });
     else if (cfg.qr && d.imei) L.push({ t: 'qr', data: codigoLFX('R', { I: d.imei, D: d.id, M: d.dispositivo, C: d.color }), txt: 'Escanea al recoger el equipo' });
+    if (d.id && typeof urlEstado === 'function') L.push({ t: 'centro', txt: 'Código: ' + d.id, negrita: true }, { t: 'centro', txt: 'Escríbelo en ' + urlEstado(d.id).split('?')[0].replace(/^https?:\/\//, ''), chico: true });
     L.push({ t: 'legal', txt: 'Todo dispositivo después de reparado tendrá un plazo de 15 días para ser recogido. De lo contrario, no nos hacemos responsables de pérdidas.' });
     return L;
   }
