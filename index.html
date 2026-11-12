@@ -926,6 +926,9 @@ button.mini{min-height:34px;border-radius:8px}
       <input type="text" id="clientName" placeholder="Nombre del Cliente" maxlength="80" required autocomplete="off">
       <input type="tel" id="clientPhone" placeholder="Teléfono" maxlength="20" required autocomplete="off">
     </div>
+    <div class="form-row">
+      <input type="email" id="clientEmail" placeholder="📧 Correo del cliente (opcional: le llega un correo cuando cambie el estado)" maxlength="120" autocomplete="off" inputmode="email">
+    </div>
 
     <div class="form-row">
       <select id="technicianName" required>
@@ -2453,7 +2456,7 @@ const guardandoIds = new Set();
 const colaGuardado = {};
 function categoriaDe(it) { return /^PC\b/i.test(String(it.name || '')) ? 'pc' : 'movil'; }
 function payloadRegistro(it) {
-  return { action:'update', id:it.id, client:it.client||'', phone:it.phone||'', technician:it.technician||'', name:it.name||'', imei:it.imei||'', category:categoriaDe(it), type:it.type||'', estado:it.estado||'Recibido', pagado:it.pagado||'No', pCompra:Number(it.pCompra||0), pCliente:Number(it.pCliente||0), note:it.note||'', color:it.color||'' };
+  return { action:'update', id:it.id, client:it.client||'', phone:it.phone||'', technician:it.technician||'', name:it.name||'', imei:it.imei||'', category:categoriaDe(it), type:it.type||'', estado:it.estado||'Recibido', pagado:it.pagado||'No', pCompra:Number(it.pCompra||0), pCliente:Number(it.pCliente||0), note:it.note||'', color:it.color||'', email:it.email||'' };
 }
 // Guarda los cambios de un mismo registro uno detrás de otro (nunca se pisan).
 function guardarRegistroRapido(it) {
@@ -2480,11 +2483,13 @@ async function cambiarEstado(id, nuevo) {
   if (textoOrden(antes) === textoOrden(nuevo)) return;
   it.estado = nuevo; displayItems(); guardarCache();
   const acciones = [{ t: 'Deshacer', c: 'gris', f: () => cambiarEstado(id, antes) }];
-  if (/listo|entregado|no se pudo/i.test(nuevo) && telWhats(it.phone)) acciones.unshift({ t: '💬 Avisar', c: 'verde', f: () => whatsCliente(id) });
+  // Botón para avisar por WhatsApp en cualquier cambio de estado (abre WhatsApp con el mensaje listo).
+  if (telWhats(it.phone)) acciones.unshift({ t: '💬 WhatsApp', c: 'verde', f: () => whatsCliente(id) });
   avisar('⏳ ' + nuevo + '…', acciones);
   try {
-    await guardarRegistroRapido(it);
-    avisar('✓ ' + (it.client || 'Registro') + ' ahora está ' + nuevo, acciones);
+    const res = await guardarRegistroRapido(it);
+    const nota = res && res.aviso === 'enviado' ? ' · 📧 correo enviado' : res && res.aviso === 'sin cupo' ? ' · 📧 sin correos por hoy' : res && res.aviso === 'error' ? ' · 📧 el correo falló' : '';
+    avisar('✓ ' + (it.client || 'Registro') + ' ahora está ' + nuevo + nota, acciones);
   } catch (e) {
     it.estado = antes; displayItems(); guardarCache();
     avisar('✕ No se guardó el estado: ' + (e.message || 'revisa la conexión'), []);
@@ -2959,6 +2964,7 @@ function editarRegistro(id) {
 
   poner('clientName', it.client);
   poner('clientPhone', it.phone);
+  poner('clientEmail', it.email);
   if (it.technician) asegurarOpcion('technicianName', it.technician);
   poner('itemCompra', numeroCampo(it.pCompra));
   poner('itemCliente', numeroCampo(it.pCliente));
@@ -2973,6 +2979,20 @@ function editarRegistro(id) {
   renderChips();
   const enviar = document.getElementById('btnSubmit'); if (enviar) enviar.textContent = '💾 Guardar cambios';
   abrirFormularioRep('✏️ Editar reparación · ' + (it.client || ''));
+}
+
+// Imprime la nota de reparación sola, en cuanto se registra un equipo nuevo (mismo formato térmico de siempre).
+function imprimirAlRegistrar(payload, res, fecha) {
+  try {
+    const d = fecha instanceof Date && !isNaN(fecha) ? fecha : new Date();
+    const dosDig = n => String(n).padStart(2, '0');
+    const hora = (res && res.time) || d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    imprimirNotaReparacion({
+      id: (res && res.id) || '', client: payload.client, phone: payload.phone, imei: payload.imei,
+      note: payload.note, color: payload.color, name: payload.name,
+      date: d.getFullYear() + '-' + dosDig(d.getMonth() + 1) + '-' + dosDig(d.getDate()), time: hora
+    });
+  } catch (e) { console.error('No se pudo imprimir la nota automática:', e); }
 }
 
 function imeiValidoFront(valor) {
@@ -2992,12 +3012,16 @@ document.getElementById('priceForm').addEventListener('submit', conCandado(async
   const telefono = document.getElementById('clientPhone').value.trim();
   const tecnico = document.getElementById('technicianName').value;
   if (!cliente || !telefono || !tecnico) { alert('Faltan campos obligatorios.'); return; }
+  const correoCliente = (document.getElementById('clientEmail')?.value || '').trim();
+  if (correoCliente && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correoCliente)) { alert('El correo del cliente no parece válido. Revísalo o déjalo vacío.'); return; }
 
   const editId = document.getElementById('editId').value;
   const isEditing = Boolean(editId);
   const cat = document.getElementById('deviceCategory').value;
   const imei = document.getElementById('imeiInput').value.replace(/\D/g, '');
-  if (cat !== 'pc' && imei && !imeiValidoFront(imei)) { alert('El IMEI no es válido (deben ser 15 dígitos correctos). Revísalo o déjalo vacío.'); return; }
+  // Al editar, si el IMEI no se tocó no se vuelve a revisar (así se puede cambiar el estado de equipos viejos o sin IMEI).
+  const imeiOriginal = isEditing ? String((inventory.find(x => String(x.id) === String(editId)) || {}).imei || '').replace(/\D/g, '') : '';
+  if (cat !== 'pc' && imei && imei !== imeiOriginal && !imeiValidoFront(imei)) { alert('El IMEI no es válido (deben ser 15 dígitos correctos). Revísalo o déjalo vacío.'); return; }
 
   let nombreDispositivo = '';
   if (cat === 'pc') {
@@ -3025,7 +3049,8 @@ document.getElementById('priceForm').addEventListener('submit', conCandado(async
     pCompra: document.getElementById('itemCompra').value,
     pCliente: document.getElementById('itemCliente').value,
     note: document.getElementById('itemNote').value,
-    color: colorSeleccionado()
+    color: colorSeleccionado(),
+    email: correoCliente
   };
   const fechaElegida = fechaCambiada('itemFechaManual') ? fechaManualDe('itemFechaManual') : null;
   if (fechaElegida) Object.assign(payload, camposFechaManual(fechaElegida));
@@ -3040,6 +3065,7 @@ document.getElementById('priceForm').addEventListener('submit', conCandado(async
     });
     const res = await r.json();
     if (res.success) {
+      if (!isEditing) imprimirAlRegistrar(payload, res, fechaElegida);
       limpiarFormularioReparacion();
       cargarDatos();
     } else {
@@ -3048,6 +3074,7 @@ document.getElementById('priceForm').addEventListener('submit', conCandado(async
   } catch(e) {
     if (!payload.fechaManual && !isEditing) payload.fechaManual = camposFechaManual(new Date()).fechaManual;
     encolarPendiente(action, payload);
+    if (!isEditing) imprimirAlRegistrar(payload, null, fechaElegida);
     limpiarFormularioReparacion();
     alert('Sin conexión: el registro se guardó en este equipo y se enviará solo cuando vuelva el internet (con la hora en que lo registraste).');
   }
