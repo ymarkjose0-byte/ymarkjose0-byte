@@ -766,6 +766,44 @@ button.mini{min-height:34px;border-radius:8px}
 #ticketCapa .tc-barra strong{flex:1;font-size:14px}
 #ticketCapa .tc-barra button{min-height:44px;padding:8px 14px;border-radius:10px}
 #ticketCapa iframe{flex:1;width:100%;border:0;background:#e5e7eb}
+
+/* ===== Accesorios en Ventas ===== */
+.sales-type-option[data-sale-type="Accesorio"] .od-icono{color:#f59e0b}
+#salesDeviceType .sales-type-grid{grid-template-columns:repeat(4,1fr)}
+@media (max-width:560px){#salesDeviceType .sales-type-grid{grid-template-columns:repeat(2,1fr)}}
+#salesForm.modo-accesorio .solo-telefono{display:none!important}
+/* ===== Cierre de caja ===== */
+#cierrePanel{display:none}
+#cierrePanel.activo{display:block}
+.cierre-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.cierre-stats>div{background:#1f1f24;border:1px solid #303038;border-radius:9px;padding:10px}
+.cierre-stats span{display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.cierre-stats b{font-size:16px;color:#f8fafc;font-variant-numeric:tabular-nums}
+@media (max-width:640px){.cierre-stats{grid-template-columns:repeat(2,1fr)}}
+.cierre-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){.cierre-grid2{grid-template-columns:1fr}}
+.cierre-tabla{width:100%;border-collapse:collapse}
+.cierre-tabla th,.cierre-tabla td{padding:6px 8px;border-bottom:1px solid #26262c;font-size:13px;text-align:left;vertical-align:middle}
+.cierre-tabla th{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.cierre-tabla .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cierre-tabla tfoot td{font-weight:800;border-top:1px solid #3f3f46;border-bottom:0}
+.cierre-tabla input{width:92px;text-align:center;padding:7px 8px}
+.cierre-tabla .vacio{color:var(--text-muted);text-align:center;padding:14px}
+.cierre-mov{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.cierre-mov label,.cierre-campo{display:flex;flex-direction:column;gap:5px;font-size:11px;color:#cbd5e1;font-weight:600}
+.cierre-mov small{color:var(--text-muted);font-weight:400;font-size:10px}
+.cierre-res .fila{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed #303038;font-size:13px}
+.cierre-res .fila b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.cierre-res .fila.fuerte{font-weight:800;font-size:15px;border-bottom:1px solid #3f3f46}
+.cierre-res .fila .menos{color:#f87171}
+.cierre-estado{margin-top:12px;padding:14px;border-radius:10px;text-align:center;font-weight:800;font-size:17px;border:1px solid #303038}
+.cierre-estado small{display:block;font-size:12px;font-weight:600;margin-top:3px;opacity:.9}
+.cierre-estado.cuadra{background:rgba(52,211,153,.12);color:#34d399;border-color:rgba(52,211,153,.4)}
+.cierre-estado.faltante{background:rgba(248,113,113,.12);color:#f87171;border-color:rgba(248,113,113,.4)}
+.cierre-estado.sobrante{background:rgba(251,191,36,.12);color:#fbbf24;border-color:rgba(251,191,36,.4)}
+.cierre-acciones{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.cierre-acciones button{flex:1 1 160px}
+.cierre-aviso{font-size:11px;color:var(--text-muted);margin-top:6px;min-height:14px}
 </style>
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
@@ -793,6 +831,7 @@ button.mini{min-height:34px;border-radius:8px}
     <button type="button" class="tab-principal activa" id="tabReparaciones" role="tab" disabled>🔧 Reparaciones</button>
     <button type="button" class="tab-principal" id="tabVentas" role="tab" disabled>🧾 Ventas / Caja</button>
     <button type="button" class="tab-principal" id="tabStock" role="tab" disabled>📦 Stock</button>
+    <button type="button" class="tab-principal" id="tabCierre" role="tab" disabled>🧮 Cierre</button>
   </div>
 
   <!-- FORMULARIO DE REPARACIÓN -->
@@ -1011,7 +1050,7 @@ button.mini{min-height:34px;border-radius:8px}
       <div><h2 id="salesTitle">Ventas y caja</h2><p>Registra teléfonos y accesorios vendidos, sin mezclar las reparaciones.</p></div>
     </div>
     <form id="salesForm" autocomplete="off" novalidate>
-      <div class="sales-device-type" id="salesImeiBox">
+      <div class="sales-device-type solo-telefono" id="salesImeiBox">
         <div class="sales-type-title">1 · IMEI DEL TELÉFONO — ESCRIBE O ESCANEA Y SE COMPLETA SOLO</div>
         <div style="display:flex;gap:8px;align-items:center"><input type="text" id="saleImei" placeholder="IMEI (opcional si no se ve)" maxlength="15"  inputmode="numeric" style="flex:1"><button type="button" class="mini azul" id="btnEscanearVenta">📷 IMEI / QR</button></div>
         <div id="tacVentaStatus" style="font-size:10px;color:var(--text-muted);margin-top:4px;min-height:14px"></div>
@@ -1041,17 +1080,18 @@ button.mini{min-height:34px;border-radius:8px}
           <button type="button" class="sales-type-option activa" data-sale-type="Android"><span class="od-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16V11a7 7 0 0 1 14 0v5"/><path d="M5 13h14"/><path d="M7.5 5.5 6 3.5M16.5 5.5 18 3.5"/><circle cx="9.3" cy="9.3" r=".6" fill="currentColor"/><circle cx="14.7" cy="9.3" r=".6" fill="currentColor"/><path d="M5 16h14v2.5a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2Z" fill="currentColor" fill-opacity=".18"/></svg></span><span>Android</span></button>
           <button type="button" class="sales-type-option" data-sale-type="iPhone"><span class="od-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 5h3"/><path d="M10.5 18.5h3"/></svg></span><span>iPhone</span></button>
           <button type="button" class="sales-type-option" data-sale-type="PC"><span class="od-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4.5" width="16" height="11" rx="1.6"/><path d="M2 19.5h20"/><path d="M9.5 19.5l.5-1.5h4l.5 1.5"/></svg></span><span>PC / Laptop</span></button>
+          <button type="button" class="sales-type-option" data-sale-type="Accesorio"><span class="od-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4.5" height="6.5" rx="1.6"/><rect x="16.5" y="14" width="4.5" height="6.5" rx="1.6"/></svg></span><span>Accesorios</span></button>
         </div>
         <input type="hidden" id="saleDeviceType" value="Android">
       </div>
-      <div class="form-row">
+      <div class="form-row solo-telefono">
         <input type="text" id="saleBuyer" placeholder="Nombre del comprador" maxlength="80" required>
         <input type="tel" id="salePhone" placeholder="Número de teléfono del cliente" maxlength="20" required>
       </div>
       <div class="form-row">
         <input type="text" id="saleModel" placeholder="Modelo del teléfono o accesorio" maxlength="100" required>
       </div>
-      <div class="form-row">
+      <div class="form-row solo-telefono">
         <select id="saleColor"><option value="">Color del teléfono</option><option>Negro</option><option>Blanco</option><option>Azul</option><option>Rojo</option><option>Verde</option><option>Morado</option><option>Rosa</option><option>Plata</option><option>Dorado</option><option>Gris</option><option>Otro</option></select>
         <select id="saleCapacity"><option value="">Capacidad</option><option>16 GB</option><option>32 GB</option><option>64 GB</option><option>128 GB</option><option>256 GB</option><option>512 GB</option><option>1 TB</option><option>2 TB</option></select>
       </div>
@@ -1066,7 +1106,7 @@ button.mini{min-height:34px;border-radius:8px}
       </div>
       <div class="form-row">
         <input type="number" id="salePrice" placeholder="Precio de venta ($)" step="0.01" min="0" required>
-        <input type="text" id="saleItem" placeholder="Detalle adicional (ej. cargador, funda...)" maxlength="120">
+        <input type="text" id="saleItem" class="solo-telefono" placeholder="Detalle adicional (ej. cargador, funda...)" maxlength="120">
       </div>
       <textarea id="saleNote" placeholder="Nota del recibo (opcional)"></textarea><label style="display:block;font-size:12px;color:var(--text-muted);margin:8px 0 4px">🕒 Fecha y hora de la venta (opcional — déjalo vacío para usar la hora actual)</label><input type="datetime-local" id="saleFechaManual">
       <div class="acciones-form">
@@ -1077,6 +1117,88 @@ button.mini{min-height:34px;border-radius:8px}
     <div class="table-responsive sales-table">
       <table><thead><tr><th>Comprador</th><th>Teléfono</th><th>IMEI</th><th>Modelo / artículo</th><th>Vendedor</th><th>Precio</th><th>Fecha y hora</th><th>Acciones</th></tr></thead>
       <tbody id="salesTableBody"></tbody></table>
+    </div>
+  </section>
+
+
+  <!-- CIERRE DE CAJA -->
+  <section id="cierrePanel" aria-labelledby="cierreTitle">
+    <div class="sales-heading">
+      <div><h2 id="cierreTitle">Cierre de caja</h2><p>Revisa las ventas del día, cuenta las papeletas recibidas en pesos dominicanos y saca la factura de cierre.</p></div>
+    </div>
+
+    <div class="sales-device-type">
+      <div class="sales-type-title">1 · DÍA DEL CIERRE Y RESPONSABLE</div>
+      <div class="form-row">
+        <label class="cierre-campo" for="cierreFecha">Fecha<input type="date" id="cierreFecha"></label>
+        <label class="cierre-campo" for="cierreResponsable">Responsable del cierre
+          <select id="cierreResponsable"><option value="Claris">Claris</option><option value="YMARK">YMARK</option><option value="WINDER">WINDER</option><option value="Otro">Otra persona</option></select>
+        </label>
+      </div>
+    </div>
+
+    <div class="sales-device-type">
+      <div class="sales-type-title">2 · VENTAS REGISTRADAS EN EL DÍA</div>
+      <div class="cierre-stats">
+        <div><span>Ventas</span><b id="ciNumVentas">0</b></div>
+        <div><span>Teléfonos / equipos</span><b id="ciEquipos">RD$ 0.00</b></div>
+        <div><span>Accesorios</span><b id="ciAccesorios">RD$ 0.00</b></div>
+        <div><span>Total vendido</span><b id="ciTotalVentas" style="color:#34d399">RD$ 0.00</b></div>
+      </div>
+      <div class="cierre-grid2">
+        <div class="table-responsive"><table class="cierre-tabla"><thead><tr><th>Artículo</th><th>Vendedor</th><th>Hora</th><th class="num">Precio</th></tr></thead><tbody id="ciListaVentas"></tbody></table></div>
+        <div class="table-responsive"><table class="cierre-tabla"><thead><tr><th>Vendedor</th><th class="num">Ventas</th><th class="num">Total</th></tr></thead><tbody id="ciPorVendedor"></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="sales-device-type">
+      <div class="sales-type-title">3 · PAPELETAS Y MONEDAS RECIBIDAS (PESOS DOMINICANOS)</div>
+      <div class="cierre-grid2">
+        <div class="table-responsive"><table class="cierre-tabla"><thead><tr><th>Papeleta</th><th>Cantidad</th><th class="num">Monto</th></tr></thead><tbody id="ciBilletes"></tbody>
+          <tfoot><tr><td>Total papeletas</td><td id="ciCantBilletes">0</td><td class="num" id="ciTotalBilletes">RD$ 0.00</td></tr></tfoot></table></div>
+        <div class="table-responsive"><table class="cierre-tabla"><thead><tr><th>Moneda</th><th>Cantidad</th><th class="num">Monto</th></tr></thead><tbody id="ciMonedas"></tbody>
+          <tfoot><tr><td>Total monedas</td><td id="ciCantMonedas">0</td><td class="num" id="ciTotalMonedas">RD$ 0.00</td></tr></tfoot></table></div>
+      </div>
+      <div class="cierre-res" style="margin-top:8px"><div class="fila fuerte"><span>💵 Efectivo contado en caja</span><b id="ciContado">RD$ 0.00</b></div></div>
+    </div>
+
+    <div class="sales-device-type">
+      <div class="sales-type-title">4 · OTROS MOVIMIENTOS DEL DÍA (RD$)</div>
+      <div class="cierre-mov">
+        <label>Fondo inicial de caja<input type="number" id="ciFondo" min="0" step="0.01" inputmode="decimal" placeholder="0.00"><small>Dinero con el que se abrió la caja</small></label>
+        <label>Otros ingresos<input type="number" id="ciOtros" min="0" step="0.01" inputmode="decimal" placeholder="0.00"><small>Reparaciones cobradas u otras entradas</small></label>
+        <label>Transferencias recibidas<input type="number" id="ciTransfer" min="0" step="0.01" inputmode="decimal" placeholder="0.00"><small>No entran en efectivo</small></label>
+        <label>Pagos con tarjeta<input type="number" id="ciTarjeta" min="0" step="0.01" inputmode="decimal" placeholder="0.00"><small>No entran en efectivo</small></label>
+        <label>Gastos / salidas de caja<input type="number" id="ciGastos" min="0" step="0.01" inputmode="decimal" placeholder="0.00"><small>Compras, pagos, retiros</small></label>
+      </div>
+    </div>
+
+    <div class="sales-device-type cierre-res">
+      <div class="sales-type-title">5 · RESULTADO DEL CIERRE</div>
+      <div class="fila"><span>Total vendido (ventas registradas)</span><b id="crVentas">RD$ 0.00</b></div>
+      <div class="fila"><span>+ Otros ingresos</span><b id="crOtros">RD$ 0.00</b></div>
+      <div class="fila fuerte"><span>= Total de ingresos del día</span><b id="crIngresos">RD$ 0.00</b></div>
+      <div class="fila"><span>− Transferencias</span><b class="menos" id="crTransfer">RD$ 0.00</b></div>
+      <div class="fila"><span>− Tarjeta</span><b class="menos" id="crTarjeta">RD$ 0.00</b></div>
+      <div class="fila"><span>= Ingresos en efectivo</span><b id="crEfectivoVentas">RD$ 0.00</b></div>
+      <div class="fila"><span>+ Fondo inicial</span><b id="crFondo">RD$ 0.00</b></div>
+      <div class="fila"><span>− Gastos / salidas</span><b class="menos" id="crGastos">RD$ 0.00</b></div>
+      <div class="fila fuerte"><span>= Efectivo que debe haber en caja</span><b id="crEsperado">RD$ 0.00</b></div>
+      <div class="fila fuerte"><span>Efectivo contado (papeletas + monedas)</span><b id="crContado">RD$ 0.00</b></div>
+      <div class="fila"><span>Efectivo a entregar (sin el fondo inicial)</span><b id="crEntregar">RD$ 0.00</b></div>
+      <div class="cierre-estado cuadra" id="crEstado" role="status">La caja cuadra ✓<small>Diferencia: RD$ 0.00</small></div>
+      <textarea id="ciNota" placeholder="Nota del cierre (opcional)" style="margin-top:12px"></textarea>
+      <div class="cierre-acciones">
+        <button type="button" class="azul" id="btnGuardarCierre">💾 Guardar cierre</button>
+        <button type="button" class="gris" id="btnImprimirCierre">🖨️ Imprimir factura de cierre</button>
+        <button type="button" class="rojo" id="btnLimpiarCierre">Limpiar conteo</button>
+      </div>
+      <div class="cierre-aviso" id="ciAviso"></div>
+    </div>
+
+    <div class="sales-device-type">
+      <div class="sales-type-title">CIERRES GUARDADOS</div>
+      <div class="table-responsive"><table class="cierre-tabla"><thead><tr><th>Fecha</th><th>Responsable</th><th class="num">Vendido</th><th class="num">Contado</th><th class="num">Diferencia</th><th></th></tr></thead><tbody id="ciHistorial"></tbody></table></div>
     </div>
   </section>
 
@@ -3688,7 +3810,7 @@ function editarVenta(index) {
   editSaleIndex = index;
   const poner = (k, x) => { const el = document.getElementById(k); if (el) el.value = x == null ? '' : String(x); };
   const modelo = String(v.model || '').trim();
-  const tipo = v.deviceType || (/iphone/i.test(modelo) ? 'iPhone' : /^(PC|laptop|macbook)\b/i.test(modelo) ? 'PC' : 'Android');
+  const tipo = esVentaAccesorio(v) ? 'Accesorio' : v.deviceType || (/iphone/i.test(modelo) ? 'iPhone' : /^(PC|laptop|macbook)\b/i.test(modelo) ? 'PC' : 'Android');
   const botonTipo = document.querySelector('#salesDeviceType .sales-type-option[data-sale-type="' + tipo + '"]');
   if (botonTipo) botonTipo.click();
   poner('saleBuyer', v.buyer);
@@ -3734,8 +3856,14 @@ async function imprimirRecibo(index) {
   const v = sales[index];
   if (!v) return;
   if (window.LFXPrint) { window.LFXPrint.reciboVenta(v); return; }
-  const w = window.open('', '_blank', 'width=420,height=650');
-  if (!w) { alert('Permite las ventanas emergentes para imprimir el recibo.'); return; }
+  // Se imprime dentro de la misma página (sin abrir otra pestaña).
+  const marcoRecibo = document.createElement('iframe');
+  marcoRecibo.setAttribute('aria-hidden', 'true');
+  marcoRecibo.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+  document.body.appendChild(marcoRecibo);
+  setTimeout(() => { try { marcoRecibo.remove(); } catch (e) {} }, 120000);
+  const w = marcoRecibo.contentWindow;
+  w.document.open();
   const safe = (x) => String(x || '-').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
   w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Recibo LifoxTech</title><style>@page{size:80mm 260mm;margin:0}body{font-family:Arial,sans-serif;width:72mm;margin:0 auto;padding:3mm 0;color:#000}h1{text-align:center;font-size:18px;margin:0 0 4px}h2{text-align:center;font-size:13px;margin:0 0 18px;font-weight:normal}hr{border:0;border-top:1px dashed #777;margin:14px 0}.row{margin:9px 0;font-size:12px}.label{font-weight:bold;display:block;font-size:10px;text-transform:uppercase;color:#555}.total{font-size:17px;font-weight:bold;text-align:right;margin-top:18px}.foot{text-align:center;font-size:10px;color:#555;margin-top:24px}@media print{button{display:none}}</style></head><body><img src="${logoSrc()}" alt="LifoxTech" style="display:block;width:180px;height:auto;margin:0 auto 8px;object-fit:contain;"><h2>Recibo de venta</h2><hr><div class="row"><span class="label">Nombre del comprador</span>${safe(v.buyer)}</div><div class="row"><span class="label">Número de teléfono</span>${safe(v.phone)}</div><div class="row"><span class="label">IMEI del teléfono</span>${safe(v.imei)}</div><div class="row"><span class="label">Modelo del teléfono</span>${safe(v.model)}</div><div class="row"><span class="label">Detalle</span>${safe(v.item)}</div><div class="row"><span class="label">Vendedor/a</span>${safe(v.seller)}</div><div class="total">Total: ${safe(money(v.price))}</div><div class="row"><span class="label">Nota</span>${safe(v.note)}</div><hr><div class="foot">${safe(horaSinSegundos((v.date || '') + ' ' + (v.time || '')))}<br>Gracias por su compra</div><script>window.onload=()=>window.print()<\/script></body></html>`);
   w.document.close();
@@ -3745,12 +3873,14 @@ document.getElementById('saleSeller').addEventListener('change', function() {
   document.getElementById('saleOtherSeller').style.display = this.value === 'OTRA' ? 'block' : 'none';
 });
 document.getElementById('salesForm').addEventListener('submit', conCandado(async function(e) {
-  const buyer = document.getElementById('saleBuyer').value.trim();
-  const phone = document.getElementById('salePhone').value.trim();
+  const esAccesorio = document.getElementById('saleDeviceType').value === 'Accesorio';
+  const buyer = esAccesorio ? '' : document.getElementById('saleBuyer').value.trim();
+  const phone = esAccesorio ? '' : document.getElementById('salePhone').value.trim();
   const model = document.getElementById('saleModel').value.trim();
   const price = document.getElementById('salePrice').value;
-  const imeiVenta = document.getElementById('saleImei').value.replace(/\D/g, '');
-  if (!buyer || !phone || !model || price === '') { alert('Completa comprador, teléfono, modelo/artículo y precio.'); return; }
+  const imeiVenta = esAccesorio ? '' : document.getElementById('saleImei').value.replace(/\D/g, '');
+  if (esAccesorio && (!model || price === '')) { alert('Escribe el nombre del accesorio y el precio.'); return; }
+  if (!esAccesorio && (!buyer || !phone || !model || price === '')) { alert('Completa comprador, teléfono, modelo/artículo y precio.'); return; }
   if (imeiVenta && !imeiValidoFront(imeiVenta)) { alert('El IMEI no es válido (deben ser 15 dígitos correctos). Revísalo o déjalo vacío.'); return; }
   const fmVenta = fechaCambiada('saleFechaManual') ? fechaManualDe('saleFechaManual') : null;
   const now = fmVenta || new Date(Date.now() + desfaseServidor);
@@ -3762,6 +3892,7 @@ document.getElementById('salesForm').addEventListener('submit', conCandado(async
     if (original.commission !== undefined) venta.commission = original.commission;
     if (!fmVenta) { venta.date = original.date || venta.date; venta.time = original.time || venta.time; }
   }
+  if (esAccesorio) { venta.model = model; venta.color = ''; venta.capacity = ''; venta.item = 'Accesorio'; }
   venta.requestId = nuevoRequestId();
   if (fmVenta) venta.fechaManual = camposFechaManual(fmVenta).fechaManual;
   try {
@@ -3808,8 +3939,9 @@ function actualizarAccesoModulos() {
   const ventasActivas = document.getElementById('salesPanel').classList.contains('activo');
   tabs.classList.toggle('bloqueadas', !isAdmin);
   botones.forEach(b => b.disabled = !isAdmin);
-  const stockActivo = document.getElementById('stockPanel').classList.contains('activo');
+  const stockActivo = document.getElementById('stockPanel').classList.contains('activo') || document.getElementById('cierrePanel').classList.contains('activo');
   if (!isAdmin) {
+    document.getElementById('cierrePanel').classList.remove('activo');
     document.querySelectorAll('.repair-only').forEach(el => el.style.display = 'none');
     document.body.classList.remove('form-rep-abierto');
     document.getElementById('salesPanel').classList.remove('activo');
@@ -3877,24 +4009,29 @@ function cambiarPestana(nombre, limpiar) {
   if (!isAdmin) return;
   const ventas = nombre === 'ventas';
   const stock = nombre === 'stock';
+  const cierre = nombre === 'cierre';
   const estabaEnVentas = document.getElementById('salesPanel').classList.contains('activo');
-  if (limpiar !== false && !stock && ventas !== estabaEnVentas) {
+  if (limpiar !== false && !stock && !cierre && ventas !== estabaEnVentas) {
     if (ventas) limpiarFormularioReparacion(); else limpiarFormularioVenta();
   }
-  sessionStorage.setItem('lifox_pestana', stock ? 'stock' : ventas ? 'ventas' : 'reparaciones');
+  sessionStorage.setItem('lifox_pestana', cierre ? 'cierre' : stock ? 'stock' : ventas ? 'ventas' : 'reparaciones');
   document.getElementById('salesPanel').classList.toggle('activo', ventas);
   document.getElementById('stockPanel').classList.toggle('activo', stock);
-  document.querySelectorAll('.repair-only:not(#priceForm)').forEach(el => el.style.display = (ventas || stock) ? 'none' : '');
-  if (ventas || stock) { document.getElementById('priceForm').style.display = 'none'; document.body.classList.remove('form-rep-abierto'); }
+  document.getElementById('cierrePanel').classList.toggle('activo', cierre);
+  document.querySelectorAll('.repair-only:not(#priceForm)').forEach(el => el.style.display = (ventas || stock || cierre) ? 'none' : '');
+  if (ventas || stock || cierre) { document.getElementById('priceForm').style.display = 'none'; document.body.classList.remove('form-rep-abierto'); }
   document.getElementById('tabVentas').classList.toggle('activa', ventas);
   document.getElementById('tabStock').classList.toggle('activa', stock);
-  document.getElementById('tabReparaciones').classList.toggle('activa', !ventas && !stock);
+  document.getElementById('tabCierre').classList.toggle('activa', cierre);
+  document.getElementById('tabReparaciones').classList.toggle('activa', !ventas && !stock && !cierre);
   if (ventas) renderSales();
   if (stock && typeof cargarStock === 'function') cargarStock();
+  if (cierre && window.LFXCierre) window.LFXCierre.abrir();
 }
 document.getElementById('tabReparaciones').addEventListener('click', () => cambiarPestana('reparaciones'));
 document.getElementById('tabVentas').addEventListener('click', () => cambiarPestana('ventas'));
 document.getElementById('tabStock').addEventListener('click', () => cambiarPestana('stock'));
+document.getElementById('tabCierre').addEventListener('click', () => cambiarPestana('cierre'));
 
 ['filtroAnio','filtroMes'].forEach(id=>document.getElementById(id)?.addEventListener('change',renderResumenQuincenal));
 function cerrarMenuPagos(){const p=document.getElementById('resumenQuincenal');if(p)p.style.display='none';}
@@ -3906,7 +4043,24 @@ document.querySelectorAll('#salesDeviceType .sales-type-option').forEach(btn=>bt
   document.querySelectorAll('#salesDeviceType .sales-type-option').forEach(x=>x.classList.remove('activa'));
   btn.classList.add('activa');
   document.getElementById('saleDeviceType').value=btn.dataset.saleType;
+  aplicarModoVenta();
 }));
+// Accesorios: solo se pide el nombre de lo que se vende y el precio.
+function esVentaAccesorio(v){ return !!v && (v.deviceType === 'Accesorio' || String(v.item || '').trim() === 'Accesorio'); }
+function aplicarModoVenta(){
+  const hid = document.getElementById('saleDeviceType'); if (!hid) return;
+  const acc = hid.value === 'Accesorio';
+  const f = document.getElementById('salesForm'); if (f) f.classList.toggle('modo-accesorio', acc);
+  const m = document.getElementById('saleModel');
+  if (m) m.placeholder = acc ? 'Nombre del accesorio que se vende (ej. Cargador tipo C, funda, audífonos…)' : 'Modelo del teléfono o accesorio';
+  const pr = document.getElementById('salePrice');
+  if (pr) pr.placeholder = acc ? 'Precio del accesorio ($)' : 'Precio de venta ($)';
+  if (acc) {
+    ['saleImei','saleColor','saleCapacity'].forEach(id => { const x = document.getElementById(id); if (x) x.value = ''; });
+    const st = document.getElementById('tacVentaStatus'); if (st) st.textContent = '';
+    try { if (window.LFXStock) window.LFXStock.limpiarAvisoVenta(); } catch (e) {}
+  }
+}
 
 // Iniciar sesión al pulsar Enter en usuario o contraseña.
 ['adminUserInput','adminPasswordInput'].forEach(id=>document.getElementById(id)?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();verificarPassword();}}));
@@ -3954,6 +4108,7 @@ function imprimirNotaReparacion(reg){
 document.getElementById('btnImprimirNota')?.addEventListener('click',()=>imprimirNotaReparacion());
 
 (function(){const t=document.getElementById('saleDeviceType')?.value;const b=t&&document.querySelector('.sales-type-option[data-sale-type="'+t+'"]');if(b){document.querySelectorAll('#salesDeviceType .sales-type-option').forEach(x=>x.classList.toggle('activa',x===b));}})();
+aplicarModoVenta();
 
 async function iniciar() {
   actualizarRelojVivo();
@@ -3962,6 +4117,7 @@ async function iniciar() {
   actualizarAccesoModulos();
   if (isAdmin && sessionStorage.getItem('lifox_pestana') === 'ventas') cambiarPestana('ventas', false);
   if (isAdmin && sessionStorage.getItem('lifox_pestana') === 'stock') cambiarPestana('stock', false);
+  if (isAdmin && sessionStorage.getItem('lifox_pestana') === 'cierre') cambiarPestana('cierre', false);
   setTimeout(cargarVentasDesdeNube, 1500);
   if (inventory.length) { try { displayItems(); } catch (e) {} }
   cargarDatos().then(()=>mostrarAvisoPagoQuincena());
@@ -5128,7 +5284,7 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     let ventana = null;
     // La ventana se abre enseguida (si no, el navegador la bloquea) y luego se llena.
     if (cfg.modo === 'dialogo') {
-      ventana = abrirVentana();
+      ventana = opciones.enPagina ? ventanaEnPagina() : abrirVentana();
     } else {
       try {
         const datos = await escpos(lineas, { ancho: opciones.ancho, copias, cajon: !!opciones.cajon });
@@ -5137,7 +5293,7 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
         return true;
       } catch (e) {
         aviso((e.message === 'NOCONECTADA' ? 'La impresora no está conectada (toca 🖨️ Impresora → Conectar).' : 'No se pudo imprimir directo: ' + e.message) + ' Se abre la impresión normal.', true);
-        ventana = abrirVentana();
+        ventana = opciones.enPagina ? ventanaEnPagina() : abrirVentana();
       }
     }
     const html = await htmlTicket(lineas, { ancho: opciones.ancho, copias, titulo: opciones.titulo });
@@ -5157,7 +5313,7 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     const L = [{ t: 'logo' }, { t: 'centro', txt: 'GARANTÍA, CALIDAD Y CONFIANZA', chico: true }, { t: 'centro', txt: 'RECIBO DE VENTA', grande: true }, { t: 'sep' },
       { t: 'par', a: 'Fecha', b: typeof horaSinSegundos === 'function' ? horaSinSegundos((v.date || '') + ' ' + (v.time || '')).trim() || fechaCorta() : fechaCorta() },
       { t: 'par', a: 'Cliente', b: v.buyer }, { t: 'par', a: 'Teléfono', b: v.phone }, { t: 'par', a: 'Vendedor/a', b: v.seller }, { t: 'sep' },
-      { t: 'texto', txt: modelo || 'Artículo', negrita: true }];
+      { t: 'texto', txt: modelo || 'Artículo', negrita: true }].filter(l => !(String(v.item || '').trim() === 'Accesorio' && l.t === 'par' && (l.a === 'Cliente' || l.a === 'Teléfono') && !String(l.b || '').trim()));
     if (v.color || v.capacity) L.push({ t: 'texto', txt: [v.color, v.capacity].filter(Boolean).join(' · ') });
     if (v.imei) L.push({ t: 'par', a: 'IMEI', b: v.imei });
     if (v.item) L.push({ t: 'par', a: 'Detalle', b: v.item });
@@ -5276,7 +5432,8 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     usarTermica,
     abrirPanel,
     imprimir,
-    reciboVenta: (v) => imprimir(lineasVenta(v), { copias: cfg.copias, cajon: cfg.cajon, titulo: 'Recibo LifoxTech' }),
+    reciboVenta: (v) => imprimir(lineasVenta(v), { copias: cfg.copias, cajon: cfg.cajon, titulo: 'Recibo LifoxTech', enPagina: true }),
+    cierreCaja: (lineas) => imprimir(lineas, { titulo: 'Cierre de caja LifoxTech', enPagina: true }),
     notaReparacion: (d) => imprimir(lineasReparacion(d), { titulo: 'Nota LifoxTech' }),
     etiquetaStock: (u) => imprimir(lineasEtiqueta(u), { ancho: cfg.ancho === '80' ? '80' : '58', titulo: 'Etiqueta ' + (u.model || '') }),
     pedido: (t) => imprimir([{ t: 'logo' }, { t: 'centro', txt: 'PEDIDO DE TELÉFONOS', grande: true }, { t: 'sep' }].concat(String(t).split('\n').map(x => ({ t: 'texto', txt: x || ' ' }))), { titulo: 'Pedido' }),
@@ -5284,6 +5441,255 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     _escpos: escpos, _html: htmlTicket, _lineasVenta: lineasVenta, _lineasEtiqueta: lineasEtiqueta, _cfg: () => cfg
   };
 })();
+</script>
+<script>
+/* ===== CIERRE DE CAJA: ventas del día + papeletas recibidas (RD$) + factura de cierre ===== */
+(function () {
+  const $ = (id) => document.getElementById(id);
+  if (!$('cierrePanel')) return;
+  const CIERRES_KEY = 'lifox_cierres_v1';
+  const BORRADOR_KEY = 'lifox_cierre_borrador_v1';
+  const BILLETES = [2000, 1000, 500, 200, 100, 50];
+  const MONEDAS = [25, 10, 5, 1];
+  const MOV = { fondo: 'ciFondo', otros: 'ciOtros', transferencias: 'ciTransfer', tarjeta: 'ciTarjeta', gastos: 'ciGastos' };
+  const r2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
+  const rd = (n) => 'RD$ ' + r2(n).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtNum = (n) => Number(n || 0).toLocaleString('es-DO');
+  const esc = (x) => String(x == null ? '' : x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const p2 = (n) => String(n).padStart(2, '0');
+  const claveDia = (d) => d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
+  const hoy = () => claveDia(new Date(Date.now() + (typeof desfaseServidor !== 'undefined' ? desfaseServidor : 0)));
+  const fechaBonita = (k) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(k || ''); return m ? m[3] + '/' + m[2] + '/' + m[1] : (k || ''); };
+  const esAcc = (v) => typeof esVentaAccesorio === 'function' ? esVentaAccesorio(v) : String(v && v.item || '').trim() === 'Accesorio';
+
+  function leerCierres() { try { return JSON.parse(localStorage.getItem(CIERRES_KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function guardarCierresLocal(c) { localStorage.setItem(CIERRES_KEY, JSON.stringify(c)); }
+  function leerBorradores() { try { return JSON.parse(localStorage.getItem(BORRADOR_KEY) || '{}') || {}; } catch (e) { return {}; } }
+
+  // Filas de papeletas y monedas
+  function filasDenominacion(lista, tbodyId, tipo) {
+    $(tbodyId).innerHTML = lista.map(d => '<tr><td><b>' + rd(d).replace(/\.00$/, '') + '</b></td><td><input type="number" min="0" step="1" inputmode="numeric" placeholder="0" data-den="' + d + '" data-tipo="' + tipo + '" aria-label="Cantidad de ' + (tipo === 'b' ? 'papeletas' : 'monedas') + ' de ' + d + ' pesos"></td><td class="num" data-sub="' + d + '">RD$ 0.00</td></tr>').join('');
+  }
+  filasDenominacion(BILLETES, 'ciBilletes', 'b');
+  filasDenominacion(MONEDAS, 'ciMonedas', 'm');
+
+  function ventasDelDia(fecha) {
+    const lista = (typeof sales !== 'undefined' && Array.isArray(sales)) ? sales : [];
+    return lista.filter(v => {
+      const d = typeof fechaRegistro === 'function' ? fechaRegistro(v) : null;
+      return d && claveDia(d) === fecha;
+    });
+  }
+
+  // Lee todo lo que hay en pantalla y hace las cuentas.
+  function calcular() {
+    const fecha = $('cierreFecha').value || hoy();
+    const ventas = ventasDelDia(fecha);
+    const totalVentas = r2(ventas.reduce((a, v) => a + (Number(v.price) || 0), 0));
+    const acc = ventas.filter(esAcc);
+    const totalAcc = r2(acc.reduce((a, v) => a + (Number(v.price) || 0), 0));
+    const porVendedor = {};
+    ventas.forEach(v => { const k = String(v.seller || 'Sin vendedor'); porVendedor[k] = porVendedor[k] || { n: 0, total: 0 }; porVendedor[k].n++; porVendedor[k].total = r2(porVendedor[k].total + (Number(v.price) || 0)); });
+    const conteo = {};
+    let cantBilletes = 0, cantMonedas = 0, totalBilletes = 0, totalMonedas = 0;
+    document.querySelectorAll('#cierrePanel input[data-den]').forEach(inp => {
+      const d = Number(inp.dataset.den), n = Math.max(0, Math.floor(Number(inp.value) || 0));
+      conteo[d] = n;
+      if (inp.dataset.tipo === 'b') { cantBilletes += n; totalBilletes += d * n; } else { cantMonedas += n; totalMonedas += d * n; }
+    });
+    const mov = {}; Object.keys(MOV).forEach(k => mov[k] = r2(Math.max(0, Number($(MOV[k]).value) || 0)));
+    const contado = r2(totalBilletes + totalMonedas);
+    const ingresos = r2(totalVentas + mov.otros);
+    const efectivoVentas = r2(ingresos - mov.transferencias - mov.tarjeta);
+    const esperado = r2(mov.fondo + efectivoVentas - mov.gastos);
+    const diferencia = r2(contado - esperado);
+    const resultado = Math.abs(diferencia) < 0.005 ? 'CUADRA' : diferencia > 0 ? 'SOBRANTE' : 'FALTANTE';
+    return {
+      fecha, responsable: $('cierreResponsable').value, nota: $('ciNota').value.trim(),
+      ventas, cantidadVentas: ventas.length, totalVentas, cantidadAccesorios: acc.length, totalAccesorios: totalAcc, totalEquipos: r2(totalVentas - totalAcc),
+      porVendedor, conteo, cantBilletes, cantMonedas, totalBilletes: r2(totalBilletes), totalMonedas: r2(totalMonedas), contado,
+      ...mov, ingresos, efectivoVentas, esperado, diferencia, resultado, entregar: r2(contado - mov.fondo)
+    };
+  }
+
+  function pintar() {
+    const c = calcular();
+    $('ciNumVentas').textContent = fmtNum(c.cantidadVentas);
+    $('ciEquipos').textContent = rd(c.totalEquipos);
+    $('ciAccesorios').textContent = rd(c.totalAccesorios) + (c.cantidadAccesorios ? ' (' + c.cantidadAccesorios + ')' : '');
+    $('ciTotalVentas').textContent = rd(c.totalVentas);
+    $('ciListaVentas').innerHTML = c.ventas.length ? c.ventas.map(v => '<tr><td><strong>' + esc(typeof nombreGuardadoCorto === 'function' ? nombreGuardadoCorto(v.model) : v.model) + '</strong>' + (esAcc(v) ? ' <small style="color:#f59e0b">· Accesorio</small>' : '') + '</td><td>' + esc(v.seller || '-') + '</td><td>' + esc(typeof horaSinSegundos === 'function' ? horaSinSegundos(v.time) : v.time) + '</td><td class="num">' + rd(v.price) + '</td></tr>').join('')
+      : '<tr><td colspan="4" class="vacio">No hay ventas registradas en este día.</td></tr>';
+    const pv = Object.keys(c.porVendedor);
+    $('ciPorVendedor').innerHTML = pv.length ? pv.map(k => '<tr><td>' + esc(k) + '</td><td class="num">' + c.porVendedor[k].n + '</td><td class="num">' + rd(c.porVendedor[k].total) + '</td></tr>').join('')
+      : '<tr><td colspan="3" class="vacio">—</td></tr>';
+    document.querySelectorAll('#cierrePanel [data-sub]').forEach(td => { const d = Number(td.dataset.sub); td.textContent = rd(d * (c.conteo[d] || 0)); });
+    $('ciCantBilletes').textContent = fmtNum(c.cantBilletes) + ' papeleta' + (c.cantBilletes === 1 ? '' : 's');
+    $('ciCantMonedas').textContent = fmtNum(c.cantMonedas) + ' moneda' + (c.cantMonedas === 1 ? '' : 's');
+    $('ciTotalBilletes').textContent = rd(c.totalBilletes);
+    $('ciTotalMonedas').textContent = rd(c.totalMonedas);
+    $('ciContado').textContent = rd(c.contado);
+    const set = (id, v) => { $(id).textContent = rd(v); };
+    set('crVentas', c.totalVentas); set('crOtros', c.otros); set('crIngresos', c.ingresos); set('crTransfer', c.transferencias); set('crTarjeta', c.tarjeta);
+    set('crEfectivoVentas', c.efectivoVentas); set('crFondo', c.fondo); set('crGastos', c.gastos); set('crEsperado', c.esperado); set('crContado', c.contado); set('crEntregar', c.entregar);
+    const e = $('crEstado');
+    e.className = 'cierre-estado ' + c.resultado.toLowerCase();
+    e.innerHTML = (c.resultado === 'CUADRA' ? 'La caja cuadra ✓' : c.resultado === 'SOBRANTE' ? 'Sobran ' + esc(rd(c.diferencia)) : 'Faltan ' + esc(rd(Math.abs(c.diferencia)))) + '<small>Diferencia: ' + esc(rd(c.diferencia)) + '</small>';
+    return c;
+  }
+
+  // Guardar lo que se va escribiendo para no perderlo.
+  function guardarBorrador() {
+    const b = leerBorradores(), f = $('cierreFecha').value || hoy();
+    const d = { responsable: $('cierreResponsable').value, nota: $('ciNota').value, conteo: {}, mov: {} };
+    document.querySelectorAll('#cierrePanel input[data-den]').forEach(i => { if (i.value !== '') d.conteo[i.dataset.den] = i.value; });
+    Object.keys(MOV).forEach(k => { if ($(MOV[k]).value !== '') d.mov[k] = $(MOV[k]).value; });
+    b[f] = d; localStorage.setItem(BORRADOR_KEY, JSON.stringify(b));
+  }
+  function cargarFormulario(fecha) {
+    const guardado = leerCierres()[fecha];
+    const borr = leerBorradores()[fecha];
+    document.querySelectorAll('#cierrePanel input[data-den]').forEach(i => i.value = '');
+    Object.keys(MOV).forEach(k => $(MOV[k]).value = '');
+    $('ciNota').value = '';
+    if (borr) {
+      if (borr.responsable) $('cierreResponsable').value = borr.responsable;
+      $('ciNota').value = borr.nota || '';
+      document.querySelectorAll('#cierrePanel input[data-den]').forEach(i => { if (borr.conteo && borr.conteo[i.dataset.den] !== undefined) i.value = borr.conteo[i.dataset.den]; });
+      Object.keys(MOV).forEach(k => { if (borr.mov && borr.mov[k] !== undefined) $(MOV[k]).value = borr.mov[k]; });
+    } else if (guardado) {
+      if (guardado.responsable) $('cierreResponsable').value = guardado.responsable;
+      $('ciNota').value = guardado.nota || '';
+      document.querySelectorAll('#cierrePanel input[data-den]').forEach(i => { const n = guardado.conteo && guardado.conteo[i.dataset.den]; if (n) i.value = n; });
+      Object.keys(MOV).forEach(k => { if (Number(guardado[k])) $(MOV[k]).value = guardado[k]; });
+    }
+    $('ciAviso').textContent = guardado ? 'Este día ya tiene un cierre guardado (' + (guardado.guardado || '') + '). Si lo guardas otra vez se reemplaza.' : '';
+    pintar();
+  }
+
+  function resumenParaGuardar(c) {
+    const { ventas, ...resto } = c;
+    resto.guardado = new Date().toLocaleString('es-DO', { dateStyle: 'short', timeStyle: 'short' });
+    return resto;
+  }
+
+  function pintarHistorial() {
+    const c = leerCierres();
+    const fechas = Object.keys(c).sort().reverse();
+    $('ciHistorial').innerHTML = fechas.length ? fechas.map(f => {
+      const x = c[f];
+      const col = x.resultado === 'CUADRA' ? '#34d399' : x.resultado === 'SOBRANTE' ? '#fbbf24' : '#f87171';
+      return '<tr><td>' + esc(fechaBonita(f)) + '</td><td>' + esc(x.responsable || '-') + '</td><td class="num">' + rd(x.totalVentas) + '</td><td class="num">' + rd(x.contado) + '</td><td class="num" style="color:' + col + '">' + rd(x.diferencia) + '</td><td style="white-space:nowrap"><button type="button" class="mini azul" data-ci-ver="' + esc(f) + '">Ver</button> <button type="button" class="mini gris" data-ci-imp="' + esc(f) + '">🖨</button></td></tr>';
+    }).join('') : '<tr><td colspan="6" class="vacio">Todavía no hay cierres guardados.</td></tr>';
+  }
+
+  // ---------- Factura de cierre (usa la misma configuración de la impresora) ----------
+  function lineasCierre(c) {
+    const L = [{ t: 'logo' }, { t: 'centro', txt: 'GARANTÍA, CALIDAD Y CONFIANZA', chico: true }, { t: 'centro', txt: 'CIERRE DE CAJA', grande: true }, { t: 'sep' },
+      { t: 'par', a: 'Fecha', b: fechaBonita(c.fecha) }, { t: 'par', a: 'Responsable', b: c.responsable },
+      { t: 'par', a: 'Impreso', b: new Date().toLocaleString('es-DO', { dateStyle: 'short', timeStyle: 'short' }) }, { t: 'sep' },
+      { t: 'texto', txt: 'VENTAS DEL DÍA', negrita: true },
+      { t: 'par', a: 'Cantidad de ventas', b: String(c.cantidadVentas) },
+      { t: 'par', a: 'Teléfonos / equipos', b: rd(c.totalEquipos) },
+      { t: 'par', a: 'Accesorios (' + (c.cantidadAccesorios || 0) + ')', b: rd(c.totalAccesorios) }];
+    Object.keys(c.porVendedor || {}).forEach(k => L.push({ t: 'par', a: '  ' + k + ' (' + c.porVendedor[k].n + ')', b: rd(c.porVendedor[k].total) }));
+    L.push({ t: 'total', a: 'VENDIDO', b: rd(c.totalVentas) }, { t: 'sep' }, { t: 'texto', txt: 'PAPELETAS RECIBIDAS', negrita: true });
+    BILLETES.forEach(d => { const n = (c.conteo || {})[d] || 0; if (n) L.push({ t: 'par', a: n + ' x ' + rd(d).replace(/\.00$/, ''), b: rd(d * n) }); });
+    L.push({ t: 'par', a: 'Total papeletas: ' + (c.cantBilletes || 0), b: rd(c.totalBilletes) });
+    if (c.cantMonedas) {
+      L.push({ t: 'texto', txt: 'MONEDAS', negrita: true });
+      MONEDAS.forEach(d => { const n = (c.conteo || {})[d] || 0; if (n) L.push({ t: 'par', a: n + ' x ' + rd(d).replace(/\.00$/, ''), b: rd(d * n) }); });
+      L.push({ t: 'par', a: 'Total monedas: ' + c.cantMonedas, b: rd(c.totalMonedas) });
+    }
+    L.push({ t: 'total', a: 'EFECTIVO', b: rd(c.contado) }, { t: 'sep' }, { t: 'texto', txt: 'CUADRE', negrita: true },
+      { t: 'par', a: 'Total vendido', b: rd(c.totalVentas) });
+    if (c.otros) L.push({ t: 'par', a: '+ Otros ingresos', b: rd(c.otros) });
+    if (c.transferencias) L.push({ t: 'par', a: '- Transferencias', b: rd(c.transferencias) });
+    if (c.tarjeta) L.push({ t: 'par', a: '- Tarjeta', b: rd(c.tarjeta) });
+    L.push({ t: 'par', a: '= Ingresos en efectivo', b: rd(c.efectivoVentas) });
+    if (c.fondo) L.push({ t: 'par', a: '+ Fondo inicial', b: rd(c.fondo) });
+    if (c.gastos) L.push({ t: 'par', a: '- Gastos / salidas', b: rd(c.gastos) });
+    L.push({ t: 'par', a: 'Debe haber en caja', b: rd(c.esperado) }, { t: 'par', a: 'Efectivo contado', b: rd(c.contado) },
+      { t: 'total', a: 'DIFERENCIA', b: rd(c.diferencia) },
+      { t: 'centro', txt: c.resultado === 'CUADRA' ? 'LA CAJA CUADRA' : c.resultado === 'SOBRANTE' ? 'SOBRANTE EN CAJA' : 'FALTANTE EN CAJA', negrita: true, grande: true });
+    if (c.fondo) L.push({ t: 'par', a: 'Efectivo a entregar', b: rd(c.entregar) });
+    L.push({ t: 'sep' });
+    if (c.nota) L.push({ t: 'nota', txt: c.nota });
+    L.push({ t: 'texto', txt: ' ' }, { t: 'centro', txt: '______________________' }, { t: 'centro', txt: 'Firma del responsable', chico: true });
+    return L;
+  }
+  function imprimirCierre(c) {
+    if (!window.LFXPrint || !window.LFXPrint.cierreCaja) { alert('La impresora todavía no está lista. Intenta de nuevo en unos segundos.'); return; }
+    window.LFXPrint.cierreCaja(lineasCierre(c));
+  }
+
+  // ---------- Nube (hoja «Cierres» de Google Sheets) ----------
+  const token = () => sessionStorage.getItem('adminToken') || '';
+  async function subirCierre(datos) {
+    const r = await fetch(WEB_APP_URL + '?action=saveCierre&token=' + encodeURIComponent(token()), { method: 'POST', body: JSON.stringify(Object.assign({ action: 'saveCierre' }, datos)) });
+    const res = await r.json();
+    return !!(res && res.success === true);
+  }
+  async function bajarCierres() {
+    try {
+      const r = await fetch(WEB_APP_URL + '?action=cierres&token=' + encodeURIComponent(token()) + '&t=' + Date.now());
+      const res = await r.json();
+      if (!res || res.success !== true || !Array.isArray(res.cierres)) return;
+      const c = leerCierres();
+      res.cierres.forEach(x => { if (x && x.fecha) c[x.fecha] = Object.assign({}, c[x.fecha] || {}, x); });
+      guardarCierresLocal(c); pintarHistorial();
+    } catch (e) { /* sin conexión: se usan los cierres del equipo */ }
+  }
+
+  // ---------- Eventos ----------
+  $('cierrePanel').addEventListener('input', (e) => {
+    if (e.target.id === 'cierreFecha') return;
+    pintar(); guardarBorrador();
+  });
+  $('cierreResponsable').addEventListener('change', guardarBorrador);
+  $('cierreFecha').addEventListener('change', () => cargarFormulario($('cierreFecha').value || hoy()));
+  $('btnGuardarCierre').addEventListener('click', async () => {
+    const c = pintar();
+    if (!c.contado && !c.cantidadVentas && !confirm('No hay ventas ni papeletas contadas. ¿Guardar el cierre igual?')) return;
+    const datos = resumenParaGuardar(c);
+    const todos = leerCierres(); todos[c.fecha] = datos; guardarCierresLocal(todos);
+    const b = leerBorradores(); delete b[c.fecha]; localStorage.setItem(BORRADOR_KEY, JSON.stringify(b));
+    pintarHistorial();
+    const btn = $('btnGuardarCierre'); btn.disabled = true; btn.textContent = 'Guardando…';
+    let enNube = false;
+    try { enNube = await subirCierre(datos); } catch (e) {}
+    btn.disabled = false; btn.textContent = '💾 Guardar cierre';
+    $('ciAviso').textContent = enNube ? '✓ Cierre del ' + fechaBonita(c.fecha) + ' guardado en la hoja «Cierres».' : '✓ Cierre guardado en este equipo. (Para guardarlo también en Google Sheets, actualiza el código del servidor.)';
+    if (confirm('Cierre guardado. ¿Quieres imprimir la factura de cierre?')) imprimirCierre(c);
+  });
+  $('btnImprimirCierre').addEventListener('click', () => imprimirCierre(pintar()));
+  $('btnLimpiarCierre').addEventListener('click', () => {
+    if (!confirm('¿Borrar el conteo de papeletas y los movimientos de este día?')) return;
+    document.querySelectorAll('#cierrePanel input[data-den]').forEach(i => i.value = '');
+    Object.keys(MOV).forEach(k => $(MOV[k]).value = '');
+    $('ciNota').value = '';
+    const b = leerBorradores(); delete b[$('cierreFecha').value || hoy()]; localStorage.setItem(BORRADOR_KEY, JSON.stringify(b));
+    pintar();
+  });
+  $('ciHistorial').addEventListener('click', (e) => {
+    const ver = e.target.closest('[data-ci-ver]'), imp = e.target.closest('[data-ci-imp]');
+    if (ver) { $('cierreFecha').value = ver.dataset.ciVer; cargarFormulario(ver.dataset.ciVer); $('cierrePanel').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    if (imp) { const x = leerCierres()[imp.dataset.ciImp]; if (x) imprimirCierre(x); }
+  });
+
+  window.LFXCierre = {
+    abrir: async function () {
+      if (!$('cierreFecha').value) { $('cierreFecha').value = hoy(); cargarFormulario(hoy()); } else pintar();
+      pintarHistorial();
+      try { if (typeof cargarVentasDesdeNube === 'function') await cargarVentasDesdeNube(); } catch (e) {}
+      pintar();
+      bajarCierres();
+    },
+    _calcular: calcular, _lineas: lineasCierre
+  };
+  if ($('cierrePanel').classList.contains('activo')) window.LFXCierre.abrir();
+})();
+
 </script>
 
 </body>
