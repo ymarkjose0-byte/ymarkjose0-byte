@@ -1529,6 +1529,9 @@ function interpretarCodigo(texto) {
   if (!raw) return r;
   const imeis = [];
   const agregar = (d, rot) => { const x = imeiDesdeDigitos(d, rot); if (x && !imeis.includes(x)) imeis.push(x); };
+  // 0) Enlace de estado impreso en la nota de reparación (estado.html?id=...)
+  const enlaceEstado = raw.match(/estado\.html\?(?:[^#\s]*&)?id=([^&#\s]+)/i);
+  if (enlaceEstado) { try { r.id = decodeURIComponent(enlaceEstado[1]); } catch (e) { r.id = enlaceEstado[1]; } r.tipo = 'R'; r.lfx = true; return r; }
   // 1) Etiqueta LifoxTech (la que imprime la pestaña Stock, los recibos y las notas)
   if (/^LFX1\|/i.test(raw)) {
     r.lfx = true;
@@ -2408,7 +2411,11 @@ function ponerMarcaPC(texto) {
 }
 
 // ===== WhatsApp al cliente y página de estado =====
-function urlEstado(id) { return new URL('estado.html?id=' + encodeURIComponent(id), location.href).href; }
+const URL_PUBLICA_LIFOX = 'https://ymarkjose0-byte.github.io/ymarkjose0-byte/';
+function urlEstado(id) {
+  const base = /^https?:$/.test(location.protocol) && !/^(localhost|127\.|192\.168\.|10\.)/.test(location.hostname) ? location.href : URL_PUBLICA_LIFOX;
+  return new URL('estado.html?id=' + encodeURIComponent(id), base).href;
+}
 function telWhats(t) {
   let d = String(t || '').replace(/\D/g, '');
   if (d.startsWith('00')) d = d.slice(2);
@@ -4818,7 +4825,7 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     }
     const cuerpo = partes.join('');
     const bloques = Array.from({ length: copias }, (_, i) => '<section class="copia">' + cuerpo + (copias > 1 ? '<div class="c s">Copia ' + (i + 1) + ' de ' + copias + '</div>' : '') + '</section>').join('');
-    const css = '@page{size:' + papel + 'mm 200mm;margin:0}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+    const css = '@page{size:' + papel + 'mm 120mm;margin:0}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
       + 'html,body{margin:0;padding:0;background:#fff;color:#000}'
       + 'body{width:' + papel + 'mm;padding:2mm ' + lateral + 'mm 0;font:600 ' + (w58 ? 11 : 12.5) + 'px/1.32 Arial,Helvetica,sans-serif}'
       + '.copia{padding-bottom:6mm}.copia+.copia{break-before:page;page-break-before:always}'
@@ -4835,9 +4842,9 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
       + '.barra-pr{position:sticky;top:0;display:flex;gap:6px;justify-content:center;padding:8px;background:#f1f5f9;margin:0 -' + lateral + 'mm 2mm;font-family:Arial}'
       + '.barra-pr button{padding:8px 14px;border:0;border-radius:6px;background:#111;color:#fff;font-weight:700;cursor:pointer}'
       + '@media screen{html{background:#e5e7eb}body{margin:10px auto;box-shadow:0 2px 12px rgba(0,0,0,.25)}}'
-      + '@media print{.barra-pr{display:none}}';
+      + '@media print{.barra-pr{display:none}html,body{height:auto!important;min-height:0!important;overflow:visible!important;margin:0!important;box-shadow:none!important}.copia:last-child{padding-bottom:3mm}}';
     // El alto del papel se ajusta al recibo para que la impresora no saque papel en blanco.
-    const script = 'function ajustar(){var mm=Math.ceil(document.body.scrollHeight*25.4/96/' + copias + ')+4;var s=document.getElementById("pagina");s.textContent="@page{size:' + papel + 'mm "+Math.max(40,mm)+"mm;margin:0}";}'
+    const script = 'function ajustar(){var b=document.querySelector(".barra-pr"),d=b?b.style.display:"";if(b)b.style.display="none";var c=document.querySelectorAll(".copia"),alto=0;for(var i=0;i<c.length;i++)alto=Math.max(alto,c[i].getBoundingClientRect().height);if(b)b.style.display=d;var mm=Math.ceil(alto*25.4/96)+6;var s=document.getElementById("pagina");s.textContent="@page{size:' + papel + 'mm "+Math.max(40,mm)+"mm;margin:0}";}'
       + 'function imprimir(){ajustar();setTimeout(function(){window.print();},60);}'
       + 'window.addEventListener("load",function(){var imgs=[].slice.call(document.images);Promise.all(imgs.map(function(i){return i.complete?0:new Promise(function(r){i.onload=i.onerror=r;});})).then(function(){setTimeout(imprimir,200);});});';
     return '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(opciones.titulo || 'Recibo LifoxTech') + '</title><style>' + css + '</style><style id="pagina"></style></head><body>'
@@ -5126,7 +5133,8 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
     if (d.color) L.push({ t: 'par', a: 'Color', b: d.color });
     if (d.capacidad) L.push({ t: 'par', a: 'Capacidad', b: d.capacidad });
     L.push({ t: 'par', a: 'Fecha', b: d.fecha || fechaCorta() }, { t: 'sep' }, { t: 'nota', txt: d.nota || '' });
-    if (cfg.qr && (d.imei || d.id)) L.push({ t: 'qr', data: codigoLFX('R', { I: d.imei, D: d.id, M: d.dispositivo, C: d.color }), txt: 'Escanea al recoger el equipo' });
+    if (cfg.qr && d.id && typeof urlEstado === 'function') L.push({ t: 'qr', data: urlEstado(d.id), txt: 'Escanea con la cámara para ver el estado de tu equipo' });
+    else if (cfg.qr && d.imei) L.push({ t: 'qr', data: codigoLFX('R', { I: d.imei, D: d.id, M: d.dispositivo, C: d.color }), txt: 'Escanea al recoger el equipo' });
     L.push({ t: 'legal', txt: 'Todo dispositivo después de reparado tendrá un plazo de 15 días para ser recogido. De lo contrario, no nos hacemos responsables de pérdidas.' });
     return L;
   }
@@ -5141,7 +5149,8 @@ tr.stk-resaltado td{background:rgba(37,99,235,.2)!important}
 
   // ---------- Panel de configuración ----------
   function textoAyuda() {
-    if (cfg.modo === 'dialogo') return 'Se abre la ventana de imprimir con el recibo al ancho del papel. Elige tu impresora térmica y en «Más ajustes» pon <b>Márgenes: Ninguno</b> y <b>Escala: 100%</b>. Funciona en PC, Android e iPhone. El cajón se abre si lo activas en el controlador de la impresora.';
+    if (cfg.modo === 'dialogo') return 'Se abre la ventana de imprimir con el recibo al ancho del papel. Elige tu impresora térmica y en «Más ajustes» pon <b>Márgenes: Ninguno</b> y <b>Escala: 100%</b>. Funciona en PC, Android e iPhone. El cajón se abre si lo activas en el controlador de la impresora.'
+      + '<br><br><b>¿Sale una hoja larga en blanco? (Aokia AK-3280, POS-80 y genéricas)</b><br>En Windows: Configuración → Impresoras → tu impresora → <b>Preferencias de impresión</b> → Avanzado → Tamaño de papel: <b>80(72.1) x 3276 mm</b> (o «Roll Paper 80 x 3276»). Si existe la opción, pon <b>Cortar: al final del documento</b>. En la ventana de imprimir de Chrome: <b>Márgenes: Ninguno</b>, <b>Escala: Predeterminada / 100</b> y quita <b>Encabezados y pies de página</b>.';
     if (cfg.modo === 'usb') return (disponible.usb ? '' : '<b>⚠️ Este navegador no tiene USB directo.</b> ') + 'Conecta la impresora por cable (en Android con adaptador OTG) y toca «Conectar». En Windows, si la impresora ya tiene su controlador, usa «Ventana de impresión» o «Puerto COM».';
     if (cfg.modo === 'serial') return (disponible.serial ? '' : '<b>⚠️ Este navegador no tiene puerto serie.</b> ') + 'Para impresoras con puerto COM, adaptador USB-serie o Bluetooth emparejado en Windows (aparece como «COM»). La velocidad suele ser 9600 o 115200.';
     return (disponible.bluetooth ? '' : '<b>⚠️ Este navegador no tiene Bluetooth.</b> ') + 'Enciende la impresora, toca «Conectar» y elígela en la lista (suele llamarse MPT, PT-210, BlueTooth Printer, XP-P…). En iPhone no se puede: usa «Ventana de impresión».';
