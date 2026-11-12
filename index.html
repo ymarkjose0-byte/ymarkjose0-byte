@@ -620,6 +620,17 @@ button[aria-busy="true"] { opacity:.65; cursor:progress; }
 .rc-estados button::before{width:6px;height:6px}
 .rep-acciones button,.rep-acciones a{min-height:30px;padding:4px 8px;font-size:11.5px}
 .rep-acciones .solo-icono{flex:0 0 32px}
+/* v6 · tarjetas más pequeñas */
+.rep-cards{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))!important;gap:8px!important}
+.rep-card{padding:8px 10px!important;gap:4px!important;font-size:11px!important;border-radius:9px!important}
+.rep-card .rc-cliente strong{font-size:13px}
+.rep-card .rc-fecha b{font-size:16px}
+.rep-card .rc-nota{-webkit-line-clamp:1;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+.rep-card .rc-precios{font-size:11px;gap:4px}
+.rc-estados button{min-height:24px!important;font-size:9.5px!important}
+.rep-acciones button,.rep-acciones a{min-height:26px!important;padding:3px 6px!important;font-size:10.5px!important}
+@media(max-width:600px){.rep-cards{grid-template-columns:repeat(2,1fr)!important}}
+.rep-card{content-visibility:auto;contain-intrinsic-size:auto 220px}
 </style>
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
@@ -1122,7 +1133,7 @@ function buscarEnBaseTAC(tac) {
 }
 window.addEventListener('load', () => {
   const precargar = () => cargarBaseTAC();
-  if ('requestIdleCallback' in window) requestIdleCallback(precargar, { timeout: 3000 }); else setTimeout(precargar, 1500);
+  if ('requestIdleCallback' in window) setTimeout(() => requestIdleCallback(precargar, { timeout: 5000 }), 8000); else setTimeout(precargar, 10000);
 });
 const TAC_PERSONALIZADOS_KEY = 'lifox_tac_personalizados';
 try {
@@ -2652,7 +2663,7 @@ function displayItems() {
   };
 
   // Sin agrupar: igual que antes.
-  if (!niveles.length) { tbody.classList.remove('agrupado'); tbody.innerHTML = lista.map(tarjeta).join(''); return; }
+  if (!niveles.length) { tbody.classList.remove('agrupado'); const tope = window.__limiteRep || 60; tbody.innerHTML = lista.slice(0, tope).map(tarjeta).join('') + (lista.length > tope ? '<p class="vacio" style="grid-column:1/-1;padding:0;border:0"><button type="button" class="mini azul" style="width:100%;min-height:38px" onclick="window.__limiteRep=(window.__limiteRep||60)+60;displayItems()">Ver más (' + (lista.length - tope) + ' restantes)</button></p>' : ''); return; }
 
   // Agrupado: secciones plegables (el período más reciente queda abierto).
   const estado = estadoGrupos();
@@ -2715,7 +2726,7 @@ async function cargarDatos() {
   if (statusEl) statusEl.textContent = 'Actualizando...';
 
   try {
-    const r = await fetchConTiempo(WEB_APP_URL + '?t=' + Date.now());
+    const r = await fetchConTiempo(WEB_APP_URL + '?t=' + Date.now(), {}, 25000);
     const data = await r.json();
     if (Array.isArray(data)) {
       inventory = data;
@@ -3624,10 +3635,11 @@ async function iniciar() {
   actualizarAccesoModulos();
   if (isAdmin && sessionStorage.getItem('lifox_pestana') === 'ventas') cambiarPestana('ventas', false);
   if (isAdmin && sessionStorage.getItem('lifox_pestana') === 'stock') cambiarPestana('stock', false);
-  cargarVentasDesdeNube();
+  setTimeout(cargarVentasDesdeNube, 1500);
+  if (inventory.length) { try { displayItems(); } catch (e) {} }
   cargarDatos().then(()=>mostrarAvisoPagoQuincena());
 }
-window.addEventListener('load', iniciar);
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar); else iniciar();
 </script>
 <script>
 if ('serviceWorker' in navigator) {
