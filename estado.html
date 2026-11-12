@@ -6,7 +6,9 @@
 *{box-sizing:border-box}body{margin:0;min-height:100vh;background:#0c0c0e;color:#f4f4f5;font-family:Arial,Helvetica,sans-serif;display:flex;align-items:center;justify-content:center;padding:20px}
 .card{width:100%;max-width:420px;background:#18181b;border:1px solid #27272a;border-radius:18px;padding:26px}
 h1{font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:#a1a1aa;margin:0 0 4px;text-align:center}
-.equipo{font-size:22px;font-weight:800;text-align:center;margin:6px 0 20px}
+.eq-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#71717a;text-align:center;margin-top:14px}
+.equipo{font-size:22px;font-weight:800;text-align:center;margin:4px 0 2px;line-height:1.25}
+.eq-sub{font-size:12px;color:#a1a1aa;text-align:center;margin:0 0 20px}
 .pasos{display:flex;justify-content:space-between;position:relative;margin:10px 0 24px}
 .pasos:before{content:"";position:absolute;top:15px;left:12%;right:12%;height:3px;background:#27272a}
 .barra{position:absolute;top:15px;left:12%;height:3px;background:#22c55e;transition:width .6s}
@@ -24,6 +26,20 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz6obXFYEE_W5HR4weY
 const PASOS = ['Recibido','En proceso','Listo','Entregado'];
 const out = document.getElementById('out');
 const esc = x => String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Saca el modelo del equipo de lo que devuelva la hoja (iPhone, Android o PC).
+function datosEquipo(d) {
+  let n = String(d.modelo || d.model || d.name || d.nombre || d.equipo || d.dispositivo || '').trim();
+  let tipo = String(d.category || d.categoria || '').trim(), color = String(d.color || '').trim(), cap = String(d.capacidad || '').trim();
+  if (/^PC\b/i.test(n)) { tipo = 'PC'; n = n.replace(/^PC\s*/i, '').trim(); }
+  else if (n.includes('/')) { const p = n.split('/').map(x => x.trim()).filter(Boolean); n = p[0] || ''; if (p.length >= 3) { color = color || p[1]; cap = cap || p[2]; } else cap = cap || p[1] || ''; }
+  if (n.includes(',')) n = n.split(',')[0].trim();
+  n = n.replace(/^APPLE\s+/i, '').replace(/\bIPHONE\b/i, 'iPhone').replace(/\bIPAD\b/i, 'iPad');
+  if (!tipo) tipo = /iphone|ipad|apple/i.test(n) ? 'iPhone' : /\b(pc|laptop|lenovo|hp|dell|asus|acer|macbook|thinkpad|ideapad)\b/i.test(n) ? 'PC' : (n ? 'Celular' : '');
+  if (/^(iphone|android|pc|celular|tel[eé]fono|laptop)$/i.test(n)) { tipo = tipo || n; n = ''; }
+  const icono = /pc|laptop/i.test(tipo) ? '💻' : '📱';
+  const tipoTxt = /pc|laptop/i.test(tipo) ? 'Computadora' : /iphone/i.test(tipo) ? 'iPhone' : /android|celular/i.test(tipo) ? 'Celular' : tipo;
+  return { modelo: n, icono, sub: [tipoTxt, color, cap].filter(Boolean).join(' · ') };
+}
 const dinero = n => 'RD$' + Number(n || 0).toLocaleString('es-DO');
 function formulario(msg) {
   out.innerHTML = (msg ? '<p class="err">' + esc(msg) + '</p>' : '<p style="text-align:center;color:#a1a1aa">Escribe el código de tu nota.</p>')
@@ -37,7 +53,8 @@ async function cargar(id) {
     if (!d.success) return formulario(d.message || 'No encontramos ese equipo.');
     const noReparado = /no se pudo|no reparad/i.test(String(d.estado || ''));
     let i = PASOS.findIndex(p => p.toLowerCase() === String(d.estado).toLowerCase()); if (i < 0) i = noReparado ? 1 : 0;
-    out.innerHTML = '<div class="equipo">' + esc(d.dispositivo || 'Tu equipo') + '</div>'
+    const eq = datosEquipo(d);
+    out.innerHTML = '<div class="eq-label">Tu equipo</div><div class="equipo">' + eq.icono + ' ' + esc(eq.modelo || 'Tu equipo') + '</div>' + (eq.sub ? '<div class="eq-sub">' + esc(eq.sub) + '</div>' : '<div class="eq-sub"></div>')
       + (noReparado
         ? '<div class="aviso" style="display:block;background:#450a0a;color:#fecaca">❌ Revisamos tu equipo y lamentablemente no se pudo reparar. Puedes pasar a retirarlo.</div>'
         : '<div class="pasos"><div class="barra" style="width:' + (i / 3 * 76) + '%"></div>' + PASOS.map((p, k) => '<div class="paso' + (k <= i ? ' ok' : '') + '"><i>' + (k < i ? '✓' : k + 1) + '</i>' + p + '</div>').join('') + '</div>')
