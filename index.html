@@ -643,6 +643,8 @@ button[aria-busy="true"] { opacity:.65; cursor:progress; }
 /* v7 · Formulario emergente (solo abre con "Nueva reparación" o "Editar") */
 #priceForm{position:fixed;z-index:950;top:2vh;left:50%;transform:translateX(-50%);width:min(980px,96vw);max-height:96vh;overflow-y:auto;margin:0;box-shadow:0 0 0 100vmax rgba(0,0,0,.72),0 20px 50px rgba(0,0,0,.6);overscroll-behavior:contain}
 body.form-rep-abierto{overflow:hidden}
+#priceForm>*{flex-shrink:0} /* que ninguna parte del formulario se aplaste (la Nota se veía cortada) */
+#priceForm textarea{min-height:60px}
 .form-cabecera{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:-20px;z-index:2;margin:-20px -20px 0;padding:12px 20px;background:#202024;border-bottom:1px solid var(--border-color);border-radius:10px 10px 0 0}
 .form-cabecera strong{font-size:15px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .form-cerrar{flex:none;width:34px;height:34px;padding:0!important;border-radius:8px;background:#2a2a30;color:#e5e7eb;font-size:16px;line-height:1}
@@ -927,7 +929,7 @@ button.mini{min-height:34px;border-radius:8px}
       <input type="tel" id="clientPhone" placeholder="Teléfono" maxlength="20" required autocomplete="off">
     </div>
     <div class="form-row">
-      <input type="email" id="clientEmail" placeholder="📧 Correo del cliente (opcional: le llega un correo cuando cambie el estado)" maxlength="120" autocomplete="off" inputmode="email">
+      <input type="email" id="clientEmail" placeholder="📧 Correo del cliente (opcional, para avisos)" maxlength="120" autocomplete="off" inputmode="email">
     </div>
 
     <div class="form-row">
