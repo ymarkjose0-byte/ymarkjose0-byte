@@ -35,14 +35,17 @@ async function cargar(id) {
   try {
     const d = await (await fetch(WEB_APP_URL + '?action=estado&id=' + encodeURIComponent(id))).json();
     if (!d.success) return formulario(d.message || 'No encontramos ese equipo.');
-    let i = PASOS.findIndex(p => p.toLowerCase() === String(d.estado).toLowerCase()); if (i < 0) i = 0;
+    const noReparado = /no se pudo|no reparad/i.test(String(d.estado || ''));
+    let i = PASOS.findIndex(p => p.toLowerCase() === String(d.estado).toLowerCase()); if (i < 0) i = noReparado ? 1 : 0;
     out.innerHTML = '<div class="equipo">' + esc(d.dispositivo || 'Tu equipo') + '</div>'
-      + '<div class="pasos"><div class="barra" style="width:' + (i / 3 * 76) + '%"></div>' + PASOS.map((p, k) => '<div class="paso' + (k <= i ? ' ok' : '') + '"><i>' + (k < i ? '✓' : k + 1) + '</i>' + p + '</div>').join('') + '</div>'
+      + (noReparado
+        ? '<div class="aviso" style="display:block;background:#450a0a;color:#fecaca">❌ Revisamos tu equipo y lamentablemente no se pudo reparar. Puedes pasar a retirarlo.</div>'
+        : '<div class="pasos"><div class="barra" style="width:' + (i / 3 * 76) + '%"></div>' + PASOS.map((p, k) => '<div class="paso' + (k <= i ? ' ok' : '') + '"><i>' + (k < i ? '✓' : k + 1) + '</i>' + p + '</div>').join('') + '</div>')
       + (d.cliente ? '<div class="fila"><span>Cliente</span><b>' + esc(d.cliente) + '</b></div>' : '')
       + (d.servicios ? '<div class="fila"><span>Servicio</span><b>' + esc(d.servicios) + '</b></div>' : '')
       + '<div class="fila"><span>Recibido</span><b>' + esc(d.fecha) + ' ' + esc(d.hora) + '</b></div>'
       + (d.precio ? '<div class="fila"><span>Total</span><b>' + dinero(d.precio) + (d.pagado ? ' · Pagado' : '') + '</b></div>' : '')
-      + '<div class="aviso" style="display:' + (i === 2 ? 'block' : 'none') + '">🎉 ¡Tu equipo está listo! Puedes pasar a recogerlo.</div>';
+      + '<div class="aviso" style="display:' + (i === 2 && !noReparado ? 'block' : 'none') + '">🎉 ¡Tu equipo está listo! Puedes pasar a recogerlo.</div>';
   } catch (e) { formulario('Sin conexión. Intenta de nuevo.'); }
 }
 const id = new URLSearchParams(location.search).get('id');

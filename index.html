@@ -631,6 +631,59 @@ button[aria-busy="true"] { opacity:.65; cursor:progress; }
 .rep-acciones button,.rep-acciones a{min-height:26px!important;padding:3px 6px!important;font-size:10.5px!important}
 @media(max-width:600px){.rep-cards{grid-template-columns:repeat(2,1fr)!important}}
 .rep-card{content-visibility:auto;contain-intrinsic-size:auto 220px}
+
+/* v8 · Estado "No se pudo reparar" (rojo) y botones de estado en 2 filas */
+.rep-estado.est-no-se-pudo-reparar{background:#450a0a;color:#fca5a5}
+.rc-estados button.e-noreparado{color:#f87171}
+.rc-estados button.e-noreparado[aria-pressed="true"]{background:#450a0a;color:#fecaca;border-color:#991b1b}
+.rc-estados{grid-template-columns:repeat(6,1fr)!important}
+.rc-estados button{grid-column:span 2}
+.rc-estados button:nth-child(4),.rc-estados button:nth-child(5){grid-column:span 3}
+.rep-card:has(.rep-estado.est-no-se-pudo-reparar)::before{background:linear-gradient(90deg,#ef4444,#f87171)!important}
+/* v7 · Formulario emergente (solo abre con "Nueva reparación" o "Editar") */
+#priceForm{position:fixed;z-index:950;top:2vh;left:50%;transform:translateX(-50%);width:min(980px,96vw);max-height:96vh;overflow-y:auto;margin:0;box-shadow:0 0 0 100vmax rgba(0,0,0,.72),0 20px 50px rgba(0,0,0,.6);overscroll-behavior:contain}
+body.form-rep-abierto{overflow:hidden}
+.form-cabecera{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:-20px;z-index:2;margin:-20px -20px 0;padding:12px 20px;background:#202024;border-bottom:1px solid var(--border-color);border-radius:10px 10px 0 0}
+.form-cabecera strong{font-size:15px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.form-cerrar{flex:none;width:34px;height:34px;padding:0!important;border-radius:8px;background:#2a2a30;color:#e5e7eb;font-size:16px;line-height:1}
+.form-cerrar:hover{background:#ef4444;color:#fff}
+@media(max-width:640px){#priceForm{top:0;width:100vw;max-height:100vh;height:100vh;border-radius:0;padding:14px}.form-cabecera{margin:-14px -14px 0;padding:10px 14px;top:-14px;border-radius:0}}
+
+/* v7 · Tarjetas compactas (más registros por pantalla) */
+.rep-cards{grid-template-columns:repeat(auto-fill,minmax(205px,1fr))!important;gap:6px!important}
+.rep-card{padding:7px 8px 7px!important;gap:3px!important;font-size:10.5px!important;border-radius:8px!important;contain-intrinsic-size:auto 150px}
+.rep-card::before{height:2px!important}
+.rep-card:hover{transform:none}
+.rep-card .rc-top{gap:5px}
+.rep-card .rc-fecha{min-width:26px;height:26px;border-radius:6px}
+.rep-card .rc-fecha b{font-size:12px!important}
+.rep-card .rc-fecha small{font-size:7px}
+.rep-card .rc-cuando{font-size:9.5px}
+.rep-card .rc-badges .badge{font-size:8px;padding:1px 5px}
+.rep-card .rc-cliente strong{font-size:12px!important}
+.rep-card .rc-cliente span{font-size:10px}
+.rep-card .rc-equipo{padding:0;background:none;border:0;gap:0 6px;flex-wrap:wrap;overflow:hidden}
+.rep-card .rc-equipo b{flex:1 1 100%;font-size:11px}
+.rep-card .rc-equipo code,.rep-card .rc-color{font-size:9.5px;flex:none}
+.rep-card .rc-equipo code{color:#94a3b8}
+.rep-card .rc-detalle{flex-direction:row;gap:8px;font-size:10px;color:#a1a1aa;overflow:hidden;white-space:nowrap}
+.rep-card .rc-detalle span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.rep-card .rc-detalle span:first-child{flex:1 1 auto}
+.rep-card .rc-detalle span:last-child{flex:none;max-width:45%}
+.rep-card .rc-nota{font-size:9.5px}
+.rep-card .rc-precios{font-size:8.5px!important;gap:1px 7px!important;letter-spacing:0!important;flex-wrap:wrap}
+.rep-card .rc-precios b{font-size:11px}
+.rep-card .rc-estados{padding:1px;gap:1px;border-radius:6px}
+.rep-card .rc-estados button{min-height:20px!important;font-size:8.5px!important;padding:1px 2px;border-radius:5px;gap:2px}
+.rep-card .rc-estados button::before{display:none}
+.rep-card .rc-estados button{overflow:hidden;text-overflow:ellipsis}
+.rep-card .rc-estados button[aria-pressed="true"]{box-shadow:inset 0 0 0 1px currentColor}
+.rep-card .rep-acciones{display:flex!important;gap:3px;margin-top:2px}
+.rep-card .rep-acciones>*{flex:1 1 0;min-width:0;min-height:24px!important;padding:2px 4px!important;font-size:10.5px!important;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+.rep-card .rep-acciones .solo-icono{flex:0 0 26px}
+.rep-card .rep-acciones>button:nth-child(3),.rep-card .rep-acciones>button:nth-child(2):not(.azul){flex:1.8 1 0}
+@media(max-width:600px){.rep-cards{grid-template-columns:repeat(2,1fr)!important;gap:5px!important}.rep-card .rc-cliente span{display:none}}
+@media(max-width:360px){.rep-cards{grid-template-columns:1fr!important}}
 </style>
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
@@ -661,7 +714,8 @@ button[aria-busy="true"] { opacity:.65; cursor:progress; }
   </div>
 
   <!-- FORMULARIO DE REPARACIÓN -->
-  <form id="priceForm" class="repair-only" autocomplete="off" novalidate>
+  <form id="priceForm" class="repair-only" autocomplete="off" novalidate style="display:none" aria-label="Registrar reparación">
+    <div class="form-cabecera"><strong id="tituloFormRep">➕ Nueva reparación</strong><button type="button" class="form-cerrar" id="btnCerrarForm" aria-label="Cerrar formulario" title="Cerrar">✕</button></div>
     <input type="hidden" id="editId">
     <input type="hidden" id="deviceCategory">
     <input type="hidden" id="mobileOS">
@@ -806,7 +860,7 @@ button[aria-busy="true"] { opacity:.65; cursor:progress; }
       <input type="number" id="itemCompra" placeholder="Precio Compra ($)" step="0.01" min="0" required>
       <input type="number" id="itemCliente" placeholder="Precio Cliente ($)" step="0.01" min="0" required>
       <select id="itemEstado">
-        <option value="Recibido">Recibido</option><option value="En proceso">En proceso</option><option value="Listo">Listo</option><option value="Entregado">Entregado</option>
+        <option value="Recibido">Recibido</option><option value="En proceso">En proceso</option><option value="Listo">Listo</option><option value="Entregado">Entregado</option><option value="No se pudo reparar">❌ No se pudo reparar</option>
       </select>
       <select id="itemPagado">
         <option value="No">💤 Sin pagar</option><option value="Sí">✅ Pagado</option>
@@ -826,7 +880,7 @@ button[aria-busy="true"] { opacity:.65; cursor:progress; }
   <input type="search" id="searchBox" class="search-box" placeholder="🔍 Buscar cliente, teléfono, IMEI, equipo, nota..." autocomplete="off">
   <div class="reg-controles repair-only" id="controlesRegistros">
     <label class="reg-ctrl"><span data-icono="⇅">Ordenar</span><select id="ordenRegistros" aria-label="Ordenar registros"><option value="recientes">Más recientes</option><option value="antiguos">Más antiguos</option><option value="sin-pagar">Sin pagar primero</option><option value="pagados">Pagados primero</option><option value="estado">Por estado (Recibido → Entregado)</option><option value="cliente-az">Cliente A → Z</option><option value="cliente-za">Cliente Z → A</option><option value="precio-mayor">Precio mayor</option><option value="precio-menor">Precio menor</option><option value="tecnico">Técnico</option><option value="equipo">Equipo / modelo</option></select></label>
-    <label class="reg-ctrl"><span data-icono="⏷">Mostrar</span><select id="filtroRegistros" aria-label="Filtrar registros"><option value="todos">Todos</option><option value="sin-pagar">Sin pagar</option><option value="pagados">Pagados</option><option value="recibido">Recibido</option><option value="en proceso">En proceso</option><option value="listo">Listo</option><option value="entregado">Entregado</option></select></label>
+    <label class="reg-ctrl"><span data-icono="⏷">Mostrar</span><select id="filtroRegistros" aria-label="Filtrar registros"><option value="todos">Todos</option><option value="sin-pagar">Sin pagar</option><option value="pagados">Pagados</option><option value="recibido">Recibido</option><option value="en proceso">En proceso</option><option value="listo">Listo</option><option value="entregado">Entregado</option><option value="no se pudo reparar">No se pudo reparar</option></select></label>
     <label class="reg-ctrl"><span data-icono="▤">Agrupar</span><select id="agruparRegistros" aria-label="Agrupar registros"><option value="anio-mes">Año y mes</option><option value="mes">Por mes</option><option value="anio">Por año</option><option value="quincena">Por quincena</option><option value="semana">Por semana</option><option value="dia">Por día</option><option value="ninguno">Sin agrupar</option></select></label>
     <label class="reg-ctrl"><span data-icono="📅">Período</span><select id="periodoRegistros" aria-label="Elegir mes o año"><option value="todo">Todo</option></select></label>
     <div class="vista-toggle" role="group" aria-label="Tipo de vista"><button type="button" class="vista-btn" data-vista="compacta">▦ Tarjetas</button><button type="button" class="vista-btn" data-vista="lista">☰ Lista</button><button type="button" class="vista-btn" data-vista="mini">≡ Mini</button></div>
@@ -2283,7 +2337,8 @@ function mensajeWhats(it) {
   const est = String(it.estado || 'Recibido');
   const total = Number(it.pCliente || 0) ? ' El total es ' + money(it.pCliente) + '.' : '';
   let msg;
-  if (/entregado/i.test(est)) msg = '¡Gracias por confiar en LifoxTech, ' + nombre + '! Si tienes cualquier problema con tu ' + equipo + ', escríbenos.';
+  if (/no se pudo|no reparad/i.test(est)) msg = 'Hola ' + nombre + ', revisamos tu ' + equipo + ' en LifoxTech y lamentablemente no se pudo reparar. Puedes pasar a retirarlo cuando gustes. Si tienes preguntas, escríbenos.';
+  else if (/entregado/i.test(est)) msg = '¡Gracias por confiar en LifoxTech, ' + nombre + '! Si tienes cualquier problema con tu ' + equipo + ', escríbenos.';
   else if (/listo|terminad|reparado/i.test(est)) msg = 'Hola ' + nombre + ', tu ' + equipo + ' ya está listo para recoger en LifoxTech.' + total + ' Recuerda que tienes 15 días para retirarlo.';
   else if (/proceso/i.test(est)) msg = 'Hola ' + nombre + ', ya estamos trabajando en tu ' + equipo + ' en LifoxTech. Te avisamos cuando esté listo.' + total;
   else msg = 'Hola ' + nombre + ', recibimos tu ' + equipo + ' en LifoxTech. Estado: ' + est + '.' + total;
@@ -2311,7 +2366,8 @@ function whatsCliente(id) {
 // ===== Cambio rápido de estado y pago (un toque) =====
 const ESTADOS_RAPIDOS = [
   { v: 'Recibido', c: 'e-recibido' }, { v: 'En proceso', c: 'e-proceso' },
-  { v: 'Listo', c: 'e-listo' }, { v: 'Entregado', c: 'e-entregado' }
+  { v: 'Listo', c: 'e-listo' }, { v: 'Entregado', c: 'e-entregado' },
+  { v: 'No se pudo reparar', c: 'e-noreparado', l: '✕ No se pudo' }
 ];
 const guardandoIds = new Set();
 const colaGuardado = {};
@@ -2344,7 +2400,7 @@ async function cambiarEstado(id, nuevo) {
   if (textoOrden(antes) === textoOrden(nuevo)) return;
   it.estado = nuevo; displayItems(); guardarCache();
   const acciones = [{ t: 'Deshacer', c: 'gris', f: () => cambiarEstado(id, antes) }];
-  if (/listo|entregado/i.test(nuevo) && telWhats(it.phone)) acciones.unshift({ t: '💬 Avisar', c: 'verde', f: () => whatsCliente(id) });
+  if (/listo|entregado|no se pudo/i.test(nuevo) && telWhats(it.phone)) acciones.unshift({ t: '💬 Avisar', c: 'verde', f: () => whatsCliente(id) });
   avisar('⏳ ' + nuevo + '…', acciones);
   try {
     await guardarRegistroRapido(it);
@@ -2441,7 +2497,7 @@ function limpiarHoraVisual(timeStr) {
 
 // ---- Orden, filtro y vista de los registros (se recuerdan en este dispositivo) ----
 const PREF_REGISTROS_KEY = 'lifox_pref_registros';
-const ORDEN_ESTADO = { 'recibido': 0, 'en proceso': 1, 'listo': 2, 'entregado': 3 };
+const ORDEN_ESTADO = { 'recibido': 0, 'en proceso': 1, 'listo': 2, 'no se pudo reparar': 3, 'entregado': 4 };
 function prefsRegistros() {
   let p = {}; try { p = JSON.parse(localStorage.getItem(PREF_REGISTROS_KEY) || '{}') || {}; } catch (e) {}
   return { orden: p.orden || 'recientes', filtro: p.filtro || 'todos', vista: p.vista || 'compacta', agrupar: p.agrupar || 'anio-mes', periodo: p.periodo || 'todo' };
@@ -2650,12 +2706,12 @@ function displayItems() {
       + '<div class="rc-mini-estado"><span class="badge ' + (pagado ? 'pag-si' : 'pag-no') + '">' + (pagado ? 'Pagado' : 'Sin pagar') + '</span><span class="badge rep-estado ' + claseEstado(it.estado) + '">' + escR(it.estado || 'Recibido') + '</span></div>'
       + '<div class="rc-precios"><span>Compra <b>' + money(it.pCompra) + '</b></span><span class="rc-cli">Cliente <b>' + money(it.pCliente) + '</b></span><span class="solo-admin rc-gan">Ganancia <b>' + (pagado ? money(it.profit) : '—') + '</b></span></div>'
       + '<div class="rc-estados-wrap solo-admin"><div class="rc-estados" role="group" aria-label="Cambiar estado de ' + escR(it.client || 'este equipo') + '">'
-        + ESTADOS_RAPIDOS.map(e => { const on = textoOrden(it.estado || 'Recibido') === textoOrden(e.v); return '<button type="button" class="' + e.c + '" aria-pressed="' + on + '" title="Cambiar a ' + e.v + '" onclick="cambiarEstado(\'' + idJs(it.id) + '\',\'' + e.v + '\')">' + e.v + '</button>'; }).join('')
+        + ESTADOS_RAPIDOS.map(e => { const on = textoOrden(it.estado || 'Recibido') === textoOrden(e.v); return '<button type="button" class="' + e.c + '" aria-pressed="' + on + '" title="Cambiar a ' + e.v + '" onclick="cambiarEstado(\'' + idJs(it.id) + '\',\'' + e.v + '\')">' + (e.l || e.v) + '</button>'; }).join('')
       + '</div></div>'
       + '<div class="rep-acciones solo-admin">'
-        + (it.phone ? '<a class="mini verde" href="' + escR(enlaceWhats(it)) + '" target="_blank" rel="noopener" aria-label="Avisar a ' + escR(it.client || 'cliente') + ' por WhatsApp" onclick="return abrirWhats(event,\'' + idJs(it.id) + '\')">💬 WhatsApp</a>' : '')
-        + '<button type="button" class="mini azul" onclick="editarRegistro(\'' + idJs(it.id) + '\')">✏️ Editar</button>'
-        + '<button type="button" class="mini ' + (pagado ? 'gris' : 'verde') + '" onclick="alternarPago(\'' + idJs(it.id) + '\')">' + (pagado ? '↩ Quitar pago' : '✓ Pagado') + '</button>'
+        + (it.phone ? '<a class="mini verde" href="' + escR(enlaceWhats(it)) + '" target="_blank" rel="noopener" aria-label="Avisar a ' + escR(it.client || 'cliente') + ' por WhatsApp" onclick="return abrirWhats(event,\'' + idJs(it.id) + '\')" title="WhatsApp">💬</a>' : '')
+        + '<button type="button" class="mini azul" onclick="editarRegistro(\'' + idJs(it.id) + '\')" title="Editar">✏️</button>'
+        + '<button type="button" class="mini ' + (pagado ? 'gris' : 'verde') + '" onclick="alternarPago(\'' + idJs(it.id) + '\')">' + (pagado ? '↩ Quitar' : '✓ Pagado') + '</button>'
         + '<button type="button" class="mini gris solo-icono" title="Imprimir nota" aria-label="Imprimir nota" onclick="imprimirNotaRegistro(\'' + idJs(it.id) + '\')">🖨</button>'
         + '<button type="button" class="mini rojo solo-icono" title="Borrar registro" aria-label="Borrar registro de ' + escR(it.client || '') + '" onclick="borrar(\'' + idJs(it.id) + '\')">🗑</button>'
       + '</div>'
@@ -2723,11 +2779,17 @@ function renderResumenQuincenal(){
 async function cargarDatos() {
   const statusEl = document.getElementById('loadingStatus');
   const puntoEl = document.getElementById('punto');
+  if (!isAdmin || !sessionStorage.getItem('adminToken')) { if (statusEl) statusEl.textContent = 'Inicia sesión para ver los registros'; return; }
   if (statusEl) statusEl.textContent = 'Actualizando...';
 
   try {
-    const r = await fetchConTiempo(WEB_APP_URL + '?t=' + Date.now(), {}, 25000);
+    const r = await fetchConTiempo(WEB_APP_URL + '?t=' + Date.now() + '&token=' + encodeURIComponent(sessionStorage.getItem('adminToken') || ''), {}, 25000);
     const data = await r.json();
+    if (data && data.success === false && /sesi/i.test(data.message || '')) {
+      if (statusEl) statusEl.textContent = 'Tu sesión venció: vuelve a entrar';
+      if (puntoEl) { puntoEl.style.background = 'var(--danger)'; }
+      return;
+    }
     if (Array.isArray(data)) {
       inventory = data;
       localStorage.setItem('lifox_inventory_cache', JSON.stringify(inventory));
@@ -2743,11 +2805,18 @@ async function cargarDatos() {
 
 async function borrar(id) {
   if (!confirm('¿Borrar registro?')) return;
+  const copia = inventory.slice();
   inventory = inventory.filter(x => x.id !== id);
   displayItems();
   try {
-    await fetch(WEB_APP_URL + '?action=delete&id=' + encodeURIComponent(id) + '&token=' + sessionStorage.getItem('adminToken'), { method: 'GET' });
-  } catch(e){}
+    const r = await fetch(WEB_APP_URL + '?action=delete&id=' + encodeURIComponent(id) + '&token=' + encodeURIComponent(sessionStorage.getItem('adminToken') || ''), { method: 'GET' });
+    const res = await r.json();
+    if (!res || res.success !== true) throw new Error((res && res.message) || 'No se pudo borrar');
+    guardarCache();
+  } catch (e) {
+    inventory = copia; displayItems();
+    alert('No se pudo borrar en la nube: ' + (e.message || 'sin conexión') + '. El registro sigue guardado.');
+  }
 }
 
 function editarRegistro(id) {
@@ -2792,8 +2861,7 @@ function editarRegistro(id) {
 
   renderChips();
   renderServicios(document.getElementById('mobileOS').value);
-  document.getElementById('priceForm').style.display = 'flex';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  abrirFormularioRep('✏️ Editar reparación · ' + (it.client || ''));
 }
 
 function imeiValidoFront(valor) {
@@ -2818,7 +2886,7 @@ document.getElementById('priceForm').addEventListener('submit', conCandado(async
   const isEditing = Boolean(editId);
   const cat = document.getElementById('deviceCategory').value;
   const imei = document.getElementById('imeiInput').value.replace(/\D/g, '');
-  if (cat !== 'pc' && imei && !imeiValidoFront(imei) && !confirm('El IMEI no parece válido (15 dígitos). ¿Guardar igual?')) return;
+  if (cat !== 'pc' && imei && !imeiValidoFront(imei)) { alert('El IMEI no es válido (deben ser 15 dígitos correctos). Revísalo o déjalo vacío.'); return; }
 
   let nombreDispositivo = '';
   if (cat === 'pc') {
@@ -2874,36 +2942,54 @@ document.getElementById('priceForm').addEventListener('submit', conCandado(async
   }
 }));
 
+let entrandoAdmin = false;
+function despertarServidor() { try { fetch(WEB_APP_URL + '?action=now&t=' + Date.now()).catch(() => {}); } catch (e) {} }
 function verificarPassword() {
+  if (entrandoAdmin) return;
   const u = document.getElementById('adminUserInput').value;
   const p = document.getElementById('adminPasswordInput').value;
-  fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'verifyAdmin', user: u, pass: p }) })
+  if (!u.trim() || !p) { alert('Escribe usuario y contraseña.'); return; }
+  const btn = document.querySelector('#adminModal .btn-azul');
+  const textoBtn = btn ? btn.textContent : '';
+  entrandoAdmin = true;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Entrando…'; }
+  const fin = () => { entrandoAdmin = false; if (btn) { btn.disabled = false; btn.textContent = textoBtn; } };
+  fetchConTiempo(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'verifyAdmin', user: u, pass: p }) }, 20000)
     .then(r => r.json())
     .then(d => {
+      fin();
       if (d.success) {
         sessionStorage.setItem('isAdmin', 'true');
         sessionStorage.setItem('adminToken', d.token);
         isAdmin = true;
         document.body.classList.add('admin');
         document.getElementById('adminModal').style.display = 'none';
+        document.getElementById('adminPasswordInput').value = '';
         actualizarAccesoModulos();
         displayItems();
+        cargarDatos();
+        try { cargarVentasDesdeNube(); } catch (e) {}
         enviarColaPendiente();
       } else {
         alert(d.message || 'Credenciales incorrectas.');
       }
-    });
+    })
+    .catch(() => { fin(); alert('No se pudo conectar con la nube. Revisa el internet e intenta otra vez.'); });
 }
 
 function toggleAdmin() {
   // Si ya hay una sesión activa, este botón no hace nada.
   // La sesión solo termina desde "Cerrar Sesión".
   if (isAdmin) return;
+  despertarServidor();
   document.getElementById('adminModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('adminUserInput').focus(), 50);
 }
 
 function cerrarSesionAdmin() {
   sessionStorage.clear();
+  try { localStorage.removeItem('lifox_inventory_cache'); } catch (e) {}
+  inventory = [];
   isAdmin = false;
   document.body.classList.remove('admin');
   actualizarAccesoModulos();
@@ -2939,17 +3025,40 @@ function cerrarModal() {
   document.getElementById('adminModal').style.display = 'none';
 }
 
+function abrirFormularioRep(titulo) {
+  const f = document.getElementById('priceForm');
+  const t = document.getElementById('tituloFormRep'); if (t) t.textContent = titulo || '➕ Nueva reparación';
+  f.style.display = 'flex';
+  document.body.classList.add('form-rep-abierto');
+  f.scrollTop = 0;
+  setTimeout(() => { const i = document.getElementById(titulo ? 'clientName' : 'imeiInput'); if (i) i.focus({ preventScroll: true }); }, 60);
+}
 document.getElementById('btnNueva').addEventListener('click', () => {
   if (!isAdmin) { document.getElementById('adminModal').style.display = 'flex'; return; }
+  const b = leerBorradores().priceForm;
+  if (b && !b.editId && (b.clientName || b.clientPhone || b.imeiInput) &&
+      confirm('Tienes un registro sin terminar' + (b.clientName ? ' (' + b.clientName + ')' : '') + '. ¿Quieres continuarlo?\n\nAceptar = continuar · Cancelar = empezar uno nuevo')) {
+    abrirFormularioRep(); return;
+  }
   borrarBorrador('priceForm');
   document.getElementById('priceForm').reset();
   document.getElementById('editId').value = '';
   seleccionados.clear();
   reiniciarSeleccionEquipo();
-  document.getElementById('priceForm').style.display = 'flex';
+  abrirFormularioRep();
 });
 document.getElementById('btnCancelar').addEventListener('click', () => { 
   limpiarFormularioReparacion();
+});
+document.getElementById('btnCerrarForm').addEventListener('click', () => {
+  const tieneDatos = ['clientName','clientPhone','imeiInput','itemCliente'].some(id => (document.getElementById(id).value || '').trim());
+  if (tieneDatos && !confirm('¿Cerrar sin guardar? Se perderá lo que escribiste.')) return;
+  limpiarFormularioReparacion();
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || !document.body.classList.contains('form-rep-abierto')) return;
+  if (document.querySelector('.modal-overlay[style*="flex"]')) return;
+  document.getElementById('btnCerrarForm').click();
 });
 searchBox.addEventListener('input', displayItems);
 prepararControlesRegistros();
@@ -3353,6 +3462,7 @@ document.getElementById('btnAbrirCamaraVenta').addEventListener('click', () => i
 document.getElementById('btnCerrarCamaraVenta').addEventListener('click', detenerEscaner);
 
 async function cargarVentasDesdeNube() {
+  if (!isAdmin || !sessionStorage.getItem('adminToken')) return;
   try {
     const r = await fetch(WEB_APP_URL + '?action=sales&token=' + encodeURIComponent(sessionStorage.getItem('adminToken') || '') + '&t=' + Date.now());
     const data = await r.json();
@@ -3435,7 +3545,7 @@ document.getElementById('salesForm').addEventListener('submit', conCandado(async
   const price = document.getElementById('salePrice').value;
   const imeiVenta = document.getElementById('saleImei').value.replace(/\D/g, '');
   if (!buyer || !phone || !model || price === '') { alert('Completa comprador, teléfono, modelo/artículo y precio.'); return; }
-  if (imeiVenta && !imeiValidoFront(imeiVenta) && !confirm('El IMEI no parece válido (15 dígitos). ¿Guardar igual?')) return;
+  if (imeiVenta && !imeiValidoFront(imeiVenta)) { alert('El IMEI no es válido (deben ser 15 dígitos correctos). Revísalo o déjalo vacío.'); return; }
   const now = fechaManualDe('saleFechaManual') || new Date(Date.now() + desfaseServidor);
   const venta = { deviceType: document.getElementById('saleDeviceType').value, buyer, phone, imei: imeiVenta, model: modeloComercial(model), color: document.getElementById('saleColor').value, capacity: document.getElementById('saleCapacity').value, item: document.getElementById('saleItem').value.trim(), seller: vendedorSeleccionado(), price: Number(price), note: document.getElementById('saleNote').value.trim(), date: now.toLocaleDateString('es-DO'), time: now.toLocaleTimeString('es-DO', { hour:'numeric', minute:'2-digit' }) };
   const fmVenta = fechaManualDe('saleFechaManual');
@@ -3488,6 +3598,7 @@ function actualizarAccesoModulos() {
   const stockActivo = document.getElementById('stockPanel').classList.contains('activo');
   if (!isAdmin) {
     document.querySelectorAll('.repair-only').forEach(el => el.style.display = 'none');
+    document.body.classList.remove('form-rep-abierto');
     document.getElementById('salesPanel').classList.remove('activo');
     document.getElementById('stockPanel').classList.remove('activo');
   } else {
@@ -3543,6 +3654,7 @@ function limpiarFormularioReparacion() {
   reiniciarSeleccionEquipo();
   actualizarMarcaPCOtra();
   f.style.display = 'none';
+  document.body.classList.remove('form-rep-abierto');
 }
 
 // limpiar=false solo se usa al recargar la página (para volver a la misma pestaña sin borrar nada).
@@ -3558,7 +3670,7 @@ function cambiarPestana(nombre, limpiar) {
   document.getElementById('salesPanel').classList.toggle('activo', ventas);
   document.getElementById('stockPanel').classList.toggle('activo', stock);
   document.querySelectorAll('.repair-only:not(#priceForm)').forEach(el => el.style.display = (ventas || stock) ? 'none' : '');
-  if (ventas || stock) document.getElementById('priceForm').style.display = 'none';
+  if (ventas || stock) { document.getElementById('priceForm').style.display = 'none'; document.body.classList.remove('form-rep-abierto'); }
   document.getElementById('tabVentas').classList.toggle('activa', ventas);
   document.getElementById('tabStock').classList.toggle('activa', stock);
   document.getElementById('tabReparaciones').classList.toggle('activa', !ventas && !stock);
@@ -3586,8 +3698,8 @@ document.querySelectorAll('#salesDeviceType .sales-type-option').forEach(btn=>bt
 
 const BORRADORES_KEY='lifox_borradores_formulario';
 function leerBorradores(){try{return JSON.parse(localStorage.getItem(BORRADORES_KEY)||'{}')}catch(e){return {}}}
-function guardarBorrador(id){const f=document.getElementById(id);if(!f)return;const data={};f.querySelectorAll('input,select,textarea').forEach(x=>{if(x.type!=='file'&&x.type!=='password')data[x.id]=x.value});if(id==='priceForm'){data.servicios=Array.from(seleccionados||[]);data.visible=f.style.display!=='none';}const all=leerBorradores();all[id]=data;localStorage.setItem(BORRADORES_KEY,JSON.stringify(all));}
-function restaurarBorrador(id){const f=document.getElementById(id),all=leerBorradores(),data=all[id];if(!f||!data)return;Object.keys(data).forEach(k=>{const x=document.getElementById(k);if(x&&data[k]!==undefined&&k!=='servicios'&&k!=='visible')x.value=data[k]});if(id==='priceForm'){(data.servicios||[]).forEach(x=>seleccionados.add(x));const tipo=document.getElementById('mobileOS').value;const boton=document.querySelector('.opcion-dispositivo[data-tipo="'+(tipo==='iPhone'?'iPhone':tipo==='PC'?'PC':'Android')+'"]');if(boton&&tipo)boton.click();renderServicios(tipo);renderChips();if(data.visible)f.style.display='flex';}}
+function guardarBorrador(id){const f=document.getElementById(id);if(!f)return;const data={};f.querySelectorAll('input,select,textarea').forEach(x=>{if(x.type!=='file'&&x.type!=='password')data[x.id]=x.value});if(id==='priceForm'){data.servicios=Array.from(seleccionados||[]);data.visible=f.style.display==='flex';}const all=leerBorradores();all[id]=data;localStorage.setItem(BORRADORES_KEY,JSON.stringify(all));}
+function restaurarBorrador(id){const f=document.getElementById(id),all=leerBorradores(),data=all[id];if(!f||!data)return;Object.keys(data).forEach(k=>{const x=document.getElementById(k);if(x&&data[k]!==undefined&&k!=='servicios'&&k!=='visible')x.value=data[k]});if(id==='priceForm'){(data.servicios||[]).forEach(x=>seleccionados.add(x));const tipo=document.getElementById('mobileOS').value;const boton=document.querySelector('.opcion-dispositivo[data-tipo="'+(tipo==='iPhone'?'iPhone':tipo==='PC'?'PC':'Android')+'"]');if(boton&&tipo)boton.click();renderServicios(tipo);renderChips();}}
 function borrarBorrador(id){const all=leerBorradores();delete all[id];localStorage.setItem(BORRADORES_KEY,JSON.stringify(all));}
 ['priceForm','salesForm'].forEach(id=>{const f=document.getElementById(id);if(f){restaurarBorrador(id);f.querySelectorAll('input,select,textarea').forEach(x=>x.addEventListener('input',()=>guardarBorrador(id)));f.querySelectorAll('select').forEach(x=>x.addEventListener('change',()=>guardarBorrador(id)));}});
 window.addEventListener('beforeunload',()=>{guardarBorrador('priceForm');guardarBorrador('salesForm');});
